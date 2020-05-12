@@ -2,7 +2,7 @@
 A repository for collaborative multi-omics data analysis
 
 ### Directory structure
-.
+```bash
 ├── .env <- Store password, API keys here
 ├── .gitignore <- List of files and folders for git to ignore
 ├── README.md
@@ -39,3 +39,4 @@ A repository for collaborative multi-omics data analysis
     └── visualization
         ├── visualization.R
         └── visualization.py
+```
