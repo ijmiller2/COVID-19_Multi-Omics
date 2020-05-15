@@ -34,7 +34,17 @@
 # date last modified: 5/15/20
 # input:
 # - Covid-19 Study DB.sqlite
-# ouptu:
+# output:
 # - Covid-19 Study DB.sqlite (modified metabolite_measurements table)
 
+## "X3_KAO_Updating_GC_metabolite_tier_in_DB.R"
+# description: extracts the mean tier information by molecule. This tier
+#   information is useful for filtering out poor quality metabolites and 
+#   is added to the sqlite db metadata table
+# data created: 5/15/20
+# date last modified: 5/15/20
+# input:
+# - Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite (modified metadata table)
 
