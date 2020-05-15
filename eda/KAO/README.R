@@ -20,3 +20,11 @@
 # output: 
 # - Covid-19 Study DB.sqlite (modified)
 
+## "02_KAO_Runorder_correction_for_GC_metabolomics_data.R"
+# description: Performs run order correction of the GC data and explores results.
+#   this analysis is exploratory only and does not modify the db.
+# date created: 5/13/20
+# date last modified: 5/14/20
+# input:
+# - Covid-19 Study DB.sqlite
+
