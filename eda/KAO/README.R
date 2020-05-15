@@ -28,3 +28,13 @@
 # input:
 # - Covid-19 Study DB.sqlite
 
+## "X2_KAO_GC_metabolomics_runtime_correction.R"
+# description: Performs run order correction and modifies db. 
+# date created: 5/14/20
+# date last modified: 5/15/20
+# input:
+# - Covid-19 Study DB.sqlite
+# ouptu:
+# - Covid-19 Study DB.sqlite (modified metabolite_measurements table)
+
+
