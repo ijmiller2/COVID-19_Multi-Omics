@@ -1,0 +1,13 @@
+Class Color
+"COVID_ICU" "#D53E4F"
+"COVID_NONICU"  "#FDAE61"
+"NONCOVID_ICU"  "#74ADD1"
+"NONCOVID_NONICU" "#66C2A5"
+"Col5"  "#F46D43"
+"Col6"  "#5AAE61"
+"Col7"  "#8073AC"
+"Col8"  "#DE77AE"
+"Col9"  "#9E0142"
+"Col10" "#F4A582"
+"Col11" "#2A4023"
+"Col12" "#2C0379"
