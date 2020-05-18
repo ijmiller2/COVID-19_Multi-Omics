@@ -48,3 +48,12 @@
 # output:
 # - Covid-19 Study DB.sqlite (modified metadata table)
 
+## "03_KAO_Exploring_GC_feature_quality.R"
+# description: Explores 4 metrics of GC-metabolomics feature quality -
+#   1) duplicate moleucles, 2) mean tier quality, 3) RSDs of QC sampels 
+#   within and between batches, 4) dynamic range. 
+# date created: 5/16/20
+# date last modified: 5/18/20
+# input:
+# - Covid-19 Study DB.sqlite
+
