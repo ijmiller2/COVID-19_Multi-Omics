@@ -68,3 +68,12 @@
 # output:
 # - Covid-19 Study DB.sqlite (biomolecules 'keep' colulmn updated)
 
+
+## "04_KAO_Exploring_GC_data_after_feature_filtering.R"
+# description: looks at GC data by PCA after features have been
+# filtered.
+# date created: 5/18/2020
+# date last modified: 5/19/2020
+# input: 
+# - Covid-19 Study DB.sqlite
+
