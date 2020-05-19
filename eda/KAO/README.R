@@ -57,3 +57,14 @@
 # input:
 # - Covid-19 Study DB.sqlite
 
+## "X4_KAO_updating_biomolecules_keep_column_GC_metabolites.R"
+# description: modifies DB to update metabolite keep column to 
+#   denote features which should be excluded from downstream analysis
+# CAUTION: script iterates and caution should be used when executing. 
+# date created: 5/18/20
+# date last modified: 5/18/20 
+# input: 
+# - Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite (biomolecules 'keep' colulmn updated)
+
