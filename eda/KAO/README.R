@@ -77,3 +77,15 @@
 # input: 
 # - Covid-19 Study DB.sqlite
 
+## "05_KAO_Batch_effects_in_lipidomics_data.R"
+# description: looks at batch effect of lipidomics data 
+# and in doing so, catches an initial error in the db 
+# entries for lipidomics features due to the way features 
+# were named resulting in duplicate identifiers. I will 
+# work with Dain to update the lipidomics values. 
+# date created 5/19/2020
+# date last modified: 5/20/2020
+# input:
+# - Covid-19 Study DB.sqlite
+# - Lipidomics/Lipidomics_quant_results/Final_Results.csv
+
