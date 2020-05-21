@@ -5,7 +5,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from data import get_metabolomics_data
-from plot import biomolecule_bar, pca_plot
+from plot import biomolecule_bar, pca_plot, boxplot
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -38,13 +38,19 @@ app.layout = html.Div([
             ),
         ],
 
-        style={'width': '48%', 'display': 'inline-block'}),
+        style={'width': '49%', 'display': 'inline-block',
+        'border': 'thin lightgrey solid',
+        'backgroundColor': 'rgb(250, 250, 250)',
+        'padding': '10px 5px'}),
 
     ]),
 
-    dcc.Graph(id='biomolecule-barplot')
+    html.Div(
+        [html.Div(dcc.Graph(id='biomolecule-barplot', className="six columns")),
+        html.Div(dcc.Graph(id='biomolecule-boxplot', className="six columns"))],
+        className="row"),
 
-], style={'columnCount': 2})
+])
 
 @app.callback(
     Output('biomolecule-barplot', 'figure'),
@@ -56,6 +62,19 @@ def update_biomolecule_barplot(biomolecule_id):
     x = metabolomics_df.index
     y = biomolecule_id
     fig = biomolecule_bar(combined_df, x, y, biomolecule_name)
+
+    return fig
+
+@app.callback(
+    Output('biomolecule-boxplot', 'figure'),
+    [Input('biomolecule_id', 'value')])
+
+def update_biomolecule_boxplot(biomolecule_id):
+
+    biomolecule_name = biomolecule_id
+    x = combined_df.index
+    y = biomolecule_id
+    fig = boxplot_figure = boxplot(combined_df, biomolecule_name)
 
     return fig
 
