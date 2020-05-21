@@ -37,6 +37,22 @@ def get_metabolomics_data(with_metadata=False):
 
     wide_df = joined_df.pivot_table(index='sample_id', columns='biomolecule_id', values='normalized_abundance')
 
+    # get biomolecule names
+    biomolecules_df = pd.read_sql_query("SELECT * from biomolecules", connection)
+
+    # build biomolecule name dict
+    biomolecule_name_dict = {}
+    for index, row in biomolecules_df.iterrows():
+        biomolecule_id = row['biomolecule_id']
+        standardized_name = row['standardized_name']
+        biomolecule_name_dict[biomolecule_id] = standardized_name
+
+    # replace wide_df column names
+    new_col_names = []
+    for col in wide_df.columns:
+        new_col_names.append(biomolecule_name_dict[col])
+    wide_df.columns = new_col_names
+
     # optional return matrix with clinical metadata
     if with_metadata:
 

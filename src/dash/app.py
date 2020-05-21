@@ -33,6 +33,7 @@ app.layout = html.Div([
             dcc.Dropdown(
                 id='biomolecule_id',
                 options=[{'label': i, 'value': i} for i in available_metabolobites],
+                # only passing in quant value columns
                 value=available_metabolobites[0]
             ),
         ],
@@ -51,9 +52,10 @@ app.layout = html.Div([
 
 def update_biomolecule_barplot(biomolecule_id):
 
+    biomolecule_name = biomolecule_id
     x = metabolomics_df.index
     y = biomolecule_id
-    fig = biomolecule_bar(metabolomics_df, x, y)
+    fig = biomolecule_bar(combined_df, x, y, biomolecule_name)
 
     return fig
 
