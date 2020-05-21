@@ -5,7 +5,7 @@ import pandas as pd
 # SQLite path
 db_path = 'sqlite:///../../data/SQLite Database/Covid-19 Study DB.sqlite'
 
-def get_metabolomics_data():
+def get_metabolomics_data(with_metadata=False):
     # Create an engine that connects to the Covid-19 Study DB.sqlite file: engine
     engine = create_engine(db_path)
 
@@ -36,5 +36,11 @@ def get_metabolomics_data():
                 .join(deidentified_patient_metadata_df.set_index('sample_id'), on='sample_id')
 
     wide_df = joined_df.pivot_table(index='sample_id', columns='biomolecule_id', values='normalized_abundance')
+
+    # optional return matrix with clinical metadata
+    if with_metadata:
+
+        combined_df = wide_df.join(deidentified_patient_metadata_df.set_index('sample_id'), on='sample_id')#.dropna()
+        return combined_df
 
     return wide_df
