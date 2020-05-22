@@ -1,13 +1,15 @@
 
 import dash
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from data import get_metabolomics_data
-from plot import biomolecule_bar, pca_plot, boxplot
+from plot import pca_scores_plot, pca_loadings_plot, biomolecule_bar, boxplot
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+#external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets=[dbc.themes.BOOTSTRAP]
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -18,18 +20,32 @@ metabolomics_df = get_metabolomics_data()
 combined_df = get_metabolomics_data(with_metadata=True)
 
 # define static pca plot
-pca_figure = pca_plot(metabolomics_df, combined_df)
+pca_scores_figure = pca_scores_plot(metabolomics_df, combined_df)
+pca_loadings_figure = pca_loadings_plot(metabolomics_df)
 
 available_metabolobites = metabolomics_df.columns.tolist()
 
+first_card = dbc.Card(
+    [
+        dbc.CardHeader("pca_scores_figure"),
+        dbc.CardBody(dcc.Graph(figure=pca_scores_figure))
+
+        ])
+
+second_card = dbc.Card(
+    [
+        dbc.CardHeader("pca_scores_figure"),
+        dbc.CardBody(dcc.Graph(figure=pca_loadings_figure))
+    ])
+
 app.layout = html.Div([
 
-    dcc.Graph(figure=pca_figure),
+    dbc.Row([dbc.Col(first_card, width=4), dbc.Col(second_card, width=8)]),
 
     html.Div([
 
         html.Div([
-            html.Label('Select Biomolecule'),
+            html.H3('Select Biomolecule'),
             dcc.Dropdown(
                 id='biomolecule_id',
                 options=[{'label': i, 'value': i} for i in available_metabolobites],
@@ -37,17 +53,18 @@ app.layout = html.Div([
                 value=available_metabolobites[0]
             ),
         ],
-
-        style={'width': '49%', 'display': 'inline-block',
+        style={'width': '30%', 'display': 'inline-block',
         'border': 'thin lightgrey solid',
         'backgroundColor': 'rgb(250, 250, 250)',
         'padding': '10px 5px'}),
 
+        html.Div(style={'width': '70%'}),
+
     ]),
 
     html.Div(
-        [html.Div(dcc.Graph(id='biomolecule-barplot', className="six columns")),
-        html.Div(dcc.Graph(id='biomolecule-boxplot', className="six columns"))],
+        [html.Div(dcc.Graph(id='biomolecule-barplot', className="eight columns")),
+        html.Div(dcc.Graph(id='biomolecule-boxplot', className="four columns"))],
         className="row"),
 
 ])
@@ -78,15 +95,5 @@ def update_biomolecule_boxplot(biomolecule_id):
 
     return fig
 
-#@app.callback(
-#    Output('pca', 'figure'),
-#    Input()
-#)
-#def update_pca(combined_df):
-#
-#    fig = pca(combined_df)
-#
-#    return fig
-
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, host='0.0.0.0')

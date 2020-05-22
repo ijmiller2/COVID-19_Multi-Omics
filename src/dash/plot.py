@@ -1,7 +1,7 @@
 
 import plotly.express as px
 import pandas as pd
-from sklearn.decomposition import PCA
+import numpy as np
 
 color_dict = {
                 "COVID_ICU":"#D53E4F",
@@ -89,7 +89,7 @@ def boxplot(combined_df, biomolecule_name):
 
     return fig
 
-def pca_plot(quant_df, combined_df):
+def pca_scores_plot(quant_df, combined_df):
 
     from sklearn.decomposition import PCA
 
@@ -109,16 +109,48 @@ def pca_plot(quant_df, combined_df):
     df = pd.DataFrame({'x':PC1s, 'y':PC2s, 'sample_id':combined_df.index.tolist()})
 
     fig = px.scatter(df, x="x", y="y", hover_data=['sample_id'],
-                    size=[10]*df.shape[0],
                     color=color_list,
                     color_discrete_map=color_dict)
-                    #symbol=shape_list,
-                    #symbol_map={"COVID":'hexagram', "NONCOVID":'circle', "NA":'cross'})
+
+    fig.update_traces(marker=dict(size=20, opacity=0.8))
 
     fig.update_layout(
-        title="GC/MS Metabolomics PCA",
+        title="GC/MS Metabolomics PCA Scores Plot",
         xaxis_title='PC1 ({}%)'.format(round(100*pca.explained_variance_ratio_[0],1)),
         yaxis_title='PC2 ({}%)'.format(round(100*pca.explained_variance_ratio_[1],1)),
+        font=dict(
+            family="Helvetica",
+            size=18,
+            color="#7f7f7f")
+        )
+
+    return fig
+
+def pca_loadings_plot(quant_df):
+
+    from sklearn.decomposition import PCA
+
+    pca = PCA(n_components = 10)
+    PCA = pca.fit_transform(quant_df)
+
+    loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
+
+    PC1_index = 0
+    PC1_loadings = [x[PC1_index] for x in loadings]
+    PC2_index = 1
+    PC2_loadings = [y[PC2_index] for y in loadings]
+
+    df = pd.DataFrame({'x':PC1_loadings, 'y':PC2_loadings, 'sample_id':quant_df.columns.tolist()})
+
+    fig = px.scatter(df, x="x", y="y", hover_data=['sample_id'],
+                    color_discrete_map=color_dict)
+
+    fig.update_traces(marker=dict(size=10, opacity=0.5))
+
+    fig.update_layout(
+        title="GC/MS Metabolomics PCA Loadings Plot",
+        xaxis_title='Loadings on PC1',
+        yaxis_title='Loadings on PC2',
         font=dict(
             family="Helvetica",
             size=18,
