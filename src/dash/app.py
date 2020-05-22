@@ -27,20 +27,20 @@ available_metabolobites = metabolomics_df.columns.tolist()
 
 first_card = dbc.Card(
     [
-        dbc.CardHeader("pca_scores_figure", style={"color":"primary"}),
+        dbc.CardHeader("PCA Scores Plot - Samples", style={"background-color":"#5bc0de"}),
         dbc.CardBody(dcc.Graph(figure=pca_scores_figure))
 
         ])
 
 second_card = dbc.Card(
     [
-        dbc.CardHeader("pca_scores_figure", style={"color":"primary"}),
+        dbc.CardHeader("PCA Loadings Plot - Biomolecules", style={"background-color":"#5bc0de"}),
         dbc.CardBody(dcc.Graph(figure=pca_loadings_figure))
     ])
 
 biomolecule_dropdown = dbc.Card(
     [
-        dbc.CardHeader("Select Biomolecule", style={"color":"secondary"}),
+        dbc.CardHeader("Select Biomolecule", style={"background-color":"#5bc0de"}),
         dbc.CardBody(
             dcc.Dropdown(
                 id='biomolecule_id',
@@ -52,25 +52,30 @@ biomolecule_dropdown = dbc.Card(
 
 third_card = dbc.Card(
     [
-        dbc.CardHeader("biomolecule-barplot", style={"color":"primary"}),
+        dbc.CardHeader("Biomolecule Barplot", style={"background-color":"#5bc0de"}),
         dbc.CardBody(dcc.Graph(id='biomolecule-barplot'))
     ])
 
 fourth_card = dbc.Card(
     [
-        dbc.CardHeader("biomolecule-boxplot", style={"color":"primary"}),
+        dbc.CardHeader("Biomolecule Boxplot", style={"background-color":"#5bc0de"}),
         dbc.CardBody(dcc.Graph(id='biomolecule-boxplot'))
     ])
 
-app.layout = html.Div([
+spacing_style_dict = {
+    "margin-bottom":"3px",
+    "padding-left": "3px",
+    "padding-right": "3px"}
 
-    dbc.Row([dbc.Col(first_card, width=6), dbc.Col(second_card, width=6)]),
+app.layout = dbc.Container([
 
-    dbc.Row([dbc.Col(biomolecule_dropdown, width=4)]),
+    dbc.Row([dbc.Col(first_card, width=6, align="center"), dbc.Col(second_card, width=6, align="center")], className="mb-3"),
 
-    dbc.Row([dbc.Col(third_card, width=6), dbc.Col(fourth_card, width=6)])
+    dbc.Row([dbc.Col(biomolecule_dropdown, width=4)], className="mb-3"),
 
-])
+    dbc.Row([dbc.Col(third_card, width=6, align="center"), dbc.Col(fourth_card, width=6, align="center")], className="mb-3")
+
+], fluid=True)
 
 @app.callback(
     Output('biomolecule-barplot', 'figure'),
