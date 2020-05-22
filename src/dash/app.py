@@ -27,45 +27,48 @@ available_metabolobites = metabolomics_df.columns.tolist()
 
 first_card = dbc.Card(
     [
-        dbc.CardHeader("pca_scores_figure"),
+        dbc.CardHeader("pca_scores_figure", style={"color":"primary"}),
         dbc.CardBody(dcc.Graph(figure=pca_scores_figure))
 
         ])
 
 second_card = dbc.Card(
     [
-        dbc.CardHeader("pca_scores_figure"),
+        dbc.CardHeader("pca_scores_figure", style={"color":"primary"}),
         dbc.CardBody(dcc.Graph(figure=pca_loadings_figure))
     ])
 
-app.layout = html.Div([
-
-    dbc.Row([dbc.Col(first_card, width=4), dbc.Col(second_card, width=8)]),
-
-    html.Div([
-
-        html.Div([
-            html.H3('Select Biomolecule'),
+biomolecule_dropdown = dbc.Card(
+    [
+        dbc.CardHeader("Select Biomolecule", style={"color":"secondary"}),
+        dbc.CardBody(
             dcc.Dropdown(
                 id='biomolecule_id',
                 options=[{'label': i, 'value': i} for i in available_metabolobites],
                 # only passing in quant value columns
-                value=available_metabolobites[0]
-            ),
-        ],
-        style={'width': '30%', 'display': 'inline-block',
-        'border': 'thin lightgrey solid',
-        'backgroundColor': 'rgb(250, 250, 250)',
-        'padding': '10px 5px'}),
+                value=available_metabolobites[0])
+                )
+    ])
 
-        html.Div(style={'width': '70%'}),
+third_card = dbc.Card(
+    [
+        dbc.CardHeader("biomolecule-barplot", style={"color":"primary"}),
+        dbc.CardBody(dcc.Graph(id='biomolecule-barplot'))
+    ])
 
-    ]),
+fourth_card = dbc.Card(
+    [
+        dbc.CardHeader("biomolecule-boxplot", style={"color":"primary"}),
+        dbc.CardBody(dcc.Graph(id='biomolecule-boxplot'))
+    ])
 
-    html.Div(
-        [html.Div(dcc.Graph(id='biomolecule-barplot', className="eight columns")),
-        html.Div(dcc.Graph(id='biomolecule-boxplot', className="four columns"))],
-        className="row"),
+app.layout = html.Div([
+
+    dbc.Row([dbc.Col(first_card, width=6), dbc.Col(second_card, width=6)]),
+
+    dbc.Row([dbc.Col(biomolecule_dropdown, width=4)]),
+
+    dbc.Row([dbc.Col(third_card, width=6), dbc.Col(fourth_card, width=6)])
 
 ])
 
