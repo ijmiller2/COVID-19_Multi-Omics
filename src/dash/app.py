@@ -23,11 +23,13 @@ combined_df = get_metabolomics_data(with_metadata=True)
 pca_scores_figure = pca_scores_plot(metabolomics_df, combined_df)
 pca_loadings_figure = pca_loadings_plot(metabolomics_df)
 
+available_datasets = ['GC/MS Metabolomics']#, 'QQQ Metabolomics', 'Lipidomics',
+                        #'Proteomics', 'Transcriptomics']
 available_metabolobites = metabolomics_df.columns.tolist()
 
 first_card = dbc.Card(
     [
-        dbc.CardHeader("PCA Scores Plot",
+        dbc.CardHeader("PCA SCORES PLOT",
                             style={"background-color":"#5bc0de",
                                     "font-weight":"bold",
                                     "font-size":"large"}),
@@ -37,31 +39,40 @@ first_card = dbc.Card(
 
 second_card = dbc.Card(
     [
-        dbc.CardHeader("PCA Loadings Plot",
+        dbc.CardHeader("PCA LOADINGS PLOT",
                             style={"background-color":"#5bc0de",
                                     "font-weight":"bold",
                                     "font-size":"large"}),
         dbc.CardBody(dcc.Graph(figure=pca_loadings_figure))
     ])
 
-biomolecule_dropdown = dbc.Card(
+control_panel = dbc.Card(
     [
-        dbc.CardHeader("Select Biomolecule",
+        dbc.CardHeader("CONTROL PANEL",
                             style={"background-color":"#5bc0de",
                                         "font-weight":"bold",
                                         "font-size":"large"}),
         dbc.CardBody(
+            [html.P("Select Dataset", className="card-title", style={"font-weight":"bold"}),
+            dcc.Dropdown(
+                id='dataset_id',
+                options=[{'label': i, 'value': i} for i in available_datasets],
+                # only passing in quant value columns
+                value=available_datasets[0]),
+            html.Hr(),
+            html.P("Select Biomolecule", className="card-title", style={"font-weight":"bold"}),
             dcc.Dropdown(
                 id='biomolecule_id',
                 options=[{'label': i, 'value': i} for i in available_metabolobites],
                 # only passing in quant value columns
-                value=available_metabolobites[0])
-                )
+                value=available_metabolobites[0]),
+
+                ])
     ])
 
 third_card = dbc.Card(
     [
-        dbc.CardHeader("Biomolecule Barplot",
+        dbc.CardHeader("BIOMOLECULE BARPLOT",
                             style={"background-color":"#5bc0de",
                                         "font-weight":"bold",
                                         "font-size":"large"}),
@@ -70,7 +81,7 @@ third_card = dbc.Card(
 
 fourth_card = dbc.Card(
     [
-        dbc.CardHeader("Biomolecule Boxplot",
+        dbc.CardHeader("BIOMOLECULE BOXPLOT",
                             style={"background-color":"#5bc0de",
                                     "font-weight":"bold",
                                     "font-size":"large"}),
@@ -95,10 +106,10 @@ navbar = dbc.NavbarSimple(
             label="More",
         ),
 
-        html.Div(html.A(html.Img(src=COONLAB_LOGO,
+        dbc.NavItem(html.Div(html.A(html.Img(src=COONLAB_LOGO,
                 style={"height":"40px"}),
                 href="https://coonlabs.com/"),
-                className="d-none d-lg-block ml-4")
+                className="d-none d-lg-block ml-4"))
 
         ],
     brand="NIH NATIONAL CENTER FOR QUANTITATIVE BIOLOGY OF COMPLEX SYSTEMS",
@@ -120,9 +131,28 @@ app.layout = dbc.Container([
 
     html.Hr(),
 
-    dbc.Row([dbc.Col(first_card, md=6, align="center"), dbc.Col(second_card, md=6, align="center")], className="mb-3"),
+    dbc.Row(
+        [dbc.Col(
+        dbc.Nav(
+    [
+        html.H3("TYPE OF ANALYSIS", style={"font-weight":"bold", "color":"black"}),
+        dbc.NavItem(dbc.NavLink("PCA", active=True, href="#", style={"background-color":"grey"})),
+        dbc.NavItem(dbc.NavLink("Linear Regression", disabled=True, href="#")),
+        dbc.NavItem(dbc.NavLink("Differential Expression", disabled=True, href="#")),
+        dbc.NavItem(dbc.NavLink("Pathway Analysis", disabled=True, href="#")),
+        html.Hr(),
+        control_panel
+    ],
+    vertical="md",
+    pills=True
+        ), md=3, className="mb-3"),
 
-    dbc.Row([dbc.Col(biomolecule_dropdown, width=4)], className="mb-3"),
+        #dbc.Col(control_panel, md=6)
+        dbc.Col(first_card, md=4),
+        dbc.Col(second_card, md=5)
+        ],
+
+        className="mb-3"),
 
     dbc.Row([dbc.Col(third_card, md=7, align="center"), dbc.Col(fourth_card, md=5, align="center")], className="mb-3")
 
