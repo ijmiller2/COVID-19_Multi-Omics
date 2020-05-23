@@ -98,10 +98,10 @@ navbar = dbc.NavbarSimple(
         html.Div(html.A(html.Img(src=COONLAB_LOGO,
                 style={"height":"40px"}),
                 href="https://coonlabs.com/"),
-                style={"background-color":"#5bc0de"})
+                className="d-none d-lg-block ml-4")
 
         ],
-    brand="NIH National Center for Quantitative Biology of Complex Systems",
+    brand="NIH NATIONAL CENTER FOR QUANTITATIVE BIOLOGY OF COMPLEX SYSTEMS",
     brand_style={"font-size":"xx-large"},
     brand_href="https://www.ncqbcs.com/",
     color="#5bc0de",
