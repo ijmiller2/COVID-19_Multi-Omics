@@ -7,13 +7,13 @@ description:
     2. Join metabolomics measurements and clinical metadata tables  
     3. Run PCA  
     4. Generate plot scores plot and color by ICU status  
-Relevant Issue(s): NA
-date created: 5/12/20
-date last modified: 5/19/20
-input:
-  - sqlite_db: data/SQLite Database/Covid-19 Study DB.sqlite
-output:
-  - NA
+Relevant Issue(s): NA  
+date created: 5/12/20  
+date last modified: 5/19/20  
+input:  
+  - sqlite_db: data/SQLite Database/Covid-19 Study DB.sqlite  
+output:  
+  - NA  
 
 ### 1.1_metabolomics_qc.ipynb 
 
