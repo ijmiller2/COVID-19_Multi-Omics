@@ -79,9 +79,10 @@ fourth_card = dbc.Card(
 
 COONLAB_LOGO="https://coonlabs.com/wp-content/uploads/2016/07/coon-logo-white.png"
 navbar = dbc.NavbarSimple(
-    children=[
 
+        [
         dbc.NavItem(dbc.NavLink("About", href="#")),
+
         dbc.DropdownMenu(
             children=[
                 dbc.DropdownMenuItem("Meet the Team", header=True),
@@ -92,19 +93,30 @@ navbar = dbc.NavbarSimple(
             nav=True,
             in_navbar=True,
             label="More",
+            className="mr-12"
         ),
-        html.Div(style={"width":"200px"}),
-        html.A(html.Img(src=COONLAB_LOGO, style={"height":"40px", "float":"right"}
-                ), href="https://coonlabs.com/"),
 
-    ],
+        html.Div(html.A(html.Img(src=COONLAB_LOGO,
+                style={"height":"40px"}),
+                href="https://coonlabs.com/"),
+                style={"background-color":"#5bc0de"},
+                className="ml-2")
+
+        ],
     brand="NIH National Center for Quantitative Biology of Complex Systems",
     brand_style={"font-size":"xx-large"},
     brand_href="https://www.ncqbcs.com/",
     color="#5bc0de",
     dark=True,
-    className="mt-1"
+    className="mt-1",
+    fluid=True
 )
+
+COONLAB_IMAGE_URL = html.Div(html.A(html.Img(src=COONLAB_LOGO,
+        style={"height":"40px"}),
+        href="https://coonlabs.com/"),
+        style={"background-color":"#5bc0de"},
+        className="ml-2")
 
 app.layout = dbc.Container([
 
