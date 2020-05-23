@@ -59,6 +59,7 @@ def biomolecule_bar(combined_df, x, y, biomolecule_name):
 
     fig.update_layout(
         title="{}".format(biomolecule_name),
+        legend_title_text='Group',
         xaxis_title='Sample',
         yaxis_title='log2(LFQ) Value',
         font=dict(
@@ -79,6 +80,7 @@ def boxplot(combined_df, biomolecule_name):
     fig.update_traces(quartilemethod="exclusive") # or "inclusive", or "linear" by default
     fig.update_layout(
         title="{}".format(biomolecule_name),
+        legend_title_text='Group',
         xaxis_title='Group',
         yaxis_title='log2(LFQ) Value',
         font=dict(
@@ -115,7 +117,8 @@ def pca_scores_plot(quant_df, combined_df):
     fig.update_traces(marker=dict(size=20, opacity=0.8))
 
     fig.update_layout(
-        title="GC/MS Samples",
+        title="GC/MS Samples (n={})".format(quant_df.shape[0]),
+        legend_title_text='Group',
         xaxis_title='PC1 ({}%)'.format(round(100*pca.explained_variance_ratio_[0],1)),
         yaxis_title='PC2 ({}%)'.format(round(100*pca.explained_variance_ratio_[1],1)),
         font=dict(
@@ -148,7 +151,8 @@ def pca_loadings_plot(quant_df):
     fig.update_traces(marker=dict(size=10, opacity=0.5))
 
     fig.update_layout(
-        title="GC/MS Metabolites",
+        title="GC/MS Metabolites (n={})".format(quant_df.shape[1]),
+        legend_title_text='Group',
         xaxis_title='Loadings on PC1',
         yaxis_title='Loadings on PC2',
         font=dict(
