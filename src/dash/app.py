@@ -103,6 +103,7 @@ navbar = dbc.NavbarSimple(
     brand_href="https://www.ncqbcs.com/",
     color="#5bc0de",
     dark=True,
+    className="mt-1"
 )
 
 app.layout = dbc.Container([
