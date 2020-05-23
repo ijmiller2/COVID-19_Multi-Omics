@@ -113,7 +113,7 @@ navbar = dbc.NavbarSimple(
 
         ],
     brand="NIH NATIONAL CENTER FOR QUANTITATIVE BIOLOGY OF COMPLEX SYSTEMS",
-    brand_style={"font-size":"xx-large"},
+    brand_style={"font-size":"xx-large", "font-style":"italic"},
     brand_href="https://www.ncqbcs.com/",
     color="#5bc0de",
     dark=True,
@@ -136,19 +136,58 @@ app.layout = dbc.Container([
         dbc.Nav(
     [
         html.H3("TYPE OF ANALYSIS", style={"font-weight":"bold", "color":"black"}),
+
         dbc.NavItem(dbc.NavLink("PCA", active=True, href="#", style={"background-color":"grey"})),
-        dbc.NavItem(dbc.NavLink("Linear Regression", disabled=True, href="#")),
-        dbc.NavItem(dbc.NavLink("Differential Expression", disabled=True, href="#")),
-        dbc.NavItem(dbc.NavLink("Pathway Analysis", disabled=True, href="#")),
+
+        dbc.NavItem(dbc.NavLink(
+
+            html.Span(
+                    "Linear Regression",
+                    id="tooltip-lr",
+                    style={"cursor": "pointer", "color":"grey"},
+                ),disabled=False, href="linear_regression")),
+
+        dbc.NavItem(dbc.NavLink(
+            html.Span(
+                    "Differential Expression",
+                    id="tooltip-de",
+                    style={"cursor": "pointer", "color":"grey"},
+                ),disabled=False, href="differential_expression")),
+
+                dbc.NavItem(dbc.NavLink(
+                    html.Span(
+                            "Pathway Analysis",
+                            id="tooltip-pa",
+                            style={"cursor":"pointer", "color":"grey"},
+                        ),disabled=False, href="pathway_analysis")),
+
+        # tooltip for linear regression
+        dbc.Tooltip(
+        "Coming Soon!",
+        target="tooltip-lr"
+        ),
+
+        # tooltip for differential expression
+        dbc.Tooltip(
+        "Coming Soon!",
+        target="tooltip-de"
+        ),
+
+        # tooltip for pathway analysis
+        dbc.Tooltip(
+        "Coming Soon!",
+        target="tooltip-pa"
+        ),
+
         html.Hr(),
         control_panel
     ],
     vertical="md",
     pills=True
-        ), md=3, className="mb-3"),
+        ), md=2, className="mb-3"),
 
         #dbc.Col(control_panel, md=6)
-        dbc.Col(first_card, md=4),
+        dbc.Col(first_card, md=5),
         dbc.Col(second_card, md=5)
         ],
 
