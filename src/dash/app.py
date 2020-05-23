@@ -27,20 +27,29 @@ available_metabolobites = metabolomics_df.columns.tolist()
 
 first_card = dbc.Card(
     [
-        dbc.CardHeader("PCA Scores Plot - Samples", style={"background-color":"#5bc0de"}),
+        dbc.CardHeader("PCA Scores Plot",
+                            style={"background-color":"#5bc0de",
+                                    "font-weight":"bold",
+                                    "font-size":"large"}),
         dbc.CardBody(dcc.Graph(figure=pca_scores_figure))
 
         ])
 
 second_card = dbc.Card(
     [
-        dbc.CardHeader("PCA Loadings Plot - Biomolecules", style={"background-color":"#5bc0de"}),
+        dbc.CardHeader("PCA Loadings Plot",
+                            style={"background-color":"#5bc0de",
+                                    "font-weight":"bold",
+                                    "font-size":"large"}),
         dbc.CardBody(dcc.Graph(figure=pca_loadings_figure))
     ])
 
 biomolecule_dropdown = dbc.Card(
     [
-        dbc.CardHeader("Select Biomolecule", style={"background-color":"#5bc0de"}),
+        dbc.CardHeader("Select Biomolecule",
+                            style={"background-color":"#5bc0de",
+                                        "font-weight":"bold",
+                                        "font-size":"large"}),
         dbc.CardBody(
             dcc.Dropdown(
                 id='biomolecule_id',
@@ -52,28 +61,65 @@ biomolecule_dropdown = dbc.Card(
 
 third_card = dbc.Card(
     [
-        dbc.CardHeader("Biomolecule Barplot", style={"background-color":"#5bc0de"}),
+        dbc.CardHeader("Biomolecule Barplot",
+                            style={"background-color":"#5bc0de",
+                                        "font-weight":"bold",
+                                        "font-size":"large"}),
         dbc.CardBody(dcc.Graph(id='biomolecule-barplot'))
     ])
 
 fourth_card = dbc.Card(
     [
-        dbc.CardHeader("Biomolecule Boxplot", style={"background-color":"#5bc0de"}),
+        dbc.CardHeader("Biomolecule Boxplot",
+                            style={"background-color":"#5bc0de",
+                                    "font-weight":"bold",
+                                    "font-size":"large"}),
         dbc.CardBody(dcc.Graph(id='biomolecule-boxplot'))
     ])
 
-spacing_style_dict = {
-    "margin-bottom":"3px",
-    "padding-left": "3px",
-    "padding-right": "3px"}
+COONLAB_LOGO="https://coonlabs.com/wp-content/uploads/2016/07/coon-logo-white.png"
+navbar = dbc.NavbarSimple(
+    children=[
+
+        dbc.NavItem(dbc.NavLink("About", href="#")),
+        dbc.DropdownMenu(
+            children=[
+                dbc.DropdownMenuItem("Meet the Team", header=True),
+                dbc.DropdownMenuItem("UW–Madison", href="https://coonlabs.com/"),
+                dbc.DropdownMenuItem("Albany Medical Center", href="https://www.amc.edu/Profiles/jaitova.cfm"),
+                dbc.DropdownMenuItem("Morgridge Institute for Research", href="https://morgridge.org/research/regenerative-biology/bioinformatics/")
+            ],
+            nav=True,
+            in_navbar=True,
+            label="More",
+        ),
+        html.Div(style={"width":"200px"}),
+        html.A(html.Img(src=COONLAB_LOGO, style={"height":"40px", "float":"right"}
+                ), href="https://coonlabs.com/"),
+
+    ],
+    brand="NIH National Center for Quantitative Biology of Complex Systems",
+    brand_style={"font-size":"xx-large"},
+    brand_href="https://www.ncqbcs.com/",
+    color="#5bc0de",
+    dark=True,
+)
 
 app.layout = dbc.Container([
 
-    dbc.Row([dbc.Col(first_card, width=6, align="center"), dbc.Col(second_card, width=6, align="center")], className="mb-3"),
+    navbar,
+
+    html.Hr(),
+
+    dbc.Row(dbc.Col(html.H1("COVID-19 Multi-Omics Data Dashboard"), width={"size": 6, "offset": 3})),
+
+    html.Hr(),
+
+    dbc.Row([dbc.Col(first_card, md=6, align="center"), dbc.Col(second_card, md=6, align="center")], className="mb-3"),
 
     dbc.Row([dbc.Col(biomolecule_dropdown, width=4)], className="mb-3"),
 
-    dbc.Row([dbc.Col(third_card, width=6, align="center"), dbc.Col(fourth_card, width=6, align="center")], className="mb-3")
+    dbc.Row([dbc.Col(third_card, md=6, align="center"), dbc.Col(fourth_card, md=6, align="center")], className="mb-3")
 
 ], fluid=True)
 

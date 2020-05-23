@@ -58,9 +58,9 @@ def biomolecule_bar(combined_df, x, y, biomolecule_name):
     fig = px.bar(combined_df, x=x, y=y, color=color_list, color_discrete_map=color_dict)
 
     fig.update_layout(
-        title="Biomolecule Bar Plot",
-        xaxis_title='Sample ID',
-        yaxis_title='{} log2(LFQ)'.format(biomolecule_name),
+        title="{}".format(biomolecule_name),
+        xaxis_title='Sample',
+        yaxis_title='log2(LFQ) Value',
         font=dict(
             family="Helvetica",
             size=18,
@@ -78,9 +78,9 @@ def boxplot(combined_df, biomolecule_name):
                 points='all')
     fig.update_traces(quartilemethod="exclusive") # or "inclusive", or "linear" by default
     fig.update_layout(
-        title="Biomolecule Box Plot",
+        title="{}".format(biomolecule_name),
         xaxis_title='Group',
-        yaxis_title='{} log2(LFQ)'.format(biomolecule_name),
+        yaxis_title='log2(LFQ) Value',
         font=dict(
             family="Helvetica",
             size=18,
@@ -115,7 +115,7 @@ def pca_scores_plot(quant_df, combined_df):
     fig.update_traces(marker=dict(size=20, opacity=0.8))
 
     fig.update_layout(
-        title="GC/MS Metabolomics PCA Scores Plot",
+        title="GC/MS Samples",
         xaxis_title='PC1 ({}%)'.format(round(100*pca.explained_variance_ratio_[0],1)),
         yaxis_title='PC2 ({}%)'.format(round(100*pca.explained_variance_ratio_[1],1)),
         font=dict(
@@ -148,7 +148,7 @@ def pca_loadings_plot(quant_df):
     fig.update_traces(marker=dict(size=10, opacity=0.5))
 
     fig.update_layout(
-        title="GC/MS Metabolomics PCA Loadings Plot",
+        title="GC/MS Metabolites",
         xaxis_title='Loadings on PC1',
         yaxis_title='Loadings on PC2',
         font=dict(
