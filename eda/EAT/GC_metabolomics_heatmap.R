@@ -30,11 +30,16 @@ dbReadTable(con, "metabolomics_runs")[0,]
 dbReadTable(con, "biomolecules")[0,]
 dbReadTable(con, "deidentified_patient_metadata")[0,]
 
-##### Knit into a long dataframe #####
+##### Knit tables into a long dataframe #####
+
+## df is a dataframe of normalized metabolite abundances, the rawfile where metabolite was extracted from, and batch info
+## deiidentified_patient_meta is a dataframe that contains metat data for the patients
+## metabolite_class is a dataframe of the metabolite standarized names and metadata associated to metabolite class
 
 # Select unique_identifier from metabolomics_runs
 # Select normalized_abundance from from metabolomics_measurements
 # Select biomolecule.id from metabolomic_measurements
+# Select batch from rawfiles
 df<- dbGetQuery(con, "SELECT unique_identifier, normalized_abundance, metabolomics_measurements.biomolecule_id, batch 
            FROM metabolomics_measurements
            INNER JOIN metabolomics_runs ON metabolomics_runs.replicate_id = metabolomics_measurements.replicate_id
@@ -45,18 +50,39 @@ df<- dbGetQuery(con, "SELECT unique_identifier, normalized_abundance, metabolomi
            AND biomolecules.keep = '1'
            ")
 
+# Select Sample_label, Gender, ICU_1, Mech_Ventilation from deidentified_patient_metadata
 deidentified_patient_meta <- dbGetQuery(con, "SELECT Sample_label, Gender, ICU_1, Mech_Ventilation
                  FROM deidentified_patient_metadata
                  ")
+
+
+# Select Metabolite standardized_name in biomolecules
+# Select biomolecule_id in metadatat
+# Select metadata_type in metadata
+# Select metadata_value in metadata
+metabolite_class <- dbGetQuery(con, "SELECT standardized_name, metadata.biomolecule_id, metadata_type, metadata_value
+                               FROM metadata
+                               INNER JOIN biomolecules ON biomolecules.biomolecule_id = metadata.biomolecule_id
+                               WHERE biomolecules.omics_id = 3
+                               AND biomolecules.keep = 1
+                               AND metadata.metadata_type = 'Class'
+                               ")
+
 dbDisconnect(con)
+
 
 
 ##### Data formatting #####
 
 # Reshape data into wide format with first two columns containing meta data
+# Column names is "normalized_abundance.X" where X is the biomolecule.id
 df_wide <- reshape(df, timevar = "biomolecule_id", v.names = "normalized_abundance",
                    idvar = "unique_identifier", direction = "wide" )
 
+
+##### Meta formatting #####
+
+## meta contains the relevant information provided in the rawfile name (aka unique_identifier)
 
 # Subset meta data and break up string by "_" 
 meta <- as.data.frame(stringr::str_split_fixed(df_wide$unique_identifier,"_",5))
@@ -64,6 +90,7 @@ meta <- as.data.frame(stringr::str_split_fixed(df_wide$unique_identifier,"_",5))
 meta$V3[which(meta$V3 == "Conrol")] <- "Control"
 meta$V3 <- factor(meta$V3,levels = c("Control","COVID","NONCOVID"))
 
+# Pad single digit numbers with a zero ex. 2 -> '02'
 samples <- vector()
 for (i in 1:nrow(meta)) {
   if(nchar(as.character(meta$V4[i]),type = "char")==1){
@@ -76,13 +103,17 @@ for (i in 1:nrow(meta)) {
   
 }
 
-
-meta$V5 <- samples #overwrite split1:25 with sample_number padded with a zero if single digit
+#overwrite split1:25 with sample_number padded with a zero if single digit
+meta$V5 <- samples 
 meta$V6 <- paste0(meta$V3,"_",meta$V5) 
 
-
-meta$V7 <- df_wide$batch #add batch info column
-colnames(meta) <- c("Rawfile.Date.Stamp", "Sample.Type", "Disease.State", "Patient.Number","Padded.Patient.Number", "Sample_Label", "Batch") #rename meta columns
+#add batch info column
+meta$V7 <- df_wide$batch
+#rename meta columns
+colnames(meta) <- c("Rawfile.Date.Stamp", "Sample.Type", 
+                    "Disease.State", "Patient.Number",
+                    "Padded.Patient.Number", "Sample_Label", 
+                    "Batch") 
 
 # The patient id's are used more than once.
 # To make all id's unique, the make.unique function will add numbers to each duplicated entry
@@ -98,11 +129,11 @@ rownames(metabolomics) <- meta$Sample_Lable.unique
 # rename columns to only the metabolite unique identifier
 colnames(metabolomics) <- sub(".*abundance.","",colnames(metabolomics))
 
-# Annotations for rows
-row_annotations <- meta[,c(1,3,7)]
-row_annotations$Batch <- factor(row_annotations$Batch, levels = seq(1:7))
-rownames(row_annotations) <- meta$meta$Sample_Lable.unique
-#row_annotations$Date <- as.Date(row_annotations$Date)
+# Annotations for patients
+patient_annotation <- meta[,c(1,3,7)]
+patient_annotation$Batch <- factor(patient_annotation$Batch, levels = seq(1:7))
+rownames(patient_annotation) <- meta$meta$Sample_Lable.unique
+#patient_annotation$Date <- as.Date(patient_annotation$Date)
 
 my_colour = list(
   Rawfile.Date.Stamp = c(`20200427` = "#F4F4F9", `20200428` = "#E1FBFB", `20200429` = "#B8DBD9", `20200430` = "#86D6E0",
@@ -117,7 +148,7 @@ scaleRYG <- colorRampPalette(c("#3C99B2","#E8CB2E","#EF2D00"), space = "rgb")(20
 pheatmap(t(metabolomics),
          color = scaleRYG,
          annotation_colors = my_colour,
-         annotation_col = row_annotations,
+         annotation_col = patient_annotation,
          cluster_rows = T,
          #scale = "column",
          show_colnames = F,
@@ -125,23 +156,37 @@ pheatmap(t(metabolomics),
          main = "GC-MS Small Molecule COVID-19 HeatMap")
 
 #### Remove Controls ####
+
+## Create a heatmap without Controls and append more patient metadata
+
+##### Patient Meta formatting ####
+
+# Remove controls from meta 
 meta_patientONLY <- meta[-grep("Control",meta$Sample_Lable.unique),]
 
+# What patient meta information is missing?
 PatientSample_Missing <- meta_patientONLY[which(!meta_patientONLY$Sample_Label %in% deidentified_patient_meta$Sample_label),]
 
+# match sample labels in meta and deidentified_patient_meta
 meta_patientONLY <- meta_patientONLY[which(meta_patientONLY$Sample_Lable.unique %in% deidentified_patient_meta$Sample_label),]
 
+# reorder deidentified_patient_meta data to match sample label in meta_patientONLY
 deidentified_patient_meta <- deidentified_patient_meta[order(match(deidentified_patient_meta$Sample_label,meta_patientONLY$Sample_Label)),]
 
+# Merge deidentified_patient_meta with meta_patientONLY by sample label
 meta_patientONLY_merged <- merge(meta_patientONLY,deidentified_patient_meta, by.x = "Sample_Label", by.y = "Sample_label" )
 
-# Remove rows that are connected with Control Datat
+
+##### Data without Controls #####
+
+# Remove rows that are connected with Control Data
 metabolomics_noControls <- metabolomics[which(rownames(metabolomics) %in% meta_patientONLY_merged$Sample_Label),]
 
 
-# Annotations for rows
-patient_annotation <- meta_patientONLY_merged[,c(2,4,7,9,10,11)]
-patient_annotation$Batch <- factor(patient_annotation$Batch, levels = seq(1:7))
+# Annotations for patients
+#patient_annotation <- meta_patientONLY_merged[,c(2,4,7,9,10,11)]
+patient_annotation <- meta_patientONLY_merged[,c(4,9,10,11)]
+#patient_annotation$Batch <- factor(patient_annotation$Batch, levels = seq(1:7))
 patient_annotation$Gender <- factor(patient_annotation$Gender, levels = c("F","M"))
 patient_annotation$ICU_1 <- factor(patient_annotation$ICU_1, levels = c("0","1"))
 patient_annotation$Mech_Ventilation <- factor(patient_annotation$Mech_Ventilation, levels = c("0","1"))
@@ -149,13 +194,21 @@ patient_annotation$Mech_Ventilation <- factor(patient_annotation$Mech_Ventilatio
 rownames(patient_annotation) <- meta_patientONLY_merged$Sample_Label
 #patient_annotation$Date <- as.Date(patient_annotation$Date)
 
+# Annotations for molecules
+metabolite_annotation  <- metabolite_class[which(metabolite_class$biomolecule_id %in% colnames(metabolomics)),]
+rownames(metabolite_annotation) <- metabolite_annotation$biomolecule_id
+metabolite_annotation$metadata_value <- as.factor(metabolite_annotation$metadata_value)
+colnames(metabolite_annotation) <- "Metabolite.Class"
+
+metabolite_annotation <- as.data.frame(metabolite_annotation$metadata_value)
+
 my_colour = list(
-  Rawfile.Date.Stamp = c(`20200427` = "#F4F4F9", `20200428` = "#E1FBFB", `20200429` = "#B8DBD9", `20200430` = "#86D6E0",
-                         `20200506` = "#3C99B2", `20200507` = "#368BA4", `20200508` = "#18475C" ),
+  #Rawfile.Date.Stamp = c(`20200427` = "#F4F4F9", `20200428` = "#E1FBFB", `20200429` = "#B8DBD9", `20200430` = "#86D6E0",
+                         #`20200506` = "#3C99B2", `20200507` = "#368BA4", `20200508` = "#18475C" ),
   Disease.State  = c( `COVID` = "#D0D3CA", `NONCOVID` = "#A3A79D"),
-  Batch = c(`1` = "#FDF0FE", `2` = "#E8C5E9", `3` = "#9FA0C3", `4`  = "#8B687F", `5` = "#7B435B", `6` = "#5C3344", `7` = "#1C093D"),
+  #Batch = c(`1` = "#FDF0FE", `2` = "#E8C5E9", `3` = "#9FA0C3", `4`  = "#8B687F", `5` = "#7B435B", `6` = "#5C3344", `7` = "#1C093D"),
   Gender = c(`F` = "#FB3640", `M` = "#1D3461"))
-  #ICU_1 = c(`0` = "#E6F3F6 ", `1` = "#63B0C6"),
+  #ICU_1 = c(`0` = "#E1FBFB ", `1` = "#368BA4"))
   #Mech_Ventilation = c(`0` = "#D9FF29", `1` = "#1B2D2A"))
 
 scaleRYG <- colorRampPalette(c("#3C99B2","#E8CB2E","#EF2D00"), space = "rgb")(20)
@@ -163,8 +216,11 @@ pheatmap(t(metabolomics_noControls),
          color = scaleRYG,
          annotation_colors = my_colour,
          annotation_col = patient_annotation,
-         #cluster_rows = T,
+         annotation_row = metabolite_annotation,
+         cluster_cols = T,
          #scale = "column",
          show_colnames = F,
          show_rownames = F,
+         #scale = "row",
          main = "GC-MS Small Molecule COVID-19 HeatMap")
+
