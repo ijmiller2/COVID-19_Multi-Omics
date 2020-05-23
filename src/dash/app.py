@@ -92,7 +92,17 @@ COONLAB_LOGO="https://coonlabs.com/wp-content/uploads/2016/07/coon-logo-white.pn
 navbar = dbc.NavbarSimple(
 
         [
-        dbc.NavItem(dbc.NavLink("About", href="#")),
+
+        dbc.NavItem(dbc.NavLink(html.Span(
+                "About",
+                id="tooltip-about",
+                style={"cursor": "pointer"},
+            ))),
+
+        dbc.Tooltip(
+        "Link to Preprint",
+        target="tooltip-about"
+        ),
 
         dbc.DropdownMenu(
             children=[
