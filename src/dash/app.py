@@ -120,7 +120,7 @@ app.layout = dbc.Container([
 
     dbc.Row([dbc.Col(biomolecule_dropdown, width=4)], className="mb-3"),
 
-    dbc.Row([dbc.Col(third_card, md=6, align="center"), dbc.Col(fourth_card, md=6, align="center")], className="mb-3")
+    dbc.Row([dbc.Col(third_card, md=7, align="center"), dbc.Col(fourth_card, md=5, align="center")], className="mb-3")
 
 ], fluid=True)
 
