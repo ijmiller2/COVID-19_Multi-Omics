@@ -93,14 +93,12 @@ navbar = dbc.NavbarSimple(
             nav=True,
             in_navbar=True,
             label="More",
-            className="mr-12"
         ),
 
         html.Div(html.A(html.Img(src=COONLAB_LOGO,
                 style={"height":"40px"}),
                 href="https://coonlabs.com/"),
-                style={"background-color":"#5bc0de"},
-                className="ml-2")
+                style={"background-color":"#5bc0de"})
 
         ],
     brand="NIH National Center for Quantitative Biology of Complex Systems",
@@ -111,12 +109,6 @@ navbar = dbc.NavbarSimple(
     className="mt-1",
     fluid=True
 )
-
-COONLAB_IMAGE_URL = html.Div(html.A(html.Img(src=COONLAB_LOGO,
-        style={"height":"40px"}),
-        href="https://coonlabs.com/"),
-        style={"background-color":"#5bc0de"},
-        className="ml-2")
 
 app.layout = dbc.Container([
 
