@@ -25,7 +25,7 @@ pca_loadings_figure = pca_loadings_plot(metabolomics_df)
 
 available_datasets = ['GC/MS Metabolomics']#, 'QQQ Metabolomics', 'Lipidomics',
                         #'Proteomics', 'Transcriptomics']
-available_metabolobites = metabolomics_df.columns.tolist()
+available_biomolecules = metabolomics_df.columns.sort_values().tolist()
 
 first_card = dbc.Card(
     [
@@ -61,11 +61,14 @@ control_panel = dbc.Card(
                 value=available_datasets[0]),
             html.Hr(),
             html.P("Select Biomolecule", className="card-title", style={"font-weight":"bold"}),
+
+            # NOTE: This is dcc object not dbc
             dcc.Dropdown(
                 id='biomolecule_id',
-                options=[{'label': i, 'value': i} for i in available_metabolobites],
+                options=[{'label': i, 'value': i} for i in available_biomolecules],
                 # only passing in quant value columns
-                value=available_metabolobites[0]),
+                value=available_biomolecules[0],
+                className="dropdown-item p-0"),
 
                 ])
     ])
@@ -197,8 +200,8 @@ app.layout = dbc.Container([
         ), md=2, className="mb-3"),
 
         #dbc.Col(control_panel, md=6)
-        dbc.Col(first_card, md=5),
-        dbc.Col(second_card, md=5)
+        dbc.Col(first_card, md=6),
+        dbc.Col(second_card, md=4)
         ],
 
         className="mb-3"),
