@@ -79,13 +79,30 @@
 
 ## "05_KAO_Batch_effects_in_lipidomics_data.R"
 # description: looks at batch effect of lipidomics data 
-# and in doing so, catches an initial error in the db 
-# entries for lipidomics features due to the way features 
-# were named resulting in duplicate identifiers. I will 
-# work with Dain to update the lipidomics values. 
+#   and in doing so, catches an initial error in the db 
+#   entries for lipidomics features due to the way features 
+#   were named resulting in duplicate identifiers. I will 
+#   work with Dain to update the lipidomics values. 
 # date created 5/19/2020
 # date last modified: 5/20/2020
 # input:
 # - Covid-19 Study DB.sqlite
 # - Lipidomics/Lipidomics_quant_results/Final_Results.csv
 
+
+## X5_KAO_creating_new_lipidomics_table_to_match_original.R
+# description: In file 05_KAO_Batch_effects_in_lipidomics_data.R,
+#   I found that the biomolecule ids did not match up across 
+#   the tables in the data frame. This code creates a csv that 
+#   looks like the lipidomics_measurements table, but with 
+#   updated biomolecule ids (no duplicates) and batch correction
+#   to the lipiomics data - run-time correction similar to the
+#   GC metabolomics data. 
+# date created: 5/20/2020
+# date last modified: 5/23/2020
+# input:
+# - Covid-19 Study DB.sqlite
+# - Lipidomics/Lipidomics_quant_results/Final_Results.csv
+# output:
+# -  "../../data/lipidomics_measurements_20200523.csv"
+# - above csv file was used to modify db
