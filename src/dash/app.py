@@ -11,7 +11,10 @@ from plot import pca_scores_plot, pca_loadings_plot, biomolecule_bar, boxplot
 #external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 external_stylesheets=[dbc.themes.BOOTSTRAP]
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(
+    __name__,
+    external_stylesheets=external_stylesheets)
+app.title = 'COVID-19 Multi-Omics'
 
 # load metabolomics data matrix
 metabolomics_df = get_metabolomics_data()
