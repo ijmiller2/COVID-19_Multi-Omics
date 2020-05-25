@@ -4,7 +4,7 @@
 ## Append patient meta information
 ## The RSQLite code was taken from KAO.
 
-BiocManager::install("DelayedMatrixStats")
+#BiocManager::install("DelayedMatrixStats")
 
 library(DBI)
 library(RSQLite)
@@ -13,6 +13,7 @@ library(plyr)
 library(RColorBrewer)
 library(DelayedMatrixStats)
 library(randomcoloR)
+library(cluster)
 
 ##### Establish a connection with DB #####
 
@@ -212,6 +213,7 @@ metabolite_class_extended <- as.data.frame(stringr::str_split_fixed(metabolite_c
 metabolite_class_extended$V1 <- as.character(metabolite_class_extended$V1)
 metabolite_class_extended$V2 <- trimws(as.character(metabolite_class_extended$V2))
 
+# Simplify classes
 simplified_class <- vector()
 for (i in 1:nrow(metabolite_class_extended)) {
   if(nchar(as.character(metabolite_class_extended$V2[i]), type = "char") == 0){
@@ -230,7 +232,7 @@ metabolite_class_extended$V3 <- simplified_class
 
 metabolite_annotation <- as.data.frame(metabolite_class_extended$V3)
 colnames(metabolite_annotation) <- "Metabolite.Class"
-
+rownames(metabolite_annotation) <- metabolite_class$standardized_name
 metabolite_annotation$Metabolite.Class <- as.factor(metabolite_annotation$Metabolite.Class)
 
 
@@ -318,7 +320,7 @@ metabolomics_COVID <- metabolomics_noControls[-grep("NONCOVID",rownames(metabolo
 metabolomics_NONCOVID <- metabolomics_noControls[grep("NONCOVID",rownames(metabolomics_noControls)),]
 #write.csv(metabolomics_NONCOVID, file = "H:/Projects/COVID19/SmallMolecule/Files/NONCOVID_GCMetabolomics_normalized.csv")
 
-
+# Boxplot of NON-COVID patient's dynamic range
 par(mar = c(6.1, 4.1, 4.1, 4.1))
 boxplot(t(metabolomics_NONCOVID), 
      main = "Boxplot of dynamic range for each Non-COVID patient",
@@ -338,22 +340,24 @@ NONCOVID_Median.MetaboliteIntensity <- colMedians(as.matrix(metabolomics_NONCOVI
 # Foldchange function -> take every row and divide it by the median vector
 fold_change.FUNC <- function(x) x-NONCOVID_Median.MetaboliteIntensity
 df_fc <- apply(metabolomics_COVID,1, fold_change.FUNC)
+rownames(df_fc) <- metabolite_class$standardized_name
 
 #n < -40
 #palette <- distinctColorPalette(n)
 
-
-
+# New color palette patients
 my_colour = list(
   Gender = c(`F` = "#C0B9DD", `M` = "#234947"),
   ICU_1 = c(`No` = "#D0D3CA", `Yes` = "#368BA4"),
   Mech_Ventilation = c(`No` = "#D0D3CA", `Yes` = "#463F3A"))
 
+# Substitute all 0 -> NO and 1 -> Yes in ICU_1 
 patient_annotation$ICU_1 <- as.character(patient_annotation$ICU_1)
 patient_annotation$ICU_1 <- sub("0","No",patient_annotation$ICU_1)
 patient_annotation$ICU_1 <- sub("1","Yes",patient_annotation$ICU_1)
 patient_annotation$ICU_1 <- factor(patient_annotation$ICU_1, levels = c("No","Yes"))
 
+# Substitute all 1 -> NO and 1 -> Yes in ICU_1 
 patient_annotation$Mech_Ventilation <- as.character(patient_annotation$Mech_Ventilation)
 patient_annotation$Mech_Ventilation <- sub("0","No",patient_annotation$Mech_Ventilation)
 patient_annotation$Mech_Ventilation <- sub("1","Yes",patient_annotation$Mech_Ventilation)
@@ -362,7 +366,6 @@ patient_annotation$Mech_Ventilation <- factor(patient_annotation$Mech_Ventilatio
 # Heatmap of the Fold Change calculated from the median in NONCOVID cohort
 par(mar = c(20, 4.1, 4.1, 4.1))
 scaleRYG <- colorRampPalette(c("#3C99B2","#ffffff","#EF2D00"), space = "rgb")(20)
-
 
 pheatmap(df_fc,
          color = scaleRYG,
@@ -375,18 +378,19 @@ pheatmap(df_fc,
          show_rownames = F,
          #scale = "row",
          main = "Heatmap Fold Change COVID/NONCOVID(median)")
-  
+
+# Histogram of Fold Changes
 par(mar = c(6.1, 4.1, 4.1, 4.1))
 hist(df_fc,
      main = "Histogram of Fold Changes COVID relative to NONCOVID",
      xlab = "Fold Change of Log2",
      xlim = c(-15,15),
-     breaks = 20)
+     breaks = 50)
 
 # subset features with fold change greater than 1.2 to cluster
-important_features_foldchange <- df_fc[rowSums(abs(df_fc)>2.2)>0,]
+important_features_foldchange <- df_fc[rowSums(abs(df_fc)>4.2)>0,]
 
-pheatmap(important_features_foldchange,
+out <- pheatmap(important_features_foldchange,
          color = scaleRYG,
          annotation_colors = my_colour,
          annotation_col = patient_annotation[-grep("NONCOVID",rownames(patient_annotation)),-c(1)],
@@ -396,7 +400,7 @@ pheatmap(important_features_foldchange,
          show_colnames = F,
          show_rownames = F,
          #scale = "row",
-         main = "Heatmap Fold Change COVID/NONCOVID(median)")
+         main = "Heatmap Fold Change COVID/NONCOVID(median)\n Subset Features that have abs(FC) > 4.2 in at least one patient")
 
 # Protein groups with fold change greater than 1.2
 table(rowSums(abs(df_fc)>1.2)>0)
@@ -410,7 +414,34 @@ table(rowSums(abs(df_fc)>4)>0)
 # Protein groups with fold change greater than 8
 table(rowSums(abs(df_fc)>8)>0)
 
+# Re-0rder original data (metabolites) to match ordering in heatmap (top-to-bottom)
+rownames(important_features_foldchange[out$tree_row[["order"]],])
 
+# Re-order original data (patients) to match ordering in heatmap(left-to-right)
+colnames(important_features_foldchange[,out$tree_col[["order"]]])
+
+# metabolite-to-cluster assignments
+sort(cutree(out$tree_row, k=10))
+
+# Plot extracted gene-t0-cluster assignments
+plot(out$tree_row)
+
+ ##### K means clustering #####
+fold_hclust <- hclust(dist(important_features_foldchange, method = "euclidean"))
+clusters <- cutree(fold_hclust, k = 10) #k = 20)
+
+
+clusplot(important_features_foldchange, 
+         clusters,
+         lines = 0,# no distance lines will appear,
+         main = "ClusPlot of subset features\n witth abs(log2(FC)) > 4.2 in at least one patient") 
+dev.off()
+
+plot(fold_hclust, labels = FALSE)
+rect.hclust(fold_hclust, k=10, border = "red")
+
+
+##### Compress Fold Change ####
 # bin protein groups so that we describe the changes within fold changes of -2 and 2
 important_features_foldchange_compress <- important_features_foldchange
 important_features_foldchange_compress[important_features_foldchange_compress < -2] = -2.1
