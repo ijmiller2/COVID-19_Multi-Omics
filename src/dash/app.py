@@ -26,7 +26,7 @@ combined_df = get_metabolomics_data(with_metadata=True)
 pca_scores_figure = pca_scores_plot(metabolomics_df, combined_df)
 pca_loadings_figure = pca_loadings_plot(metabolomics_df)
 
-available_datasets = ['GC/MS Metabolomics']#, 'QQQ Metabolomics', 'Lipidomics',
+available_datasets = ['Metabolites']#, 'QQQ Metabolomics', 'Lipidomics',
                         #'Proteomics', 'Transcriptomics']
 available_biomolecules = metabolomics_df.columns.sort_values().tolist()
 
@@ -235,9 +235,13 @@ def update_biomolecule_boxplot(biomolecule_id):
     biomolecule_name = biomolecule_id
     x = combined_df.index
     y = biomolecule_id
-    fig = boxplot_figure = boxplot(combined_df, biomolecule_name)
+    fig = boxplot(combined_df, biomolecule_name)
 
     return fig
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0')
+    app.run_server(
+        debug=True,
+        host='0.0.0.0',
+        #port='8080'
+        )
