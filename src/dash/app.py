@@ -11,7 +11,10 @@ from plot import pca_scores_plot, pca_loadings_plot, biomolecule_bar, boxplot
 #external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 external_stylesheets=[dbc.themes.BOOTSTRAP]
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(
+    __name__,
+    external_stylesheets=external_stylesheets)
+app.title = 'COVID-19 Multi-Omics'
 
 # load metabolomics data matrix
 metabolomics_df = get_metabolomics_data()
@@ -23,11 +26,13 @@ combined_df = get_metabolomics_data(with_metadata=True)
 pca_scores_figure = pca_scores_plot(metabolomics_df, combined_df)
 pca_loadings_figure = pca_loadings_plot(metabolomics_df)
 
-available_metabolobites = metabolomics_df.columns.tolist()
+available_datasets = ['GC/MS Metabolomics']#, 'QQQ Metabolomics', 'Lipidomics',
+                        #'Proteomics', 'Transcriptomics']
+available_biomolecules = metabolomics_df.columns.sort_values().tolist()
 
 first_card = dbc.Card(
     [
-        dbc.CardHeader("PCA Scores Plot",
+        dbc.CardHeader("PCA SCORES PLOT",
                             style={"background-color":"#5bc0de",
                                     "font-weight":"bold",
                                     "font-size":"large"}),
@@ -37,31 +42,43 @@ first_card = dbc.Card(
 
 second_card = dbc.Card(
     [
-        dbc.CardHeader("PCA Loadings Plot",
+        dbc.CardHeader("PCA LOADINGS PLOT",
                             style={"background-color":"#5bc0de",
                                     "font-weight":"bold",
                                     "font-size":"large"}),
         dbc.CardBody(dcc.Graph(figure=pca_loadings_figure))
     ])
 
-biomolecule_dropdown = dbc.Card(
+control_panel = dbc.Card(
     [
-        dbc.CardHeader("Select Biomolecule",
+        dbc.CardHeader("CONTROL PANEL",
                             style={"background-color":"#5bc0de",
                                         "font-weight":"bold",
                                         "font-size":"large"}),
         dbc.CardBody(
+            [html.P("Select Dataset", className="card-title", style={"font-weight":"bold"}),
+            dcc.Dropdown(
+                id='dataset_id',
+                options=[{'label': i, 'value': i} for i in available_datasets],
+                # only passing in quant value columns
+                value=available_datasets[0]),
+            html.Hr(),
+            html.P("Select Biomolecule", className="card-title", style={"font-weight":"bold"}),
+
+            # NOTE: This is dcc object not dbc
             dcc.Dropdown(
                 id='biomolecule_id',
-                options=[{'label': i, 'value': i} for i in available_metabolobites],
+                options=[{'label': i, 'value': i} for i in available_biomolecules],
                 # only passing in quant value columns
-                value=available_metabolobites[0])
-                )
+                value=available_biomolecules[0],
+                className="dropdown-item p-0"),
+
+                ])
     ])
 
 third_card = dbc.Card(
     [
-        dbc.CardHeader("Biomolecule Barplot",
+        dbc.CardHeader("BIOMOLECULE BARPLOT",
                             style={"background-color":"#5bc0de",
                                         "font-weight":"bold",
                                         "font-size":"large"}),
@@ -70,7 +87,7 @@ third_card = dbc.Card(
 
 fourth_card = dbc.Card(
     [
-        dbc.CardHeader("Biomolecule Boxplot",
+        dbc.CardHeader("BIOMOLECULE BOXPLOT",
                             style={"background-color":"#5bc0de",
                                     "font-weight":"bold",
                                     "font-size":"large"}),
@@ -79,9 +96,20 @@ fourth_card = dbc.Card(
 
 COONLAB_LOGO="https://coonlabs.com/wp-content/uploads/2016/07/coon-logo-white.png"
 navbar = dbc.NavbarSimple(
-    children=[
 
-        dbc.NavItem(dbc.NavLink("About", href="#")),
+        [
+
+        dbc.NavItem(dbc.NavLink(html.Span(
+                "About",
+                id="tooltip-about",
+                style={"cursor": "pointer"},
+            ))),
+
+        dbc.Tooltip(
+        "Link to Preprint",
+        target="tooltip-about"
+        ),
+
         dbc.DropdownMenu(
             children=[
                 dbc.DropdownMenuItem("Meet the Team", header=True),
@@ -93,17 +121,20 @@ navbar = dbc.NavbarSimple(
             in_navbar=True,
             label="More",
         ),
-        html.Div(style={"width":"200px"}),
-        html.A(html.Img(src=COONLAB_LOGO, style={"height":"40px", "float":"right"}
-                ), href="https://coonlabs.com/"),
 
-    ],
-    brand="NIH National Center for Quantitative Biology of Complex Systems",
-    brand_style={"font-size":"xx-large"},
+        dbc.NavItem(html.Div(html.A(html.Img(src=COONLAB_LOGO,
+                style={"height":"40px"}),
+                href="https://coonlabs.com/"),
+                className="d-none d-lg-block ml-4"))
+
+        ],
+    brand="NIH NATIONAL CENTER FOR QUANTITATIVE BIOLOGY OF COMPLEX SYSTEMS",
+    brand_style={"font-size":"xx-large", "font-style":"italic"},
     brand_href="https://www.ncqbcs.com/",
     color="#5bc0de",
     dark=True,
-    className="mt-1"
+    className="mt-1",
+    fluid=True
 )
 
 app.layout = dbc.Container([
@@ -116,11 +147,69 @@ app.layout = dbc.Container([
 
     html.Hr(),
 
-    dbc.Row([dbc.Col(first_card, md=6, align="center"), dbc.Col(second_card, md=6, align="center")], className="mb-3"),
+    dbc.Row(
+        [dbc.Col(
+        dbc.Nav(
+    [
+        html.H3("TYPE OF ANALYSIS", style={"font-weight":"bold", "color":"black"}),
 
-    dbc.Row([dbc.Col(biomolecule_dropdown, width=4)], className="mb-3"),
+        dbc.NavItem(dbc.NavLink("PCA", active=True, href="#", style={"background-color":"grey"})),
 
-    dbc.Row([dbc.Col(third_card, md=6, align="center"), dbc.Col(fourth_card, md=6, align="center")], className="mb-3")
+        dbc.NavItem(dbc.NavLink(
+
+            html.Span(
+                    "Linear Regression",
+                    id="tooltip-lr",
+                    style={"cursor": "pointer", "color":"grey"},
+                ),disabled=False, href="linear_regression")),
+
+        dbc.NavItem(dbc.NavLink(
+            html.Span(
+                    "Differential Expression",
+                    id="tooltip-de",
+                    style={"cursor": "pointer", "color":"grey"},
+                ),disabled=False, href="differential_expression")),
+
+                dbc.NavItem(dbc.NavLink(
+                    html.Span(
+                            "Pathway Analysis",
+                            id="tooltip-pa",
+                            style={"cursor":"pointer", "color":"grey"},
+                        ),disabled=False, href="pathway_analysis")),
+
+        # tooltip for linear regression
+        dbc.Tooltip(
+        "Coming Soon!",
+        target="tooltip-lr"
+        ),
+
+        # tooltip for differential expression
+        dbc.Tooltip(
+        "Coming Soon!",
+        target="tooltip-de"
+        ),
+
+        # tooltip for pathway analysis
+        dbc.Tooltip(
+        "Coming Soon!",
+        target="tooltip-pa"
+        ),
+
+        html.Hr(),
+        control_panel
+    ],
+    vertical="md",
+    pills=True
+        ), md=2, className="mb-3"),
+
+        #dbc.Col(control_panel, md=6)
+        dbc.Col(first_card, md=6),
+        dbc.Col(second_card, md=4)
+        ],
+
+        className="mb-3"),
+
+    dbc.Row([dbc.Col(third_card, md=7, align="center"), dbc.Col(fourth_card, md=5, align="center")], className="mb-3")
 
 ], fluid=True)
 
