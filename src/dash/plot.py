@@ -73,10 +73,12 @@ def boxplot(combined_df, biomolecule_name):
 
     color_list = get_color_list(combined_df)
 
-    df = pd.DataFrame({'y':combined_df[biomolecule_name], 'color':color_list})
+    df = pd.DataFrame({'y':combined_df[biomolecule_name], 'color':color_list,
+                        'sample':combined_df.index})
 
     fig = px.box(df, y="y", color="color", color_discrete_map=color_dict,
-                points='all')
+                points='all', hover_data=['sample'])
+
     fig.update_traces(quartilemethod="exclusive") # or "inclusive", or "linear" by default
     fig.update_layout(
         title="{}".format(biomolecule_name),
@@ -91,9 +93,12 @@ def boxplot(combined_df, biomolecule_name):
 
     return fig
 
-def pca_scores_plot(quant_df, combined_df):
+def pca_scores_plot(combined_df, quant_value_range):
 
     from sklearn.decomposition import PCA
+
+    quant_columns = combined_df.columns[:quant_value_range]
+    quant_df = combined_df[quant_columns]
 
     pca = PCA(n_components = 10)
     PCA = pca.fit_transform(quant_df)
@@ -117,7 +122,7 @@ def pca_scores_plot(quant_df, combined_df):
     fig.update_traces(marker=dict(size=20, opacity=0.8))
 
     fig.update_layout(
-        title="GC/MS Samples (n={})".format(quant_df.shape[0]),
+        title="Samples (n={})".format(quant_df.shape[0]),
         legend_title_text='Group',
         xaxis_title='PC1 ({}%)'.format(round(100*pca.explained_variance_ratio_[0],1)),
         yaxis_title='PC2 ({}%)'.format(round(100*pca.explained_variance_ratio_[1],1)),
@@ -129,9 +134,12 @@ def pca_scores_plot(quant_df, combined_df):
 
     return fig
 
-def pca_loadings_plot(quant_df):
+def pca_loadings_plot(combined_df, quant_value_range, dataset):
 
     from sklearn.decomposition import PCA
+
+    quant_columns = combined_df.columns[:quant_value_range]
+    quant_df = combined_df[quant_columns]
 
     pca = PCA(n_components = 10)
     PCA = pca.fit_transform(quant_df)
@@ -143,15 +151,14 @@ def pca_loadings_plot(quant_df):
     PC2_index = 1
     PC2_loadings = [y[PC2_index] for y in loadings]
 
-    df = pd.DataFrame({'x':PC1_loadings, 'y':PC2_loadings, 'sample_id':quant_df.columns.tolist()})
+    df = pd.DataFrame({'x':PC1_loadings, 'y':PC2_loadings, 'biomolecule_id':quant_df.columns.tolist()})
 
-    fig = px.scatter(df, x="x", y="y", hover_data=['sample_id'],
-                    color_discrete_map=color_dict)
+    fig = px.scatter(df, x="x", y="y", hover_data=['biomolecule_id'])
 
     fig.update_traces(marker=dict(size=10, opacity=0.5))
 
     fig.update_layout(
-        title="GC/MS Metabolites (n={})".format(quant_df.shape[1]),
+        title="{} (n={})".format(dataset, quant_df.shape[1]),
         legend_title_text='Group',
         xaxis_title='Loadings on PC1',
         yaxis_title='Loadings on PC2',

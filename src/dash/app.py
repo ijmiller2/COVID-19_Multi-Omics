@@ -17,18 +17,16 @@ app = dash.Dash(
 app.title = 'COVID-19 Multi-Omics'
 
 # load metabolomics data matrix
-metabolomics_df = get_omics_data(dataset='metabolomics')
+print("Loading metabolomics data...")
+metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
+print("Loading lipidomics data...")
+lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
+print("Loading proteomics data...")
+proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
 
-# load combined data matrix (with clinical metadata)
-combined_df = get_omics_data(dataset='metabolomics', with_metadata=True)
-
-# define static pca plot
-pca_scores_figure = pca_scores_plot(metabolomics_df, combined_df)
-pca_loadings_figure = pca_loadings_plot(metabolomics_df)
-
-available_datasets = ['Metabolites', 'Lipids']#, 'QQQ Metabolomics', 'Lipidomics',
-                        #'Proteomics', 'Transcriptomics']
-available_biomolecules = metabolomics_df.columns.sort_values().tolist()
+available_datasets = ['Proteins', 'Lipids', 'Metabolites']
+# start with proteomics data
+available_biomolecules = proteomics_df.columns[:proteomics_quant_range].sort_values().tolist()
 
 first_card = dbc.Card(
     [
@@ -36,7 +34,7 @@ first_card = dbc.Card(
                             style={"background-color":"#5bc0de",
                                     "font-weight":"bold",
                                     "font-size":"large"}),
-        dbc.CardBody(dcc.Graph(figure=pca_scores_figure))
+        dbc.CardBody(dcc.Graph(id='pca-scores-figure'))
 
         ])
 
@@ -46,7 +44,7 @@ second_card = dbc.Card(
                             style={"background-color":"#5bc0de",
                                     "font-weight":"bold",
                                     "font-size":"large"}),
-        dbc.CardBody(dcc.Graph(figure=pca_loadings_figure))
+        dbc.CardBody(dcc.Graph(id='pca-loadings-figure'))
     ])
 
 control_panel = dbc.Card(
@@ -72,6 +70,8 @@ control_panel = dbc.Card(
                 # only passing in quant value columns
                 value=available_biomolecules[0],
                 className="dropdown-item p-0"),
+
+            #dcc.Dropdown(id='biomolecule_id')
 
                 ])
     ])
@@ -213,31 +213,122 @@ app.layout = dbc.Container([
 
 ], fluid=True)
 
+dataset_dict = {
+        "Proteins":"proteomics",
+        "Lipids":"lipidomics",
+        "Metabolites":"metabolomics",
+        "Transcripts":"transcriptomics"
+    }
+
+df_dict = {
+    "proteomics":proteomics_df,
+    "lipidomics":lipidomics_df,
+    "metabolomics":metabolomics_df,
+}
+
+quant_value_range_dict = {
+    "proteomics":proteomics_quant_range,
+    "lipidomics":lipidomics_quant_range,
+    "metabolomics":metabolomics_quant_range,
+}
+
+@app.callback(
+    dash.dependencies.Output('biomolecule_id', 'options'),
+    [Input('dataset_id', 'value')])
+
+def update_biomolecule_options(dataset_id):
+
+    dataset = dataset_dict[dataset_id]
+    df = df_dict[dataset]
+    quant_value_range = quant_value_range_dict[dataset]
+
+    # get list of columns for dataset
+    available_biomolecules = df.columns[:quant_value_range].sort_values().tolist()
+
+    options = [{'label': i, 'value': i} for i in available_biomolecules]
+
+    return options
+
+@app.callback(
+    Output('biomolecule_id', 'value'),
+    [Input('dataset_id', 'value')])
+
+def update_default_biomolecule(dataset_id):
+
+    dataset = dataset_dict[dataset_id]
+    df = df_dict[dataset]
+    quant_value_range = quant_value_range_dict[dataset]
+
+    # get list of columns for dataset
+    available_biomolecules = df.columns[:quant_value_range].sort_values().tolist()
+
+    default_biomolecule = available_biomolecules[0]
+
+    return default_biomolecule
+
+@app.callback(
+    Output('pca-scores-figure', 'figure'),
+    [Input('dataset_id', 'value')])
+
+def update_pca_scores_plot(dataset_id):
+
+    dataset = dataset_dict[dataset_id]
+    df = df_dict[dataset]
+    quant_value_range = quant_value_range_dict[dataset]
+
+    fig = pca_scores_plot(df, quant_value_range)
+
+    return fig
+
+@app.callback(
+    Output('pca-loadings-figure', 'figure'),
+    [Input('dataset_id', 'value')])
+
+def update_pca_loadings_plot(dataset_id):
+
+    dataset = dataset_dict[dataset_id]
+    df = df_dict[dataset]
+    quant_value_range = quant_value_range_dict[dataset]
+
+    fig = pca_loadings_plot(df, quant_value_range, dataset_id)
+
+    return fig
+
 @app.callback(
     Output('biomolecule-barplot', 'figure'),
-    [Input('biomolecule_id', 'value')])
+    [Input('biomolecule_id', 'value'),
+    Input('dataset_id', 'value')])
 
-def update_biomolecule_barplot(biomolecule_id):
+def update_biomolecule_barplot(biomolecule_id, dataset_id):
+
+    dataset = dataset_dict[dataset_id]
+    df = df_dict[dataset]
 
     biomolecule_name = biomolecule_id
-    x = metabolomics_df.index
+    x = df.index
     y = biomolecule_id
-    fig = biomolecule_bar(combined_df, x, y, biomolecule_name)
+    fig = biomolecule_bar(df, x, y, biomolecule_name)
 
     return fig
 
 @app.callback(
     Output('biomolecule-boxplot', 'figure'),
-    [Input('biomolecule_id', 'value')])
+    [Input('biomolecule_id', 'value'),
+    Input('dataset_id', 'value')])
 
-def update_biomolecule_boxplot(biomolecule_id):
+def update_biomolecule_boxplot(biomolecule_id, dataset_id):
+
+    dataset = dataset_dict[dataset_id]
+    df = df_dict[dataset]
 
     biomolecule_name = biomolecule_id
-    x = combined_df.index
+    x = df.index
     y = biomolecule_id
-    fig = boxplot(combined_df, biomolecule_name)
+    fig = boxplot(df, biomolecule_name)
 
     return fig
+
+print("Starting server...")
 
 if __name__ == '__main__':
     app.run_server(

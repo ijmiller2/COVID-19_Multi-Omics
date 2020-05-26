@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, MetaData, Table, select, join
 import pandas as pd
 
 # SQLite path
-db_path = 'sqlite:///../../data/SQLite Database/20200524/Covid-19 Study DB.sqlite'
+db_path = 'sqlite:///../../data/SQLite Database/20200525/Covid-19 Study DB.sqlite'
 
 def get_omics_data(with_metadata=False, dataset="proteomics"):
 
@@ -83,10 +83,13 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
         new_col_names.append(biomolecule_name_dict[str(col)])
     wide_df.columns = new_col_names
 
+    # record quant value range
+    quant_value_range = wide_df.shape[1]
+
     # optional return matrix with clinical metadata
     if with_metadata:
 
         combined_df = wide_df.join(deidentified_patient_metadata_df.set_index('sample_id'), on='sample_id')#.dropna()
-        return combined_df
+        return combined_df, quant_value_range
 
-    return wide_df
+    return wide_df, quant_value_range
