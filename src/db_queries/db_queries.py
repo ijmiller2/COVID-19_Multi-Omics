@@ -92,3 +92,11 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
         return combined_df, quant_value_range
 
     return wide_df, quant_value_range
+
+if __name__ == "__main__":
+    dataset="proteomics"
+    proteomics_df, quant_value_range = get_omics_data(with_metadata=True, dataset=dataset)
+    quant_columns = proteomics_df.columns[:quant_value_range]
+    quant_df = proteomics_df[quant_columns]
+    print("{} combined data set has shape: {}".format(dataset, proteomics_df.shape))
+    print("{} quant data set has shape: {}".format(dataset, quant_df.shape))
