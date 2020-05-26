@@ -17,12 +17,15 @@ app = dash.Dash(
 app.title = 'COVID-19 Multi-Omics'
 
 # load metabolomics data matrix
-print("Loading metabolomics data...")
+#print("Loading metabolomics data...")
 metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
-print("Loading lipidomics data...")
+#print("Metabolomics data shape: {}".format(metabolomics_df.shape))
+#print("Loading lipidomics data...")
 lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
-print("Loading proteomics data...")
+#print("Lipidomics data shape: {}".format(lipidomics_df.shape))
+#print("Loading proteomics data...")
 proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
+#print("Proteomics data shape: {}".format(proteomics_df.shape))
 
 available_datasets = ['Proteins', 'Lipids', 'Metabolites']
 # start with proteomics data

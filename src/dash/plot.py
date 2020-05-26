@@ -139,7 +139,12 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset):
     from sklearn.decomposition import PCA
 
     quant_columns = combined_df.columns[:quant_value_range]
+    # # NOTE: For some reason, quant_df here ends up with larger shape...
     quant_df = combined_df[quant_columns]
+
+    #  NOTE: There appear to be duplicate lipid names
+    # All lipid features currently set to keep=1
+    quant_df = quant_df.loc[:,~quant_df.columns.duplicated()]
 
     pca = PCA(n_components = 10)
     PCA = pca.fit_transform(quant_df)
