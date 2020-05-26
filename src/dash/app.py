@@ -5,7 +5,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-from data import get_metabolomics_data
+from data import get_omics_data
 from plot import pca_scores_plot, pca_loadings_plot, biomolecule_bar, boxplot
 
 #external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -17,16 +17,16 @@ app = dash.Dash(
 app.title = 'COVID-19 Multi-Omics'
 
 # load metabolomics data matrix
-metabolomics_df = get_metabolomics_data()
+metabolomics_df = get_omics_data(dataset='metabolomics')
 
 # load combined data matrix (with clinical metadata)
-combined_df = get_metabolomics_data(with_metadata=True)
+combined_df = get_omics_data(dataset='metabolomics', with_metadata=True)
 
 # define static pca plot
 pca_scores_figure = pca_scores_plot(metabolomics_df, combined_df)
 pca_loadings_figure = pca_loadings_plot(metabolomics_df)
 
-available_datasets = ['Metabolites']#, 'QQQ Metabolomics', 'Lipidomics',
+available_datasets = ['Metabolites', 'Lipids']#, 'QQQ Metabolomics', 'Lipidomics',
                         #'Proteomics', 'Transcriptomics']
 available_biomolecules = metabolomics_df.columns.sort_values().tolist()
 
