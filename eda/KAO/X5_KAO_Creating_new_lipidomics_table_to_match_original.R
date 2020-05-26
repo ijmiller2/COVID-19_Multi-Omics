@@ -197,3 +197,25 @@ names(df_upload)
 write.csv(df_upload, file = "../../data/lipidomics_measurements_20200523.csv", row.names = F)
 
 ###### The above table was uploaded to the DB to directly replace the lipidomics measurements.
+
+###### Creating a name update function for lipid biomolecule names ###### 
+df <- data.frame(biomolecule_id = lipids_original$`lipid_ids2$biomolecule_id`, standardized_name = lipids_original$Standardized_name, stringsAsFactors = F)
+
+
+##### R Function to replace values ##### 
+replaceValues <- function(x) dbExecute(con, paste("UPDATE biomolecules
+          SET standardized_name = '",unlist(x[2]),"' WHERE biomolecule_id = ", unlist(x[1]), sep = ""))
+
+
+#replaceValues <- function(x) paste("UPDATE biomolecules
+#          SET standardized_name = '",unlist(x[2]),"' WHERE biomolecule_id = ", unlist(x[1]), sep = "")
+
+##### Iterate over data frame to update normalized_abundance values in sqlite db ######
+dbReadTable(con, "biomolecules")
+
+con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
+
+apply(df, 1, replaceValues)
+
+dbDisconnect(con)
+
