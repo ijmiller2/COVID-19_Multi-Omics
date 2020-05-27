@@ -8,14 +8,14 @@ color_dict = {
                 "COVID_NONICU":"#FDAE61",
                 "NONCOVID_ICU":"#74ADD1",
                 "NONCOVID_NONICU":"#66C2A5",
-                "Col5":"#F46D43",
-                "Col6":"#5AAE61",
+                "Male":"#F46D43",
+                "Female":"#5AAE61",
                 "Col7":"#8073AC",
                 "Col8":"#DE77AE",
-                "Col9":"#9E0142",
-                "Col10":"#F4A582",
-                "Col11":"#2A4023",
-                "Col12":"#2C0379"
+                "Proteomics":"#9E0142",
+                "Lipidomics":"#F4A582",
+                "Metabolomics":"#2A4023",
+                "Transcriptomics":"#2C0379"
                 }
 
 def get_color_list(combined_df):
@@ -53,9 +53,17 @@ def get_color_list(combined_df):
 
 def biomolecule_bar(combined_df, x, y, biomolecule_name):
 
+    # sort the samples by group
     color_list = get_color_list(combined_df)
+    combined_df['color_by'] = color_list
+    combined_df['sample'] = combined_df.index
+    combined_df.sort_values(by=['color_by', 'sample'], inplace=True)
 
-    fig = px.bar(combined_df, x=x, y=y, color=color_list, color_discrete_map=color_dict)
+    fig = px.bar(combined_df, x=[i for i in range(combined_df.shape[0])],
+        y=combined_df[biomolecule_name],
+        color=combined_df['color_by'],
+        hover_data=['sample'],
+        color_discrete_map=color_dict)
 
     fig.update_layout(
         title="{}".format(biomolecule_name),
