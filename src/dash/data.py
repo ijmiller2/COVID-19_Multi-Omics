@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, MetaData, Table, select, join
 import pandas as pd
 
 # SQLite path
-db_path = 'sqlite:///../../data/SQLite Database/20200525/Covid-19 Study DB.sqlite'
+db_path = 'sqlite:///../../data/SQLite Database/20200527/Covid-19 Study DB.sqlite'
 
 omics_id_dict = {
         "proteomics":1,

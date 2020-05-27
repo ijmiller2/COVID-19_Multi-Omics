@@ -326,7 +326,16 @@ def update_pca_loadings_plot(dataset_id):
     biomolecule_names_dict = global_names_dict[dataset]
     quant_value_range = quant_value_range_dict[dataset]
 
-    fig = pca_loadings_plot(df, quant_value_range, dataset_id, biomolecule_names_dict)
+    # build ome type list for coloring
+    if not dataset == 'combined':
+        ome_type_list = [dataset] * quant_value_range
+
+    else:
+        ome_type_list = ['proteomics'] * quant_value_range_dict['proteomics']
+        ome_type_list.extend(['lipidomics'] * quant_value_range_dict['lipidomics'])
+        ome_type_list.extend(['metabolomics'] * quant_value_range_dict['metabolomics'])
+
+    fig = pca_loadings_plot(df, quant_value_range, dataset_id, biomolecule_names_dict, ome_type_list)
 
     return fig
 

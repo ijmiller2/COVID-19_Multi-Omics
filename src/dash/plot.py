@@ -12,10 +12,10 @@ color_dict = {
                 "Female":"#5AAE61",
                 "Col7":"#8073AC",
                 "Col8":"#DE77AE",
-                "Proteomics":"#9E0142",
-                "Lipidomics":"#F4A582",
-                "Metabolomics":"#2A4023",
-                "Transcriptomics":"#2C0379"
+                "proteomics":"#9E0142",
+                "lipidomics":"#F4A582",
+                "metabolomics":"#2A4023",
+                "transcriptomics":"#2C0379"
                 }
 
 def get_color_list(combined_df):
@@ -97,6 +97,7 @@ def boxplot(combined_df, biomolecule_id, biomolecule_names_dict):
         legend_title_text='Group',
         xaxis_title='Group',
         yaxis_title='log2(LFQ) Value',
+        showlegend=False,
         font=dict(
             family="Helvetica",
             size=18,
@@ -138,6 +139,7 @@ def pca_scores_plot(combined_df, quant_value_range):
         legend_title_text='Group',
         xaxis_title='PC1 ({}%)'.format(round(100*pca.explained_variance_ratio_[0],1)),
         yaxis_title='PC2 ({}%)'.format(round(100*pca.explained_variance_ratio_[1],1)),
+        showlegend=False,
         font=dict(
             family="Helvetica",
             size=18,
@@ -146,7 +148,7 @@ def pca_scores_plot(combined_df, quant_value_range):
 
     return fig
 
-def pca_loadings_plot(combined_df, quant_value_range, dataset, biomolecule_names_dict):
+def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_names_dict, ome_type_list):
 
     from sklearn.decomposition import PCA
 
@@ -172,12 +174,15 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset, biomolecule_names
         'biomolecule_id':quant_df.columns.tolist(),
         'standardized_name':[biomolecule_names_dict[i] for i in quant_df.columns.tolist()]})
 
-    fig = px.scatter(df, x="x", y="y", hover_data=['biomolecule_id', 'standardized_name'])
+    fig = px.scatter(df, x="x", y="y",
+        hover_data=['biomolecule_id', 'standardized_name'],
+        color=ome_type_list,
+        color_discrete_map=color_dict)
 
     fig.update_traces(marker=dict(size=10, opacity=0.5))
 
     fig.update_layout(
-        title="{} (n={})".format(dataset, quant_df.shape[1]),
+        title="{} (n={})".format(dataset_id, quant_df.shape[1]),
         legend_title_text='Group',
         xaxis_title='Loadings on PC1',
         yaxis_title='Loadings on PC2',
@@ -186,5 +191,9 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset, biomolecule_names
             size=18,
             color="#7f7f7f")
         )
+
+    # only show the color legend with combined datasets
+    if not dataset_id=="Combined":
+        fig.update_layout(showlegend=False)
 
     return fig

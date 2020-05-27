@@ -10,11 +10,12 @@ As of 5/27/20:
 - re-order barplot by patient group  
 - update biomolecule_id (from standardized_name) usage in dropdown and throughout app.py  
 - map gene names to protein drop down menu  
+- Build combined plots  
 
 To do:
-- Build combined plots  
-- - update db to use new standardized lipid names  
-- Color metabolite (e.g., in loadings plot) by -ome id  
+- update db to use new standardized lipid names  
+- Color metabolite (e.g., in loadings plot) by -ome id
+- Push changes to web server  
 - Restructure app to multi-page layout  
 - Add correlation/linear regression tab  
 - Build table lookup page  
