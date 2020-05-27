@@ -97,9 +97,11 @@
 #   looks like the lipidomics_measurements table, but with 
 #   updated biomolecule ids (no duplicates) and batch correction
 #   to the lipiomics data - run-time correction similar to the
-#   GC metabolomics data. 
+#   GC metabolomics data. Lipid standardized names are also updated
+#   in this document. 
+# issue: #7
 # date created: 5/20/2020
-# date last modified: 5/23/2020
+# date last modified: 5/26/2020
 # input:
 # - Covid-19 Study DB.sqlite
 # - Lipidomics/Lipidomics_quant_results/Final_Results.csv
