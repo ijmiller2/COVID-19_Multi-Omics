@@ -29,7 +29,6 @@ print("Proteomics data shape: {}".format(proteomics_df.shape))
 
 available_datasets = ['Proteins', 'Lipids', 'Metabolites']
 
-
 # make biomolecule_name_dict
 metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
 lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
@@ -43,8 +42,7 @@ default_biomolecule = list(sorted_biomolecule_names_dict.keys())[0]
 
 plotly_config = {"toImageButtonOptions":{'format':'svg',
                 'filename': 'dash_plot'},
-                "displaylogo": False,
-                "displayModeBar":True}
+                "displaylogo": False}
 
 first_card = dbc.Card(
     [
@@ -91,8 +89,6 @@ control_panel = dbc.Card(
                 # only passing in quant value columns
                 value=default_biomolecule,
                 className="dropdown-item p-0"),
-
-            #dcc.Dropdown(id='biomolecule_id')
 
                 ])
     ])
@@ -276,8 +272,6 @@ def update_biomolecule_options(dataset_id):
     # get list of columns for dataset
     available_biomolecules = df.columns[:quant_value_range].sort_values().tolist()
 
-    #options = [{'label': i, 'value': i} for i in available_biomolecules]
-
     sorted_biomolecule_names_dict = {k: v for k, v in sorted(biomolecule_names_dict.items(), key=lambda item: item[1])}
 
     options=[{'label': value, 'value': key} for key, value in sorted_biomolecule_names_dict.items() if key in available_biomolecules]
@@ -290,21 +284,12 @@ def update_biomolecule_options(dataset_id):
 
 def update_default_biomolecule(dataset_id):
 
-    """dataset = dataset_dict[dataset_id]
-    df = df_dict[dataset]
-    quant_value_range = quant_value_range_dict[dataset]
-
-    # get list of columns for dataset
-    available_biomolecules = df.columns[:quant_value_range].sort_values().tolist()
-
-    default_biomolecule = available_biomolecules[0]"""
-
     dataset = dataset_dict[dataset_id]
     biomolecule_names_dict = global_names_dict[dataset]
 
     sorted_biomolecule_names_dict = {k: v for k, v in sorted(biomolecule_names_dict.items(), key=lambda item: item[1])}
     default_biomolecule=list(sorted_biomolecule_names_dict.keys())[0]
-    print("Default biomolecule: {}".format(default_biomolecule))
+
     return default_biomolecule
 
 @app.callback(
@@ -343,17 +328,12 @@ def update_pca_loadings_plot(dataset_id):
 
 def update_biomolecule_barplot(biomolecule_id, dataset_id):
 
-    print("Update biomolecule: {}".format(biomolecule_id))
     dataset = dataset_dict[dataset_id]
     df = df_dict[dataset]
 
     biomolecule_names_dict = global_names_dict[dataset]
     biomolecule_name = biomolecule_names_dict[biomolecule_id]
-    print("Update biomolecule name: {}".format(biomolecule_name))
 
-    print("barplot df columns: {}".format(df.columns))
-
-    #fig = biomolecule_bar(df, biomolecule_name)
     fig = biomolecule_bar(df, biomolecule_id, biomolecule_names_dict)
 
     return fig
@@ -371,7 +351,6 @@ def update_biomolecule_boxplot(biomolecule_id, dataset_id):
     biomolecule_names_dict = global_names_dict[dataset]
     biomolecule_name = biomolecule_names_dict[biomolecule_id]
 
-    #fig = boxplot(df, biomolecule_name)
     fig = boxplot(df, biomolecule_id, biomolecule_names_dict)
 
     return fig

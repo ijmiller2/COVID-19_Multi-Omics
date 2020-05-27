@@ -61,9 +61,6 @@ def biomolecule_bar(combined_df, biomolecule_id, biomolecule_names_dict):
     combined_df['sample'] = combined_df.index
     combined_df.sort_values(by=['color_by', 'sample'], inplace=True)
 
-    print(combined_df.columns)
-    print("{} in combined_df: {}".format(biomolecule_name, biomolecule_name in combined_df))
-
     fig = px.bar(combined_df, x=[i for i in range(combined_df.shape[0])],
         y=combined_df[biomolecule_id],
         color=combined_df['color_by'],
