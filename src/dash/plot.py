@@ -51,13 +51,16 @@ def get_color_list(combined_df):
 
     return color_list
 
-def biomolecule_bar(combined_df, x, y, biomolecule_name):
+def biomolecule_bar(combined_df, biomolecule_name):
 
     # sort the samples by group
     color_list = get_color_list(combined_df)
     combined_df['color_by'] = color_list
     combined_df['sample'] = combined_df.index
     combined_df.sort_values(by=['color_by', 'sample'], inplace=True)
+
+    print(combined_df.columns)
+    print("{} in combined_df: {}".format(biomolecule_name, biomolecule_name in combined_df))
 
     fig = px.bar(combined_df, x=[i for i in range(combined_df.shape[0])],
         y=combined_df[biomolecule_name],
@@ -142,7 +145,7 @@ def pca_scores_plot(combined_df, quant_value_range):
 
     return fig
 
-def pca_loadings_plot(combined_df, quant_value_range, dataset):
+def pca_loadings_plot(combined_df, quant_value_range, dataset, biomolecule_names_dict):
 
     from sklearn.decomposition import PCA
 
@@ -164,9 +167,11 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset):
     PC2_index = 1
     PC2_loadings = [y[PC2_index] for y in loadings]
 
-    df = pd.DataFrame({'x':PC1_loadings, 'y':PC2_loadings, 'biomolecule_id':quant_df.columns.tolist()})
+    df = pd.DataFrame({'x':PC1_loadings, 'y':PC2_loadings,
+        'biomolecule_id':quant_df.columns.tolist(),
+        'standardized_name':[biomolecule_names_dict[i] for i in quant_df.columns.tolist()]})
 
-    fig = px.scatter(df, x="x", y="y", hover_data=['biomolecule_id'])
+    fig = px.scatter(df, x="x", y="y", hover_data=['biomolecule_id', 'standardized_name'])
 
     fig.update_traces(marker=dict(size=10, opacity=0.5))
 
