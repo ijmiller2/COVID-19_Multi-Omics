@@ -34,6 +34,14 @@ metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomic
 lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
 proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
 
+# drop unknown lipids (to test speed up)
+lipidomics_drop_list = []
+for biomolecule_id in lipidomics_df.columns[:lipidomics_quant_range]:
+    if "Unknown" in lipidomics_biomolecule_names_dict[biomolecule_id]:
+        lipidomics_drop_list.append(biomolecule_id)
+lipidomics_df.drop(lipidomics_drop_list, axis=1, inplace=True)
+lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)
+
 # define dataset dictionaries
 dataset_dict = {
         "Proteins":"proteomics",
@@ -256,8 +264,8 @@ app.layout = dbc.Container([
         ), md=2, className="mb-3"),
 
         #dbc.Col(control_panel, md=6)
-        dbc.Col(first_card, md=6),
-        dbc.Col(second_card, md=4)
+        dbc.Col(first_card, md=4),
+        dbc.Col(second_card, md=6)
         ],
 
         className="mb-3"),
@@ -317,9 +325,10 @@ def update_pca_scores_plot(dataset_id):
 
 @app.callback(
     Output('pca-loadings-figure', 'figure'),
-    [Input('dataset_id', 'value')])
+    [Input('dataset_id', 'value'),
+    Input('biomolecule_id', 'value')])
 
-def update_pca_loadings_plot(dataset_id):
+def update_pca_loadings_plot(dataset_id, biomolecule_id):
 
     dataset = dataset_dict[dataset_id]
     df = df_dict[dataset]
@@ -334,6 +343,10 @@ def update_pca_loadings_plot(dataset_id):
         ome_type_list = ['proteomics'] * quant_value_range_dict['proteomics']
         ome_type_list.extend(['lipidomics'] * quant_value_range_dict['lipidomics'])
         ome_type_list.extend(['metabolomics'] * quant_value_range_dict['metabolomics'])
+
+    # get biomolecule index
+    biomolecule_index = df.columns.tolist().index(biomolecule_id)
+    ome_type_list[biomolecule_index] = 'selected_biomolecule'
 
     fig = pca_loadings_plot(df, quant_value_range, dataset_id, biomolecule_names_dict, ome_type_list)
 

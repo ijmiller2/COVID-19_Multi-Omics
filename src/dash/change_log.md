@@ -16,10 +16,10 @@ As of 5/27/20:
 - Push changes to web server  
 - Only show identified lipids (for performance reasons)
 - Install svg software on remote server
+- Replace protein gene names with fasta headers
+- Color selected biomolecule
 
 To do:
-- color selected biomolecule
-- Replace protein gene names with fasta headers
 - Restructure app to multi-page layout  
 - Add correlation/linear regression tab  
 - Build table lookup page  

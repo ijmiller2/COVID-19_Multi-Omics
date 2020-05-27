@@ -15,7 +15,8 @@ color_dict = {
                 "proteomics":"#9E0142",
                 "lipidomics":"#F4A582",
                 "metabolomics":"#2A4023",
-                "transcriptomics":"#2C0379"
+                "transcriptomics":"#2C0379",
+                "selected_biomolecule":"black"
                 }
 
 def get_color_list(combined_df):
@@ -193,7 +194,7 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
         )
 
     # only show the color legend with combined datasets
-    if not dataset_id=="Combined":
-        fig.update_layout(showlegend=False)
+    #if not dataset_id=="Combined":
+    #    fig.update_layout(showlegend=False)
 
     return fig
