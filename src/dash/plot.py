@@ -51,7 +51,9 @@ def get_color_list(combined_df):
 
     return color_list
 
-def biomolecule_bar(combined_df, biomolecule_name):
+def biomolecule_bar(combined_df, biomolecule_id, biomolecule_names_dict):
+
+    biomolecule_name = biomolecule_names_dict[biomolecule_id]
 
     # sort the samples by group
     color_list = get_color_list(combined_df)
@@ -63,7 +65,7 @@ def biomolecule_bar(combined_df, biomolecule_name):
     print("{} in combined_df: {}".format(biomolecule_name, biomolecule_name in combined_df))
 
     fig = px.bar(combined_df, x=[i for i in range(combined_df.shape[0])],
-        y=combined_df[biomolecule_name],
+        y=combined_df[biomolecule_id],
         color=combined_df['color_by'],
         hover_data=['sample'],
         color_discrete_map=color_dict)
@@ -80,11 +82,13 @@ def biomolecule_bar(combined_df, biomolecule_name):
 
     return fig
 
-def boxplot(combined_df, biomolecule_name):
+def boxplot(combined_df, biomolecule_id, biomolecule_names_dict):
+
+    biomolecule_name = biomolecule_names_dict[biomolecule_id]
 
     color_list = get_color_list(combined_df)
 
-    df = pd.DataFrame({'y':combined_df[biomolecule_name], 'color':color_list,
+    df = pd.DataFrame({'y':combined_df[biomolecule_id], 'color':color_list,
                         'sample':combined_df.index})
 
     fig = px.box(df, y="y", color="color", color_discrete_map=color_dict,
