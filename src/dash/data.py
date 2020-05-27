@@ -122,6 +122,8 @@ def get_biomolecule_names(dataset='proteomics'):
         # close DB connection
         connection.close()
 
+
+
         return biomolecule_name_dict
 
     # for proteomics data, return fasta headers instead
@@ -145,3 +147,43 @@ def get_biomolecule_names(dataset='proteomics'):
     connection.close()
 
     return biomolecule_name_dict
+
+def get_combined_data(df_dict, quant_range_dict):
+
+    # load metabolomics data matrix
+    metabolomics_df, metabolomics_quant_range = df_dict['metabolomics'], quant_range_dict['metabolomics']
+    lipidomics_df, lipidomics_quant_range = df_dict['lipidomics'], quant_range_dict['lipidomics']
+    proteomics_df, proteomics_quant_range = df_dict['proteomics'], quant_range_dict['proteomics']
+
+    # get quant columns
+    lipidomics_quant_columns = lipidomics_df.columns[:lipidomics_quant_range]
+    lipidomics_quant_df = lipidomics_df[lipidomics_quant_columns]
+
+    metabolomics_quant_columns = metabolomics_df.columns[:metabolomics_quant_range]
+    metabolomics_quant_df = metabolomics_df[metabolomics_quant_columns]
+
+    proteomics_quant_columns = proteomics_df.columns[:proteomics_quant_range]
+    proteomics_quant_df = proteomics_df[proteomics_quant_columns]
+
+    # get clinical_metadata_df
+    clinical_metadata_columns = proteomics_df.columns[proteomics_quant_range:]
+    clinical_metadata_df = proteomics_df[clinical_metadata_columns]
+    clinical_metadata_df
+
+    # join quant values together
+    combined_df = proteomics_quant_df.join(lipidomics_quant_df).join(metabolomics_quant_df)
+    combined_quant_range = combined_df.shape[1]
+    combined_quant_columns = combined_df.columns[:combined_quant_range]
+    # now join with clinical metadata
+    combined_df = combined_df.join(clinical_metadata_df)
+
+    # drop any samples with missing values in quant columns
+    combined_df.dropna(subset=combined_quant_columns,inplace=True)
+
+    # also return df_dict with combined_df
+    df_dict['combined'] = combined_df
+
+    # update quant_range_dict
+    quant_range_dict['combined'] = combined_quant_range
+
+    return df_dict, quant_range_dict

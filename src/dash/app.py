@@ -5,7 +5,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-from data import get_omics_data, get_biomolecule_names
+from data import get_omics_data, get_biomolecule_names, get_combined_data
 from plot import pca_scores_plot, pca_loadings_plot, biomolecule_bar, boxplot
 
 #external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -27,12 +27,46 @@ print("Loading proteomics data...")
 proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
 print("Proteomics data shape: {}".format(proteomics_df.shape))
 
-available_datasets = ['Proteins', 'Lipids', 'Metabolites']
+available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined']
 
 # make biomolecule_name_dict
 metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
 lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
 proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
+
+# define dataset dictionaries
+dataset_dict = {
+        "Proteins":"proteomics",
+        "Lipids":"lipidomics",
+        "Metabolites":"metabolomics",
+        "Transcripts":"transcriptomics",
+        "Combined":"combined"
+    }
+
+df_dict = {
+    "proteomics":proteomics_df,
+    "lipidomics":lipidomics_df,
+    "metabolomics":metabolomics_df,
+}
+
+quant_value_range_dict = {
+    "proteomics":proteomics_quant_range,
+    "lipidomics":lipidomics_quant_range,
+    "metabolomics":metabolomics_quant_range,
+}
+
+global_names_dict = {
+    "proteomics":proteomics_biomolecule_names_dict,
+    "lipidomics":lipidomics_biomolecule_names_dict,
+    "metabolomics":metabolomics_biomolecule_names_dict,
+    "combined":{**proteomics_biomolecule_names_dict,
+                **lipidomics_biomolecule_names_dict,
+                **metabolomics_biomolecule_names_dict}
+}
+
+# get combined omics df and quant value range
+print("Creating combined omics df...")
+df_dict, quant_value_range_dict = get_combined_data(df_dict, quant_value_range_dict)
 
 # start with proteomics data
 sorted_biomolecule_names_dict = {k: v for k, v in sorted(proteomics_biomolecule_names_dict.items(), key=lambda item: item[1])}
@@ -231,31 +265,6 @@ app.layout = dbc.Container([
     dbc.Row([dbc.Col(third_card, md=7, align="center"), dbc.Col(fourth_card, md=5, align="center")], className="mb-3")
 
 ], fluid=True)
-
-dataset_dict = {
-        "Proteins":"proteomics",
-        "Lipids":"lipidomics",
-        "Metabolites":"metabolomics",
-        "Transcripts":"transcriptomics"
-    }
-
-df_dict = {
-    "proteomics":proteomics_df,
-    "lipidomics":lipidomics_df,
-    "metabolomics":metabolomics_df,
-}
-
-quant_value_range_dict = {
-    "proteomics":proteomics_quant_range,
-    "lipidomics":lipidomics_quant_range,
-    "metabolomics":metabolomics_quant_range,
-}
-
-global_names_dict = {
-    "proteomics":proteomics_biomolecule_names_dict,
-    "lipidomics":lipidomics_biomolecule_names_dict,
-    "metabolomics":metabolomics_biomolecule_names_dict,
-}
 
 @app.callback(
     dash.dependencies.Output('biomolecule_id', 'options'),
