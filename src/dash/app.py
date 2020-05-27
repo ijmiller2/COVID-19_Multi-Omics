@@ -31,13 +31,19 @@ available_datasets = ['Proteins', 'Lipids', 'Metabolites']
 # start with proteomics data
 available_biomolecules = proteomics_df.columns[:proteomics_quant_range].sort_values().tolist()
 
+plotly_config = {"toImageButtonOptions":{'format':'svg',
+                'filename': 'dash_plot'},
+                "displaylogo": False,
+                "displayModeBar":True}
+
 first_card = dbc.Card(
     [
         dbc.CardHeader("PCA SCORES PLOT",
                             style={"background-color":"#5bc0de",
                                     "font-weight":"bold",
                                     "font-size":"large"}),
-        dbc.CardBody(dcc.Graph(id='pca-scores-figure'))
+        dbc.CardBody(dcc.Graph(id='pca-scores-figure',
+            config=plotly_config))
 
         ])
 
@@ -47,7 +53,8 @@ second_card = dbc.Card(
                             style={"background-color":"#5bc0de",
                                     "font-weight":"bold",
                                     "font-size":"large"}),
-        dbc.CardBody(dcc.Graph(id='pca-loadings-figure'))
+        dbc.CardBody(dcc.Graph(id='pca-loadings-figure',
+        config=plotly_config))
     ])
 
 control_panel = dbc.Card(
@@ -85,7 +92,8 @@ third_card = dbc.Card(
                             style={"background-color":"#5bc0de",
                                         "font-weight":"bold",
                                         "font-size":"large"}),
-        dbc.CardBody(dcc.Graph(id='biomolecule-barplot'))
+        dbc.CardBody(dcc.Graph(id='biomolecule-barplot',
+        config=plotly_config))
     ])
 
 fourth_card = dbc.Card(
@@ -94,7 +102,8 @@ fourth_card = dbc.Card(
                             style={"background-color":"#5bc0de",
                                     "font-weight":"bold",
                                     "font-size":"large"}),
-        dbc.CardBody(dcc.Graph(id='biomolecule-boxplot'))
+        dbc.CardBody(dcc.Graph(id='biomolecule-boxplot',
+        config=plotly_config))
     ])
 
 COONLAB_LOGO="https://coonlabs.com/wp-content/uploads/2016/07/coon-logo-white.png"
