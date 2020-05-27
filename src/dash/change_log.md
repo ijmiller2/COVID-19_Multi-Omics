@@ -11,11 +11,15 @@ As of 5/27/20:
 - update biomolecule_id (from standardized_name) usage in dropdown and throughout app.py  
 - map gene names to protein drop down menu  
 - Build combined plots  
-
-To do:
 - update db to use new standardized lipid names  
 - Color metabolite (e.g., in loadings plot) by -ome id
 - Push changes to web server  
+- Only show identified lipids (for performance reasons)
+- Install svg software on remote server
+
+To do:
+- color selected biomolecule
+- Replace protein gene names with fasta headers
 - Restructure app to multi-page layout  
 - Add correlation/linear regression tab  
 - Build table lookup page  

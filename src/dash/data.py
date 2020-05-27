@@ -1,6 +1,7 @@
 
 from sqlalchemy import create_engine, MetaData, Table, select, join
 import pandas as pd
+import re
 
 # SQLite path
 db_path = 'sqlite:///../../data/SQLite Database/20200527/Covid-19 Study DB.sqlite'
@@ -122,8 +123,6 @@ def get_biomolecule_names(dataset='proteomics'):
         # close DB connection
         connection.close()
 
-
-
         return biomolecule_name_dict
 
     # for proteomics data, return fasta headers instead
@@ -132,16 +131,15 @@ def get_biomolecule_names(dataset='proteomics'):
     # get biomolecule names
     metadata_df = pd.read_sql_query(query, connection)
 
-    ## NOTE: Could swap this with fasta headers once they're available
-    gene_name_df = metadata_df[metadata_df['metadata_type'] == 'gene_name']
-    gene_name_df = gene_name_df.astype({'biomolecule_id': 'str'})
+    fasta_header_df = metadata_df[metadata_df['metadata_type'] == 'fasta_header']
+    fasta_header_df = fasta_header_df.astype({'biomolecule_id': 'str'})
 
     for biomolecule_id in biomolecule_name_dict:
-        if biomolecule_id in gene_name_df['biomolecule_id'].tolist():
-            # update to gene name
-            gene_name = gene_name_df[gene_name_df['biomolecule_id']==biomolecule_id]['metadata_value'].values[0]
-            if not gene_name == "":
-                biomolecule_name_dict[biomolecule_id] = gene_name
+        # update to gene name
+        #gene_name = gene_name_df[gene_name_df['biomolecule_id']==biomolecule_id]['metadata_value'].values[0]
+        fasta_header = fasta_header_df[fasta_header_df['biomolecule_id']==biomolecule_id]['metadata_value'].values[0]
+        fasta_header = re.search("\s(.*?)\sO[SX]=", fasta_header).group(1)
+        biomolecule_name_dict[biomolecule_id] = fasta_header
 
     # close DB connection
     connection.close()
