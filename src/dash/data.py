@@ -3,9 +3,19 @@ from sqlalchemy import create_engine, MetaData, Table, select, join
 import pandas as pd
 
 # SQLite path
-db_path = 'sqlite:///../../data/SQLite Database/Covid-19 Study DB.sqlite'
+db_path = 'sqlite:///../../data/SQLite Database/20200525/Covid-19 Study DB.sqlite'
 
-def get_metabolomics_data(with_metadata=False):
+def get_omics_data(with_metadata=False, dataset="proteomics"):
+
+    omics_id_dict = {
+        "proteomics":1,
+        "lipidomics":2,
+        "metabolomics":3,
+        "transcriptomics":4
+    }
+
+    omics_id = omics_id_dict[dataset]
+
     # Create an engine that connects to the Covid-19 Study DB.sqlite file: engine
     engine = create_engine(db_path)
 
@@ -13,25 +23,28 @@ def get_metabolomics_data(with_metadata=False):
     connection = engine.connect()
 
     # pull table into df
-    metabolomics_measurements_df = pd.read_sql_query("SELECT * from metabolomics_measurements", connection)
+    query = "SELECT * from {}_measurements".format(dataset)
+    omics_measurements_df = pd.read_sql_query(query, connection)
 
     # pull table into df
-    metabolomics_runs_df = pd.read_sql_query("SELECT * from metabolomics_runs", connection)
+    query = "SELECT * from {}_runs".format(dataset)
+    omics_runs_df = pd.read_sql_query(query, connection)
 
     # pull table into df
-    rawfiles_df = pd.read_sql_query("SELECT * from rawfiles WHERE ome_id=3 AND sample_ID<>-1 and keep=1", connection)
+    query = "SELECT * from rawfiles WHERE ome_id={} AND sample_ID<>-1 and keep=1".format(omics_id)
+    rawfiles_df = pd.read_sql_query(query, connection)
 
     # pull table into df
     deidentified_patient_metadata_df = pd.read_sql_query("SELECT * from deidentified_patient_metadata", connection)
 
     # make sure the merge by columns are all the same type -> pandas seems sensitive to this
-    metabolomics_measurements_df = metabolomics_measurements_df.astype({'replicate_id': 'int32'})
-    metabolomics_runs_df = metabolomics_runs_df.astype({'replicate_id': 'int32', 'rawfile_id': 'int32'})
+    omics_measurements_df = omics_measurements_df.astype({'replicate_id': 'int32'})
+    omics_runs_df = omics_runs_df.astype({'replicate_id': 'int32', 'rawfile_id': 'int32'})
     rawfiles_df = rawfiles_df.astype({'rawfile_id': 'int32', 'sample_id': 'int32'})
     deidentified_patient_metadata_df = deidentified_patient_metadata_df.astype({'sample_id': 'int32'})
 
-    joined_df = metabolomics_measurements_df\
-                .join(metabolomics_runs_df.set_index('replicate_id'), on='replicate_id')\
+    joined_df = omics_measurements_df\
+                .join(omics_runs_df.set_index('replicate_id'), on='replicate_id')\
                 .join(rawfiles_df.set_index('rawfile_id'), on='rawfile_id')\
                 .join(deidentified_patient_metadata_df.set_index('sample_id'), on='sample_id')
 
@@ -40,15 +53,20 @@ def get_metabolomics_data(with_metadata=False):
 
     # pivot to wide format
     wide_df = joined_df.pivot_table(index='sample_id', columns='biomolecule_id', values='normalized_abundance')
+    wide_df.columns = [str(col) for col in wide_df.columns]
 
+    query = "SELECT * from biomolecules WHERE omics_id={}".format(omics_id)
     # get biomolecule names
-    biomolecules_df = pd.read_sql_query("SELECT * from biomolecules", connection)
+    biomolecules_df = pd.read_sql_query(query, connection)
+
+    # close DB connection
+    connection.close()
 
     # build biomolecule name dict and drop list
     biomolecule_name_dict = {}
     biomolecule_drop_list = []
     for index, row in biomolecules_df.iterrows():
-        biomolecule_id = row['biomolecule_id']
+        biomolecule_id = str(row['biomolecule_id'])
         standardized_name = row['standardized_name']
         biomolecule_name_dict[biomolecule_id] = standardized_name
 
@@ -62,13 +80,16 @@ def get_metabolomics_data(with_metadata=False):
     # replace wide_df column names
     new_col_names = []
     for col in wide_df.columns:
-        new_col_names.append(biomolecule_name_dict[col])
+        new_col_names.append(biomolecule_name_dict[str(col)])
     wide_df.columns = new_col_names
+
+    # record quant value range
+    quant_value_range = wide_df.shape[1]
 
     # optional return matrix with clinical metadata
     if with_metadata:
 
         combined_df = wide_df.join(deidentified_patient_metadata_df.set_index('sample_id'), on='sample_id')#.dropna()
-        return combined_df
+        return combined_df, quant_value_range
 
-    return wide_df
+    return wide_df, quant_value_range

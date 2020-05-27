@@ -8,14 +8,14 @@ color_dict = {
                 "COVID_NONICU":"#FDAE61",
                 "NONCOVID_ICU":"#74ADD1",
                 "NONCOVID_NONICU":"#66C2A5",
-                "Col5":"#F46D43",
-                "Col6":"#5AAE61",
+                "Male":"#F46D43",
+                "Female":"#5AAE61",
                 "Col7":"#8073AC",
                 "Col8":"#DE77AE",
-                "Col9":"#9E0142",
-                "Col10":"#F4A582",
-                "Col11":"#2A4023",
-                "Col12":"#2C0379"
+                "Proteomics":"#9E0142",
+                "Lipidomics":"#F4A582",
+                "Metabolomics":"#2A4023",
+                "Transcriptomics":"#2C0379"
                 }
 
 def get_color_list(combined_df):
@@ -53,9 +53,17 @@ def get_color_list(combined_df):
 
 def biomolecule_bar(combined_df, x, y, biomolecule_name):
 
+    # sort the samples by group
     color_list = get_color_list(combined_df)
+    combined_df['color_by'] = color_list
+    combined_df['sample'] = combined_df.index
+    combined_df.sort_values(by=['color_by', 'sample'], inplace=True)
 
-    fig = px.bar(combined_df, x=x, y=y, color=color_list, color_discrete_map=color_dict)
+    fig = px.bar(combined_df, x=[i for i in range(combined_df.shape[0])],
+        y=combined_df[biomolecule_name],
+        color=combined_df['color_by'],
+        hover_data=['sample'],
+        color_discrete_map=color_dict)
 
     fig.update_layout(
         title="{}".format(biomolecule_name),
@@ -73,10 +81,12 @@ def boxplot(combined_df, biomolecule_name):
 
     color_list = get_color_list(combined_df)
 
-    df = pd.DataFrame({'y':combined_df[biomolecule_name], 'color':color_list})
+    df = pd.DataFrame({'y':combined_df[biomolecule_name], 'color':color_list,
+                        'sample':combined_df.index})
 
     fig = px.box(df, y="y", color="color", color_discrete_map=color_dict,
-                points='all')
+                points='all', hover_data=['sample'])
+
     fig.update_traces(quartilemethod="exclusive") # or "inclusive", or "linear" by default
     fig.update_layout(
         title="{}".format(biomolecule_name),
@@ -91,9 +101,12 @@ def boxplot(combined_df, biomolecule_name):
 
     return fig
 
-def pca_scores_plot(quant_df, combined_df):
+def pca_scores_plot(combined_df, quant_value_range):
 
     from sklearn.decomposition import PCA
+
+    quant_columns = combined_df.columns[:quant_value_range]
+    quant_df = combined_df[quant_columns]
 
     pca = PCA(n_components = 10)
     PCA = pca.fit_transform(quant_df)
@@ -117,7 +130,7 @@ def pca_scores_plot(quant_df, combined_df):
     fig.update_traces(marker=dict(size=20, opacity=0.8))
 
     fig.update_layout(
-        title="GC/MS Samples (n={})".format(quant_df.shape[0]),
+        title="Samples (n={})".format(quant_df.shape[0]),
         legend_title_text='Group',
         xaxis_title='PC1 ({}%)'.format(round(100*pca.explained_variance_ratio_[0],1)),
         yaxis_title='PC2 ({}%)'.format(round(100*pca.explained_variance_ratio_[1],1)),
@@ -129,9 +142,17 @@ def pca_scores_plot(quant_df, combined_df):
 
     return fig
 
-def pca_loadings_plot(quant_df):
+def pca_loadings_plot(combined_df, quant_value_range, dataset):
 
     from sklearn.decomposition import PCA
+
+    quant_columns = combined_df.columns[:quant_value_range]
+    # # NOTE: For some reason, quant_df here ends up with larger shape...
+    quant_df = combined_df[quant_columns]
+
+    #  NOTE: There appear to be duplicate lipid names
+    # All lipid features currently set to keep=1
+    quant_df = quant_df.loc[:,~quant_df.columns.duplicated()]
 
     pca = PCA(n_components = 10)
     PCA = pca.fit_transform(quant_df)
@@ -143,15 +164,14 @@ def pca_loadings_plot(quant_df):
     PC2_index = 1
     PC2_loadings = [y[PC2_index] for y in loadings]
 
-    df = pd.DataFrame({'x':PC1_loadings, 'y':PC2_loadings, 'sample_id':quant_df.columns.tolist()})
+    df = pd.DataFrame({'x':PC1_loadings, 'y':PC2_loadings, 'biomolecule_id':quant_df.columns.tolist()})
 
-    fig = px.scatter(df, x="x", y="y", hover_data=['sample_id'],
-                    color_discrete_map=color_dict)
+    fig = px.scatter(df, x="x", y="y", hover_data=['biomolecule_id'])
 
     fig.update_traces(marker=dict(size=10, opacity=0.5))
 
     fig.update_layout(
-        title="GC/MS Metabolites (n={})".format(quant_df.shape[1]),
+        title="{} (n={})".format(dataset, quant_df.shape[1]),
         legend_title_text='Group',
         xaxis_title='Loadings on PC1',
         yaxis_title='Loadings on PC2',
