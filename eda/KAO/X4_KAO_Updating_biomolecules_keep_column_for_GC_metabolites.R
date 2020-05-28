@@ -133,7 +133,7 @@ con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multi
 
 #dbExecute(con, "UPDATE biomolecules SET keep = '1'")                        
 
-apply(rsd_controls_subset, 1, replaceValues)
+apply(by_batch_subset, 1, replaceValues)
 
 ## confirm 
 biomolecule_df <- dbGetQuery(con, "SELECT *
@@ -142,3 +142,38 @@ biomolecule_df <- dbGetQuery(con, "SELECT *
 
 dbDisconnect(con)
 
+#### Establish a connection to the DB to obtain tier information #####
+
+con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
+
+biomolecule_tier <- dbGetQuery(con, "SELECT *
+                             FROM biomolecules
+                             INNER JOIN metadata on metadata.biomolecule_id = biomolecules.biomolecule_id
+                             WHERE omics_id = 3
+                             AND (metadata_type = 'tier_mean') ", stringsAsFactors = F)
+
+dbDisconnect(con)
+
+#### create a subset of mean tier > 4 to flag #####
+
+# create subset of features which need keep updated 
+tier_subset <- data.frame( biomolecule_id = biomolecule_tier$biomolecule_id[biomolecule_tier$metadata_value > 4],keep = biomolecule_tier$keep[biomolecule_tier$metadata_value > 4] , stringsAsFactors = F)
+
+# modify the keep string; if 1 turn to 0, then append "QC_2_intrabatch_RSD_over30perc"
+tier_subset$keep[tier_subset$keep == "1"] <- sub("1", "0", tier_subset$keep[tier_subset$keep == "1"])
+tier_subset$keep <- paste(tier_subset$keep, "mean_tier_greater_than_4", sep = ";")        
+
+##### Update the database biomolecules table ######
+
+con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
+
+#dbExecute(con, "UPDATE biomolecules SET keep = '1'")                        
+
+apply(tier_subset, 1, replaceValues)
+
+## confirm 
+biomolecule_df <- dbGetQuery(con, "SELECT *
+          FROM biomolecules
+          ")
+
+dbDisconnect(con)

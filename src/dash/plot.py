@@ -12,10 +12,11 @@ color_dict = {
                 "Female":"#5AAE61",
                 "Col7":"#8073AC",
                 "Col8":"#DE77AE",
-                "Proteomics":"#9E0142",
-                "Lipidomics":"#F4A582",
-                "Metabolomics":"#2A4023",
-                "Transcriptomics":"#2C0379"
+                "proteomics":"#9E0142",
+                "lipidomics":"#F4A582",
+                "metabolomics":"#2A4023",
+                "transcriptomics":"#2C0379",
+                "selected_biomolecule":"black"
                 }
 
 def get_color_list(combined_df):
@@ -51,7 +52,9 @@ def get_color_list(combined_df):
 
     return color_list
 
-def biomolecule_bar(combined_df, x, y, biomolecule_name):
+def biomolecule_bar(combined_df, biomolecule_id, biomolecule_names_dict):
+
+    biomolecule_name = biomolecule_names_dict[biomolecule_id]
 
     # sort the samples by group
     color_list = get_color_list(combined_df)
@@ -60,7 +63,7 @@ def biomolecule_bar(combined_df, x, y, biomolecule_name):
     combined_df.sort_values(by=['color_by', 'sample'], inplace=True)
 
     fig = px.bar(combined_df, x=[i for i in range(combined_df.shape[0])],
-        y=combined_df[biomolecule_name],
+        y=combined_df[biomolecule_id],
         color=combined_df['color_by'],
         hover_data=['sample'],
         color_discrete_map=color_dict)
@@ -77,11 +80,13 @@ def biomolecule_bar(combined_df, x, y, biomolecule_name):
 
     return fig
 
-def boxplot(combined_df, biomolecule_name):
+def boxplot(combined_df, biomolecule_id, biomolecule_names_dict):
+
+    biomolecule_name = biomolecule_names_dict[biomolecule_id]
 
     color_list = get_color_list(combined_df)
 
-    df = pd.DataFrame({'y':combined_df[biomolecule_name], 'color':color_list,
+    df = pd.DataFrame({'y':combined_df[biomolecule_id], 'color':color_list,
                         'sample':combined_df.index})
 
     fig = px.box(df, y="y", color="color", color_discrete_map=color_dict,
@@ -93,6 +98,7 @@ def boxplot(combined_df, biomolecule_name):
         legend_title_text='Group',
         xaxis_title='Group',
         yaxis_title='log2(LFQ) Value',
+        showlegend=False,
         font=dict(
             family="Helvetica",
             size=18,
@@ -134,6 +140,7 @@ def pca_scores_plot(combined_df, quant_value_range):
         legend_title_text='Group',
         xaxis_title='PC1 ({}%)'.format(round(100*pca.explained_variance_ratio_[0],1)),
         yaxis_title='PC2 ({}%)'.format(round(100*pca.explained_variance_ratio_[1],1)),
+        showlegend=False,
         font=dict(
             family="Helvetica",
             size=18,
@@ -142,7 +149,7 @@ def pca_scores_plot(combined_df, quant_value_range):
 
     return fig
 
-def pca_loadings_plot(combined_df, quant_value_range, dataset):
+def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_names_dict, ome_type_list):
 
     from sklearn.decomposition import PCA
 
@@ -164,14 +171,19 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset):
     PC2_index = 1
     PC2_loadings = [y[PC2_index] for y in loadings]
 
-    df = pd.DataFrame({'x':PC1_loadings, 'y':PC2_loadings, 'biomolecule_id':quant_df.columns.tolist()})
+    df = pd.DataFrame({'x':PC1_loadings, 'y':PC2_loadings,
+        'biomolecule_id':quant_df.columns.tolist(),
+        'standardized_name':[biomolecule_names_dict[i] for i in quant_df.columns.tolist()]})
 
-    fig = px.scatter(df, x="x", y="y", hover_data=['biomolecule_id'])
+    fig = px.scatter(df, x="x", y="y",
+        hover_data=['biomolecule_id', 'standardized_name'],
+        color=ome_type_list,
+        color_discrete_map=color_dict)
 
     fig.update_traces(marker=dict(size=10, opacity=0.5))
 
     fig.update_layout(
-        title="{} (n={})".format(dataset, quant_df.shape[1]),
+        title="{} (n={})".format(dataset_id, quant_df.shape[1]),
         legend_title_text='Group',
         xaxis_title='Loadings on PC1',
         yaxis_title='Loadings on PC2',
@@ -180,5 +192,9 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset):
             size=18,
             color="#7f7f7f")
         )
+
+    # only show the color legend with combined datasets
+    #if not dataset_id=="Combined":
+    #    fig.update_layout(showlegend=False)
 
     return fig

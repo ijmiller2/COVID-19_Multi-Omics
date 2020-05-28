@@ -5,7 +5,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-from data import get_omics_data
+from data import get_omics_data, get_biomolecule_names, get_combined_data
 from plot import pca_scores_plot, pca_loadings_plot, biomolecule_bar, boxplot
 
 #external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -17,24 +17,74 @@ app = dash.Dash(
 app.title = 'COVID-19 Multi-Omics'
 
 # load metabolomics data matrix
-#print("Loading metabolomics data...")
+print("Loading metabolomics data...")
 metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
-#print("Metabolomics data shape: {}".format(metabolomics_df.shape))
-#print("Loading lipidomics data...")
+print("Metabolomics data shape: {}".format(metabolomics_df.shape))
+print("Loading lipidomics data...")
 lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
-#print("Lipidomics data shape: {}".format(lipidomics_df.shape))
-#print("Loading proteomics data...")
+print("Lipidomics data shape: {}".format(lipidomics_df.shape))
+print("Loading proteomics data...")
 proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
-#print("Proteomics data shape: {}".format(proteomics_df.shape))
+print("Proteomics data shape: {}".format(proteomics_df.shape))
 
-available_datasets = ['Proteins', 'Lipids', 'Metabolites']
+available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined']
+
+# make biomolecule_name_dict
+metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
+lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
+proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
+
+# drop unknown lipids (to test speed up)
+lipidomics_drop_list = []
+for biomolecule_id in lipidomics_df.columns[:lipidomics_quant_range]:
+    if "Unknown" in lipidomics_biomolecule_names_dict[biomolecule_id]:
+        lipidomics_drop_list.append(biomolecule_id)
+lipidomics_df.drop(lipidomics_drop_list, axis=1, inplace=True)
+lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)
+
+# define dataset dictionaries
+dataset_dict = {
+        "Proteins":"proteomics",
+        "Lipids":"lipidomics",
+        "Metabolites":"metabolomics",
+        "Transcripts":"transcriptomics",
+        "Combined":"combined"
+    }
+
+df_dict = {
+    "proteomics":proteomics_df,
+    "lipidomics":lipidomics_df,
+    "metabolomics":metabolomics_df,
+}
+
+quant_value_range_dict = {
+    "proteomics":proteomics_quant_range,
+    "lipidomics":lipidomics_quant_range,
+    "metabolomics":metabolomics_quant_range,
+}
+
+global_names_dict = {
+    "proteomics":proteomics_biomolecule_names_dict,
+    "lipidomics":lipidomics_biomolecule_names_dict,
+    "metabolomics":metabolomics_biomolecule_names_dict,
+    "combined":{**proteomics_biomolecule_names_dict,
+                **lipidomics_biomolecule_names_dict,
+                **metabolomics_biomolecule_names_dict}
+}
+
+# get combined omics df and quant value range
+print("Creating combined omics df...")
+df_dict, quant_value_range_dict = get_combined_data(df_dict, quant_value_range_dict)
+
 # start with proteomics data
-available_biomolecules = proteomics_df.columns[:proteomics_quant_range].sort_values().tolist()
+sorted_biomolecule_names_dict = {k: v for k, v in sorted(proteomics_biomolecule_names_dict.items(), key=lambda item: item[1])}
+#available_biomolecules = proteomics_biomolecule_names_dict.values()
+#available_biomolecules = proteomics_df.columns[:proteomics_quant_range].sort_values().tolist()
+default_biomolecule = list(sorted_biomolecule_names_dict.keys())[0]
 
 plotly_config = {"toImageButtonOptions":{'format':'svg',
                 'filename': 'dash_plot'},
-                "displaylogo": False,
-                "displayModeBar":True}
+                "displaylogo": False}
 
 first_card = dbc.Card(
     [
@@ -76,12 +126,11 @@ control_panel = dbc.Card(
             # NOTE: This is dcc object not dbc
             dcc.Dropdown(
                 id='biomolecule_id',
-                options=[{'label': i, 'value': i} for i in available_biomolecules],
+                # label maps to biomolecule name, value to biomolecule_id
+                options=[{'label': value, 'value': key} for key, value in proteomics_biomolecule_names_dict.items()],
                 # only passing in quant value columns
-                value=available_biomolecules[0],
+                value=default_biomolecule,
                 className="dropdown-item p-0"),
-
-            #dcc.Dropdown(id='biomolecule_id')
 
                 ])
     ])
@@ -215,8 +264,8 @@ app.layout = dbc.Container([
         ), md=2, className="mb-3"),
 
         #dbc.Col(control_panel, md=6)
-        dbc.Col(first_card, md=6),
-        dbc.Col(second_card, md=4)
+        dbc.Col(first_card, md=4),
+        dbc.Col(second_card, md=6)
         ],
 
         className="mb-3"),
@@ -225,25 +274,6 @@ app.layout = dbc.Container([
 
 ], fluid=True)
 
-dataset_dict = {
-        "Proteins":"proteomics",
-        "Lipids":"lipidomics",
-        "Metabolites":"metabolomics",
-        "Transcripts":"transcriptomics"
-    }
-
-df_dict = {
-    "proteomics":proteomics_df,
-    "lipidomics":lipidomics_df,
-    "metabolomics":metabolomics_df,
-}
-
-quant_value_range_dict = {
-    "proteomics":proteomics_quant_range,
-    "lipidomics":lipidomics_quant_range,
-    "metabolomics":metabolomics_quant_range,
-}
-
 @app.callback(
     dash.dependencies.Output('biomolecule_id', 'options'),
     [Input('dataset_id', 'value')])
@@ -251,14 +281,18 @@ quant_value_range_dict = {
 def update_biomolecule_options(dataset_id):
 
     dataset = dataset_dict[dataset_id]
+    biomolecule_names_dict = global_names_dict[dataset]
+
     df = df_dict[dataset]
     quant_value_range = quant_value_range_dict[dataset]
 
     # get list of columns for dataset
     available_biomolecules = df.columns[:quant_value_range].sort_values().tolist()
 
-    options = [{'label': i, 'value': i} for i in available_biomolecules]
+    sorted_biomolecule_names_dict = {k: v for k, v in sorted(biomolecule_names_dict.items(), key=lambda item: item[1])}
 
+    options=[{'label': value, 'value': key} for key, value in sorted_biomolecule_names_dict.items() if key in available_biomolecules]
+    #print(options)
     return options
 
 @app.callback(
@@ -268,13 +302,10 @@ def update_biomolecule_options(dataset_id):
 def update_default_biomolecule(dataset_id):
 
     dataset = dataset_dict[dataset_id]
-    df = df_dict[dataset]
-    quant_value_range = quant_value_range_dict[dataset]
+    biomolecule_names_dict = global_names_dict[dataset]
 
-    # get list of columns for dataset
-    available_biomolecules = df.columns[:quant_value_range].sort_values().tolist()
-
-    default_biomolecule = available_biomolecules[0]
+    sorted_biomolecule_names_dict = {k: v for k, v in sorted(biomolecule_names_dict.items(), key=lambda item: item[1])}
+    default_biomolecule=list(sorted_biomolecule_names_dict.keys())[0]
 
     return default_biomolecule
 
@@ -294,15 +325,30 @@ def update_pca_scores_plot(dataset_id):
 
 @app.callback(
     Output('pca-loadings-figure', 'figure'),
-    [Input('dataset_id', 'value')])
+    [Input('dataset_id', 'value'),
+    Input('biomolecule_id', 'value')])
 
-def update_pca_loadings_plot(dataset_id):
+def update_pca_loadings_plot(dataset_id, biomolecule_id):
 
     dataset = dataset_dict[dataset_id]
     df = df_dict[dataset]
+    biomolecule_names_dict = global_names_dict[dataset]
     quant_value_range = quant_value_range_dict[dataset]
 
-    fig = pca_loadings_plot(df, quant_value_range, dataset_id)
+    # build ome type list for coloring
+    if not dataset == 'combined':
+        ome_type_list = [dataset] * quant_value_range
+
+    else:
+        ome_type_list = ['proteomics'] * quant_value_range_dict['proteomics']
+        ome_type_list.extend(['lipidomics'] * quant_value_range_dict['lipidomics'])
+        ome_type_list.extend(['metabolomics'] * quant_value_range_dict['metabolomics'])
+
+    # get biomolecule index
+    biomolecule_index = df.columns.tolist().index(biomolecule_id)
+    ome_type_list[biomolecule_index] = 'selected_biomolecule'
+
+    fig = pca_loadings_plot(df, quant_value_range, dataset_id, biomolecule_names_dict, ome_type_list)
 
     return fig
 
@@ -316,10 +362,10 @@ def update_biomolecule_barplot(biomolecule_id, dataset_id):
     dataset = dataset_dict[dataset_id]
     df = df_dict[dataset]
 
-    biomolecule_name = biomolecule_id
-    x = df.index
-    y = biomolecule_id
-    fig = biomolecule_bar(df, x, y, biomolecule_name)
+    biomolecule_names_dict = global_names_dict[dataset]
+    biomolecule_name = biomolecule_names_dict[biomolecule_id]
+
+    fig = biomolecule_bar(df, biomolecule_id, biomolecule_names_dict)
 
     return fig
 
@@ -333,10 +379,10 @@ def update_biomolecule_boxplot(biomolecule_id, dataset_id):
     dataset = dataset_dict[dataset_id]
     df = df_dict[dataset]
 
-    biomolecule_name = biomolecule_id
-    x = df.index
-    y = biomolecule_id
-    fig = boxplot(df, biomolecule_name)
+    biomolecule_names_dict = global_names_dict[dataset]
+    biomolecule_name = biomolecule_names_dict[biomolecule_id]
+
+    fig = boxplot(df, biomolecule_id, biomolecule_names_dict)
 
     return fig
 
