@@ -53,16 +53,17 @@
 #   1) duplicate moleucles, 2) mean tier quality, 3) RSDs of QC sampels 
 #   within and between batches, 4) dynamic range. 
 # date created: 5/16/20
-# date last modified: 5/18/20
+# date last modified: 5/27/20
 # input:
 # - Covid-19 Study DB.sqlite
 
 ## "X4_KAO_updating_biomolecules_keep_column_GC_metabolites.R"
 # description: modifies DB to update metabolite keep column to 
-#   denote features which should be excluded from downstream analysis
+#   denote features which should be excluded from downstream analysis.
+#   5/27/20 added more filter - tier information. 
 # CAUTION: script iterates and caution should be used when executing. 
 # date created: 5/18/20
-# date last modified: 5/18/20 
+# date last modified: 5/27/20 
 # input: 
 # - Covid-19 Study DB.sqlite
 # output:

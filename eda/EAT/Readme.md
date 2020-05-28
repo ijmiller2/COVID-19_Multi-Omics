@@ -20,6 +20,28 @@
 
 **output**:  
   - NA  
+ 
+### Proteomics_heatmap.R
+
+**description**:   
+    1. Load data from SQLlite data base (Proteomics normalized measurements, deidentified patient meta data, and proteomics meta)  
+    2. Data formatting from long to wide format  
+    3. Meta formattting to pad all single digit patient id's with a zero  
+    4. Fix raw file names for HC and pooled plasma.
+    5. Generate heatmap with annotations (517 proteins) for Human Controls (HC), pooled plasma, NONCOVID, and COVID patients  
+    6. Remove HC and pooled plasma samples  
+    7. Exploratory figures for COVID and NONCOVID proteomics  
+    8. Fold Changes to median NONCOVID  
+    9. Fold Changes to median NONCOVID not in the ICU 
+    
+**Relevant Issue(s)**: Unsupervised analysis #3  
+**date created**: 5/27/20  
+**date last modified**: 5/27/20  
+**input**:  
+  - sqlite_db: data/SQLite Database/Covid-19 Study DB.sqlite  
+
+**output**:  
+  - NA 
 
 ### Protein_peptide_90minSingleShot_COVID_CoagulationCascade.R 
 

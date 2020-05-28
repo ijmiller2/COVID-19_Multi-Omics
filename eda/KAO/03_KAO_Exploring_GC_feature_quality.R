@@ -84,6 +84,8 @@ hist(bio_df_wide$metadata_value.tier_mean, col = 1, breaks = 50,
      main = "Histogram of feature mean quant tier \n(1 = best, 5 = worst)",
      xlab = "Feature mean quant tier")
 
+bio_df_wide$standardized_name[bio_df_wide$metadata_value.tier_mean > 3]
+
 ##### 3) Look at control RSD within batch and between batch #### 
 ## FUNCTION to calculate RSD 
 rsd <- function(x) sd(2^x)/mean(2^x)
@@ -126,7 +128,7 @@ abline(h = 0.3, lty = 2)
 table(rowSums(rsd_controls_by_batch_wide[,2:8]>0.3), rsd_controls_by_batch_wide$overall_rsd > 0.3)
 
 # propose filtering out if overall RSD > 0.3 or more than 2 batches RSD is greater than 0.3 
-filter <- rowSums(rsd_controls_by_batch_wide[,2:8]> 0.3)>2 | rsd_controls_by_batch_wide$overall_rsd > 0.3
+filter <- rowSums(rsd_controls_by_batch_wide[,2:8]> 0.3)>1 | rsd_controls_by_batch_wide$overall_rsd > 0.3
 table(filter)
 bio_df_wide$standardized_name[filter]
 
