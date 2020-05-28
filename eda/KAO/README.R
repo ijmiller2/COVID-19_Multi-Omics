@@ -53,7 +53,7 @@
 #   1) duplicate moleucles, 2) mean tier quality, 3) RSDs of QC sampels 
 #   within and between batches, 4) dynamic range. 
 # date created: 5/16/20
-# date last modified: 5/18/20
+# date last modified: 5/27/20
 # input:
 # - Covid-19 Study DB.sqlite
 
