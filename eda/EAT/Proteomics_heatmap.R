@@ -247,7 +247,7 @@ my_colour = list(
 
 #scaleRYG <- colorRampPalette(c("#3C99B2","#E8CB2E","#EF2D00"), space = "rgb")(20)
 #scaleRYG <- colorRampPalette(c("#3C99B2","#ffffff","#EF2D00"), space = "rgb")(20)
-pheatmap(t(proteomics_noControls),
+out <- pheatmap(t(proteomics_noControls),
          color = scaleRYG,
          annotation_colors = my_colour,
          annotation_col = patient_annotation,
@@ -260,6 +260,11 @@ pheatmap(t(proteomics_noControls),
          main = "Proteomics COVID-19 patients only HeatMap")
 
 
+# Plot extracted gene-t0-cluster assignments
+plot(out$tree_col)
+
+
+
 #### Coagulation Cascade ####
 
 coagulation_proteins_meta <- proteins_meta[which(proteins_meta$majority.protein %in% Deane_proteins$UniProt.ID),]
@@ -267,14 +272,286 @@ coagulation_proteins_meta <- proteins_meta[which(proteins_meta$majority.protein 
 coagulation_proteomics <- proteomics_noControls[,which(colnames(proteomics_noControls) %in% coagulation_proteins_meta$biomolecule_id)]
 colnames(coagulation_proteomics) <- coagulation_proteins_meta$majority.protein
 
-pheatmap(t(coagulation_proteomics),
+coagulation_proteomics_COVID <- coagulation_proteomics[-grep("NONCOVID",rownames(coagulation_proteomics)),]
+coagulation_proteomics_NONCOVID <- coagulation_proteomics[grep("NONCOVID",rownames(coagulation_proteomics)),]
+
+out <- pheatmap(t(coagulation_proteomics),
          color = scaleRYG,
          annotation_colors = my_colour,
          annotation_col = patient_annotation,
          #annotation_row = metabolite_annotation,
-         cluster_cols = F,
+         cluster_cols = T,
          #scale = "column",
          show_colnames = F,
          show_rownames = F,
          #scale = "row",
          main = "Coagulation Proteins of Interest\n COVID-19 patients only HeatMap")
+
+plot(out$tree_row,
+     main = "Dendogram of Proteins in Subset - coagulation ")
+plot(out$tree_col,
+     main = "Dendogram of Patients in subset - coagulation")
+
+##### Exploratory Figures #####
+
+proteomics_COVID <- t(proteomics_noControls)
+rownames(proteomics_COVID) <- proteins_meta$majority.protein
+proteomics_NONCOVID <- proteomics_COVID[,grep("NONCOVID",colnames(proteomics_COVID))]
+proteomics_COVID <- proteomics_COVID[,-grep("NONCOVID",colnames(proteomics_COVID))]
+
+# Boxplot of unknown proteomics
+boxplot(proteomics_COVID,
+        main = "Boxplot of COVID proteomics",
+        ylab = "Log2(Intensity)")
+
+par(mar = c(22.1, 4.1, 4.1, 4.1) # change the margins bottow, left, top, and right
+    #lwd = 2, # increase the line thickness
+    #cex.axis = 1.2 # increase default axis label size
+)
+
+# Boxplot of COVID proteomics
+boxplot(proteomics_COVID,
+        main = "Boxplot of COVID proteomics",
+        ylab = "Log2(Intensity)",
+        las = 1,
+        xaxt = "n")
+
+text(x = 1:length(colnames(proteomics_COVID)),
+     y = par("usr")[3] - 0.30, #subtract from y axis to push labels down
+     labels = colnames(proteomics_COVID),
+     xpd = NA, #print below axis
+     srt = 90,
+     adj = 1)
+
+# > median(proteomics_COVID)
+# [1] 26.30916
+# > mean(proteomics_COVID)
+# [1] 26.72138
+
+par(mar = c(10, 4.1, 4.1, 4.1) # change the margins bottow, left, top, and right
+    #lwd = 2, # increase the line thickness
+    #cex.axis = 1.2 # increase default axis label size
+)
+# Boxplot of NONCOVID proteomics
+boxplot(proteomics_NONCOVID,
+        main = "Boxplot of NONCOVID proteomics",
+        ylab = "Log2(Intensity)",
+        las = 1,
+        xaxt = "n")
+
+text(x = 1:length(colnames(proteomics_NONCOVID)),
+     y = par("usr")[3] - 0.30, #subtract from y axis to push labels down
+     labels = colnames(proteomics_NONCOVID),
+     xpd = NA, #print below axis
+     srt = 90,
+     adj = 1)
+
+
+# Histogram of Unknowns and Knowns
+par(mar = c(6.1, 4.1, 4.1, 4.1) # change the margins bottow, left, top, and right
+    #lwd = 2, # increase the line thickness
+    #cex.axis = 1.2 # increase default axis label size
+)
+
+ICU <- patient_annotation[which(patient_annotation$ICU_1 == "Yes"),]
+noICU <- patient_annotation[which(patient_annotation$ICU_1 == "No"),]
+
+# NONCOVID ICU vs. noICU histograms
+noICU_NONCOVID <- noICU[grep("NONCOVID",rownames(noICU)),]
+ICU_NONCOVID <- ICU[grep("NONCOVID",rownames(ICU)),]
+proteomics_NONCOVID_noICU <- proteomics_NONCOVID[,which(colnames(proteomics_NONCOVID) %in% rownames(noICU_NONCOVID))]
+proteomics_NONCOVID_ICU <- proteomics_NONCOVID[,which(colnames(proteomics_NONCOVID) %in% rownames(ICU_NONCOVID))]
+
+hist(proteomics_NONCOVID_ICU,
+     main = "Histogram of NONCOVID in ICU samples\n features Log2(Intensity)",
+     xlab = "Log2(Intensity)",
+     #xlim = c(0,30),
+     las = 1,
+     breaks = 20)
+abline(v= median(proteomics_NONCOVID_ICU), col = "red", lwd = 2)
+# median of NONCOVID patients in the ICU 26.00141
+
+hist(proteomics_NONCOVID_noICU,
+     main = "Histogram of NONCOVID NOT in the ICU samples\n features Log2(Intensity)",
+     xlab = "Log2(Intensity)",
+     #xlim = c(0,30),
+     las = 1,
+     breaks = 20)
+abline(v= median(proteomics_NONCOVID_noICU), col = "red", lwd = 2)
+# median of NONCOVID patients in the ICU 25.95939
+
+# COVID ICU vs noICU histograms
+noICU_COVID <- noICU[-grep("NONCOVID",rownames(noICU)),]
+ICU_COVID <- ICU[-grep("NONCOVID",rownames(ICU)),]
+proteomics_COVID_noICU <- proteomics_COVID[,which(colnames(proteomics_COVID) %in% rownames(noICU_COVID))]
+proteomics_COVID_ICU <- proteomics_COVID[,which(colnames(proteomics_COVID) %in% rownames(ICU_COVID))]
+
+hist(proteomics_COVID_ICU,
+     main = "Histogram of COVID in ICU samples\n features Log2(Intensity)",
+     xlab = "Log2(Intensity)",
+     #xlim = c(0,30),
+     las = 1,
+     breaks = 20)
+abline(v= median(proteomics_COVID_ICU), col = "red", lwd = 2)
+# median of NONCOVID patients in the ICU 26.38699
+
+hist(proteomics_COVID_noICU,
+     main = "Histogram of COVID NOT in the ICU samples\n features Log2(Intensity)",
+     xlab = "Log2(Intensity)",
+     #xlim = c(0,30),
+     las = 1,
+     breaks = 20)
+abline(v= median(proteomics_COVID_noICU), col = "red", lwd = 2)
+# median of NONCOVID patients in the ICU 26.22727
+
+##### Fold Change to Median NONCOVID #####
+
+# Calculate the median for each column = metabolite/feature
+NONCOVID_Median.ProteinIntensity <- rowMedians(as.matrix(proteomics_NONCOVID))
+
+# Foldchange function -> take every row and divide it by the median vector
+fold_change.FUNC <- function(x) x-NONCOVID_Median.ProteinIntensity
+df_fc <- apply(proteomics_COVID,2, fold_change.FUNC)
+
+# New color palette patients
+my_colour = list(
+  Gender = c(`F` = "#C0B9DD", `M` = "#234947"),
+  Batch = c(`1` = "#FDF0FE", `2` = "#E8C5E9", `3` = "#9FA0C3", `4`  = "#8B687F", `5` = "#7B435B", `6` = "#5C3344", `7` = "#1C093D"),
+  ICU_1 = c(`No` = "#D0D3CA", `Yes` = "#368BA4"),
+  Mech_Ventilation = c(`No` = "#D0D3CA", `Yes` = "#463F3A"))
+
+# Heatmap of the Fold Change calculated from the median in NONCOVID cohort
+scaleRYG <- colorRampPalette(c("#3C99B2","#ffffff","#EF2D00"), space = "rgb")(20)
+
+out <- pheatmap(df_fc,
+         color = scaleRYG,
+         annotation_colors = my_colour,
+         annotation_col = patient_annotation[-grep("NONCOVID",rownames(patient_annotation)),-c(1)],
+         #annotation_row = metabolite_annotation,
+         cluster_cols = T,
+         #scale = "column",
+         show_colnames = F,
+         show_rownames = F,
+         #scale = "row",
+         main = "Heatmap Fold Change COVID/NONCOVID(median)")
+
+plot(out$tree_col,
+     main = "Fold Change COVID/NONCOVID(median)\n Patients")
+
+
+#Export fold change data frame ordered by protein clustering
+# Re-0rder original data (proteins) to match ordering in heatmap (top-to-bottom)
+df_fc_export <- df_fc[rownames(df_fc[out$tree_row[["order"]],]),colnames(df_fc[,out$tree_col[["order"]]])]
+write.csv(df_fc_export, file = "P:/All_20200428_COVID_plasma_multiomics/Proteomics/EAT_unsupervised_analysis/COVID_proteomics_Heatmap_COVIDrelativeNONCOVIDmedian.csv")
+
+# Histogram of Fold Changes
+par(mar = c(6.1, 4.1, 4.1, 4.1))
+hist(df_fc,
+     main = "Histogram of Fold Changes COVID relative to NONCOVID",
+     xlab = "Fold Change in Log2 space",
+     xlim = c(-15,15),
+     breaks = 50)
+
+# Protein groups with fold change greater than 1.2
+table(rowSums(abs(df_fc)>1.2)>0)
+
+# Protein groups with fold change greater than 2
+table(rowSums(abs(df_fc)>2)>0)
+
+# Protein groups with fold change greater than 4
+table(rowSums(abs(df_fc)>4)>0)
+
+# Protein groups with fold change greater than 8
+table(rowSums(abs(df_fc)>8)>0)
+
+
+# subset features with fold change greater than 4.2 to cluster
+important_features_foldchange <- df_fc[rowSums(abs(df_fc)>6.2)>0,]
+
+out <- pheatmap(important_features_foldchange,
+                color = scaleRYG,
+                annotation_colors = my_colour,
+                annotation_col = patient_annotation[-grep("NONCOVID",rownames(patient_annotation)),-c(1)],
+                #annotation_row = metabolite_annotation,
+                cluster_cols = T,
+                #scale = "column",
+                show_colnames = F,
+                show_rownames = F,
+                #scale = "row",
+                main = "Heatmap Fold Change COVID/NONCOVID(median)\n Subset Features that have abs(FC) > 6.2 in at least one patient")
+
+##### Fold Change Median of NONCOVID not in ICU ####
+# Calculate the median for each column = metabolite/feature
+NONCOVID_NOICU_Median.ProteinIntensity <- rowMedians(as.matrix(proteomics_NONCOVID_noICU))
+
+# Foldchange function -> take every row and divide it by the median vector
+fold_change.FUNC <- function(x) x-NONCOVID_NOICU_Median.ProteinIntensity
+df_fc <- apply(proteomics_COVID,2, fold_change.FUNC)
+
+# Heatmap of the Fold Change calculated from the median in NONCOVID cohort
+scaleRYG <- colorRampPalette(c("#3C99B2","#ffffff","#EF2D00"), space = "rgb")(20)
+
+pheatmap(df_fc,
+         color = scaleRYG,
+         annotation_colors = my_colour,
+         annotation_col = patient_annotation[-grep("NONCOVID",rownames(patient_annotation)),-c(1)],
+         #annotation_row = metabolite_annotation,
+         cluster_cols = T,
+         #scale = "column",
+         show_colnames = F,
+         show_rownames = F,
+         #scale = "row",
+         main = "Heatmap Fold Change COVID/NONCOVID not in the ICU(median)")
+
+##### Fold Change Median of NONCOVID not in ICU ####
+# Calculate the median for each column = metabolite/feature
+NONCOVID_NOICU_Mean <- mean(proteomics_NONCOVID_noICU)
+
+# Foldchange function -> take every row and divide it by the median vector
+fold_change.FUNC <- function(x) x-NONCOVID_NOICU_Mean
+df_fc <- apply(coagulation_proteomics_COVID,1, fold_change.FUNC)
+
+# Heatmap of the Fold Change calculated from the median in NONCOVID cohort
+scaleRYG <- colorRampPalette(c("#3C99B2","#ffffff","#EF2D00"), space = "rgb")(20)
+
+pheatmap(df_fc,
+         color = scaleRYG,
+         annotation_colors = my_colour,
+         annotation_col = patient_annotation[-grep("NONCOVID",rownames(patient_annotation)),-c(1)],
+         #annotation_row = metabolite_annotation,
+         cluster_cols = T,
+         #scale = "column",
+         show_colnames = F,
+         show_rownames = F,
+         #scale = "row",
+         main = "Heatmap Fold Change COVID/NONCOVID not in the ICU(mean)")
+
+##### Fold Change in Coagulation Subset ######
+
+# Calculate the median for each column = metabolite/feature
+NONCOVID_Coagulation_Median.ProteinIntensity <- colMedians(as.matrix(coagulation_proteomics_NONCOVID))
+
+# Foldchange function -> take every row and divide it by the median vector
+fold_change.FUNC <- function(x) x-NONCOVID_Coagulation_Median.ProteinIntensity
+df_fc <- apply(coagulation_proteomics_COVID,1, fold_change.FUNC)
+
+# Heatmap of the Fold Change calculated from the median in NONCOVID cohort
+scaleRYG <- colorRampPalette(c("#3C99B2","#ffffff","#EF2D00"), space = "rgb")(20)
+
+out <- pheatmap(df_fc,
+         color = scaleRYG,
+         annotation_colors = my_colour,
+         annotation_col = patient_annotation[-grep("NONCOVID",rownames(patient_annotation)),-c(1)],
+         #annotation_row = metabolite_annotation,
+         cluster_cols = T,
+         #scale = "column",
+         show_colnames = F,
+         show_rownames = F,
+         #scale = "row",
+         main = "Heatmap Fold Change COVID/NONCOVID(median) in Coagulation Subset Proteins")
+
+plot(out$tree_row,
+     main = "Dendogram of Proteins\n Fold Change COVID/NONCOVID(median) in Coagulation Subset")
+
+plot(out$tree_col,
+     main = "Dendogram of COVID Patients\n Fold Change COVID/NONCOVID(median) in Coagulation Subset")
