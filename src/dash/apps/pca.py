@@ -223,7 +223,7 @@ layout = dbc.Container([
     [
         html.H3("TYPE OF ANALYSIS", style={"font-weight":"bold", "color":"black"}),
 
-        dbc.NavItem(dbc.NavLink("PCA", active=True, href="#", style={"background-color":"grey"})),
+        dbc.NavItem(dbc.NavLink("PCA", active=True, href="pca", style={"background-color":"grey"})),
 
         dbc.NavItem(dbc.NavLink(
 
@@ -231,7 +231,7 @@ layout = dbc.Container([
                     "Linear Regression",
                     id="tooltip-lr",
                     style={"cursor": "pointer", "color":"grey"},
-                ),disabled=False, href="linear_regression")),
+                ),disabled=False, href="#")),
 
         dbc.NavItem(dbc.NavLink(
             html.Span(
@@ -245,18 +245,12 @@ layout = dbc.Container([
                             "Pathway Analysis",
                             id="tooltip-pa",
                             style={"cursor":"pointer", "color":"grey"},
-                        ),disabled=False, href="pathway_analysis")),
+                        ),disabled=False, href="#")),
 
         # tooltip for linear regression
         dbc.Tooltip(
         "Coming Soon!",
         target="tooltip-lr"
-        ),
-
-        # tooltip for differential expression
-        dbc.Tooltip(
-        "Coming Soon!",
-        target="tooltip-de"
         ),
 
         # tooltip for pathway analysis

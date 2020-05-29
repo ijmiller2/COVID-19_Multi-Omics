@@ -198,3 +198,29 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
     #    fig.update_layout(showlegend=False)
 
     return fig
+
+def volcano_plot(volcano_df):
+
+    fig = px.scatter(volcano_df.dropna(), x="log2_FC", y="neg_log10_p_value",
+    hover_data=['biomolecule_id', 'standardized_name', 'p_value', 'q_value'],
+    opacity=0.5,
+    size='neg_log10_p_value',
+    color='ome_type',
+    color_discrete_map=color_dict)
+
+    #fig.update_traces(marker=dict(size=10, opacity=0.5))
+
+    confounders = ", ".join(volcano_df.iloc[0]['confounders'].split(";"))
+
+    fig.update_layout(
+        title="P values corrected by: {} (n={})".format(confounders, volcano_df.shape[0]),
+        legend_title_text='Dataset',
+        xaxis_title='Effect Size (log2 FC)',
+        yaxis_title='Significance (-log10(Corrected P-value))',
+        font=dict(
+            family="Helvetica",
+            size=18,
+            color="#7f7f7f")
+        )
+
+    return fig
