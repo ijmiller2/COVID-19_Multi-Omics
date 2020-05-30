@@ -132,4 +132,14 @@
 # input: 
 # - Covid-19 Study DB.sqlite
 
+## "X7_KAO_updating_metadata_biomolecule_id.R"
+# description: updates metadata table with non-duplicate biomolecule ids 
+#   for lipidomics features. Also see file:  "X5_KAO_creating_new_lipidomics
+#   _table_to_match_original.R" 
+# date created: 5/30/2020
+# date last modified: 5/30/2020
+# input: 
+# - Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite, modified metadata biomolecule_id 
 
