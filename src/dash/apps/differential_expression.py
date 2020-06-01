@@ -5,8 +5,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-from data import get_omics_data, get_biomolecule_names, get_combined_data
-from plot import biomolecule_bar, boxplot
+from data import get_omics_data, get_biomolecule_names, get_combined_data, get_p_values, get_volcano_data
+from plot import volcano_plot
 
 # importing app through index page
 from app import app
@@ -72,7 +72,7 @@ print("Creating combined omics df...")
 df_dict, quant_value_range_dict = get_combined_data(df_dict, quant_value_range_dict)
 
 # start with proteomics data
-sorted_biomolecule_names_dict = {k: v for k, v in sorted(proteomics_biomolecule_names_dict.items(), key=lambda item: item[1])}
+sorted_biomolecule_names_dict = {k: v for k, v in sorted(global_names_dict['combined'].items(), key=lambda item: item[1])}
 #available_biomolecules = proteomics_biomolecule_names_dict.values()
 #available_biomolecules = proteomics_df.columns[:proteomics_quant_range].sort_values().tolist()
 default_biomolecule = list(sorted_biomolecule_names_dict.keys())[0]
@@ -88,20 +88,15 @@ control_panel = dbc.Card(
                                         "font-weight":"bold",
                                         "font-size":"large"}),
         dbc.CardBody(
-            [html.P("Select Dataset", className="card-title", style={"font-weight":"bold"}),
-            dcc.Dropdown(
-                id='dataset-de',
-                options=[{'label': i, 'value': i} for i in available_datasets],
-                # only passing in quant value columns
-                value=available_datasets[0]),
-            html.Hr(),
+            [
+
             html.P("Select Biomolecule", className="card-title", style={"font-weight":"bold"}),
 
             # NOTE: This is dcc object not dbc
             dcc.Dropdown(
                 id='biomolecule_id-de',
                 # label maps to biomolecule name, value to biomolecule_id
-                options=[{'label': value, 'value': key} for key, value in proteomics_biomolecule_names_dict.items()],
+                options=[{'label': value, 'value': key} for key, value in sorted_biomolecule_names_dict.items()],
                 # only passing in quant value columns
                 value=default_biomolecule,
                 className="dropdown-item p-0"),
@@ -111,7 +106,7 @@ control_panel = dbc.Card(
 
 first_card = dbc.Card(
     [
-        dbc.CardHeader("BIOMOLECULE BARPLOT",
+        dbc.CardHeader("VOLCANO PLOT",
                             style={"background-color":"#5bc0de",
                                         "font-weight":"bold",
                                         "font-size":"large"}),
@@ -179,7 +174,10 @@ layout = dbc.Container([
     [
         html.H3("TYPE OF ANALYSIS", style={"font-weight":"bold", "color":"black"}),
 
-        dbc.NavItem(dbc.NavLink("PCA", active=True, href="#", style={"background-color":"grey"})),
+        dbc.NavItem(dbc.NavLink(html.Span("PCA"),
+            disabled=False,
+            href="pca",
+            style={"color":"grey"})),
 
         dbc.NavItem(dbc.NavLink(
 
@@ -187,32 +185,21 @@ layout = dbc.Container([
                     "Linear Regression",
                     id="tooltip-lr",
                     style={"cursor": "pointer", "color":"grey"},
-                ),disabled=False, href="linear_regression")),
+                ),disabled=False, href="#")),
+
+        dbc.NavItem(dbc.NavLink("Differential Expression", active=True, href="differential_expression", style={"background-color":"grey"})),
 
         dbc.NavItem(dbc.NavLink(
             html.Span(
-                    "Differential Expression",
-                    id="tooltip-de",
-                    style={"cursor": "pointer", "color":"grey"},
-                ),disabled=False, href="differential_expression")),
-
-                dbc.NavItem(dbc.NavLink(
-                    html.Span(
-                            "Pathway Analysis",
-                            id="tooltip-pa",
-                            style={"cursor":"pointer", "color":"grey"},
-                        ),disabled=False, href="pathway_analysis")),
+                    "Pathway Analysis",
+                    id="tooltip-pa",
+                    style={"cursor":"pointer", "color":"grey"},
+                ),disabled=False, href="#")),
 
         # tooltip for linear regression
         dbc.Tooltip(
         "Coming Soon!",
         target="tooltip-lr"
-        ),
-
-        # tooltip for differential expression
-        dbc.Tooltip(
-        "Coming Soon!",
-        target="tooltip-de"
         ),
 
         # tooltip for pathway analysis
@@ -228,11 +215,28 @@ layout = dbc.Container([
     pills=True
         ), md=2, className="mb-3"),
 
-        #dbc.Col(control_panel, md=6)
-        dbc.Col(first_card, md=8),
-        #dbc.Col(second_card, md=6)
+        dbc.Col(first_card, md=7, style={"height": "100%"}),
         ],
 
-        className="mb-3"),
+        className="mb-3 h-100"),
 
-], fluid=True)
+
+], fluid=True, style={"height": "100vh"})
+
+
+@app.callback(
+    Output('volcano-plot', 'figure'),
+    [Input('biomolecule_id-de', 'value')])
+def update_volcano_plot(biomolecule_id):
+
+    dataset = 'combined'
+    combined_omics_df = df_dict[dataset]
+    quant_value_range = quant_value_range_dict[dataset]
+
+    pvalues_df = get_p_values()
+    volcano_df = get_volcano_data(pvalues_df, df_dict,
+        quant_value_range, global_names_dict)
+
+    fig = volcano_plot(volcano_df)
+
+    return fig

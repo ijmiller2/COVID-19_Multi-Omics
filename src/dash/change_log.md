@@ -18,8 +18,9 @@ As of 5/27/20:
 - Install svg software on remote server
 - Replace protein gene names with fasta headers
 - Color selected biomolecule
+- Restructure app to multi-page layout  
+- Add differential expression tab
 
 To do:
-- Restructure app to multi-page layout  
 - Add correlation/linear regression tab  
 - Build table lookup page  
