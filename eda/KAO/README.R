@@ -1,5 +1,18 @@
 ##### README ###### 
 
+## "0_pathway_toolkit.R"
+# description: This script contains 2 function useful for pathway 
+#   analysis in R. Priciple is categorical terms are used to make 
+#   a master list of id-to-category relationships. Then 2nd function
+#   uses the mater list (AKA reference set) when performing enrichment
+#   analysis usign fisher exact test, outputs the enrichemnt score/pvalue
+#   and adjusted p-value for the categorical terms. This code was originally
+#   produced for the dental informatics project. 
+# issue: #9
+# date created: 11/07/2017
+# date last modified: 05/30/2020
+
+
 ## "01_KAO_Establishing_connection_to_db_extracting_timeStamp.R"
 # description: Establishes DB connection using RSQLite package and 
 #     fetches time stamp information for Raw files.
@@ -132,4 +145,14 @@
 # input: 
 # - Covid-19 Study DB.sqlite
 
+## "X7_KAO_updating_metadata_biomolecule_id.R"
+# description: updates metadata table with non-duplicate biomolecule ids 
+#   for lipidomics features. Also see file:  "X5_KAO_creating_new_lipidomics
+#   _table_to_match_original.R" 
+# date created: 5/30/2020
+# date last modified: 5/30/2020
+# input: 
+# - Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite, modified metadata biomolecule_id 
 

@@ -72,18 +72,21 @@ dbDisconnect(con)
 # Column names is "normalized_abundance.X" where X is the biomolecule.id
 df_wide <- reshape(df, timevar = "biomolecule_id", v.names = "normalized_abundance",
                    idvar = "unique_identifier", direction = "wide" )
+#136 samples and 519 protein groups
 
+
+# Note HC were removed
 # Match rawfiles to match "20200514_ES_HC_afterBatch1" -> "20200514_ES_COON_HC_afterBatch1_single-shot"
-HC_rows <- grep("HC",df_wide$unique_identifier)
-
-for(i in 1:length(HC_rows)){
-  row_df <- HC_rows[i]
-  old <- df_wide$unique_identifier[row_df]
-  new <- gsub('^(.{11})(.*)$', '\\1_COON\\2', old)
-  new <- gsub('^(.{31})(.*)$', '\\1_single-shot\\2', new)
-  
-  df_wide$unique_identifier[row_df] <- new
-}
+# HC_rows <- grep("HC",df_wide$unique_identifier)
+# 
+# for(i in 1:length(HC_rows)){
+#   row_df <- HC_rows[i]
+#   old <- df_wide$unique_identifier[row_df]
+#   new <- gsub('^(.{11})(.*)$', '\\1_COON\\2', old)
+#   new <- gsub('^(.{31})(.*)$', '\\1_single-shot\\2', new)
+#   
+#   df_wide$unique_identifier[row_df] <- new
+# }
 
 
 
@@ -106,8 +109,12 @@ for(i in 1:length(batch_row)){
   v5 <- meta$V5[row_meta]
   v6 <- meta$V6[row_meta]
   
+  #switch selected cells
   meta$V5[row_meta] <- v6
   meta$V6[row_meta] <- v5
+  
+  #add a number to the pooled samples
+  meta$V7[row_meta] <- as.integer(i)
 }
 
 meta$V5 <- sub("*.atch","", meta$V5)
@@ -129,6 +136,7 @@ for (i in 1:nrow(meta)) {
 
 #overwrite sample_number padded with a zero if single digit
 meta$V7 <- samples 
+meta$V7 <- sub("_.*","",meta$V7)
 meta$V8 <- paste0(meta$V4,"_",meta$V7)
 # The patient id's are used more than once.
 # To make all id's unique, the make.unique function will add numbers to each duplicated entry 
@@ -166,13 +174,16 @@ rownames(patient_annotation) <- meta$Sample_Label.unique
 #patient_annotation$Date <- as.Date(patient_annotation$Date)
 
 ##### Plot Heatmap #####
+my_colour = list(
+  Disease.State  = c( `COVID` = "#D0D3CA", `NONCOVID` = "#A3A79D", `pooled_plasma` = "#191919"),
+  Batch = c(`1` = "#FDF0FE", `2` = "#E8C5E9", `3` = "#9FA0C3", `4`  = "#8B687F", `5` = "#7B435B", `6` = "#5C3344", `7` = "#1C093D"))
 scaleRYG <- colorRampPalette(c("#3C99B2","#E8CB2E","#EF2D00"), space = "rgb")(20)
 
 pheatmap(t(proteomics),
          color = scaleRYG,
-         #annotation_colors = my_colour,
+         annotation_colors = my_colour,
          annotation_col = patient_annotation,
-         cluster_rows = T,
+         cluster_cols = F,
          #scale = "column",
          show_colnames = F,
          show_rownames = F,
@@ -185,32 +196,36 @@ pheatmap(t(proteomics),
 ##### Patient Meta formatting ####
 
 # Remove controls from meta 
-meta_patientONLY <- meta[-grep("HC",meta$Sample_Label.unique),]
-meta_patientONLY <- meta_patientONLY[-grep("pooled",meta_patientONLY$Sample_Label.unique),]
+#meta_patientONLY <- meta[-grep("HC",meta$Sample_Label.unique),]
+meta_patientONLY <- meta[-grep("pooled",meta$Sample_Label.unique),]
 
 # What patient meta information is missing?
 PatientSample_Missing <- meta_patientONLY[which(!meta_patientONLY$Sample_Label %in% deidentified_patient_meta$Sample_label),]
-Deident_patientSample_Missing <- deidentified_patient_meta[which(!deidentified_patient_meta$Sample_label %in% meta_patientONLY$Sample_Label),]
 
-#Missing samples 
-# 121  NONCOVID_18      M     1                1
-# 124  NONCOVID_21      M     0                0
-# 126  NONCOVID_23      F     0                0
-# 128  NONCOVID_25      M     0                0
+if(length(which(!deidentified_patient_meta$Sample_label %in% meta_patientONLY$Sample_Label)) == 0){
+  Deident_patientSample_Missing <- NULL
+}else{
+  Deident_patientSample_Missing <- deidentified_patient_meta[which(!deidentified_patient_meta$Sample_label %in% meta_patientONLY$Sample_Label),]
+}
 
-# match sample labels in meta and deidentified_patient_meta
+
+#Missing samples in Patient meta data
+# Rawfile.Date.Stamp Disease.State Batch Padded.Patient.Number Sample_Label Sample_Label.unique
+# 94          202005010      NONCOVID     5                    26  NONCOVID_26         NONCOVID_26
+
+# match sample labels in meta and deidentified_patient_meta == All but one match 129 samples == 128 samples
 meta_patientONLY <- meta_patientONLY[which(meta_patientONLY$Sample_Label.unique %in% deidentified_patient_meta$Sample_label),]
 
 # reorder deidentified_patient_meta data to match sample label in meta_patientONLY
-deidentified_patient_meta <- deidentified_patient_meta[-which(rownames(deidentified_patient_meta) %in% rownames(Deident_patientSample_Missing)),]
-deidentified_patient_meta <- deidentified_patient_meta[order(match(deidentified_patient_meta$Sample_label,meta_patientONLY$Sample_Label)),]
+#deidentified_patient_meta <- deidentified_patient_meta[-which(rownames(deidentified_patient_meta) %in% rownames(Deident_patientSample_Missing)),]
+deidentified_patient_meta_ordered <- deidentified_patient_meta[order(match(deidentified_patient_meta$Sample_label,meta_patientONLY$Sample_Label)),]
 
 # Merge deidentified_patient_meta with meta_patientONLY by sample label
-meta_patientONLY_merged <- merge(meta_patientONLY,deidentified_patient_meta, by.x = "Sample_Label", by.y = "Sample_label" )
-
+meta_patientONLY_merged <- merge(meta_patientONLY,deidentified_patient_meta_ordered, by.x = "Sample_Label", by.y = "Sample_label" )
+#write.csv(meta_patientONLY_merged, "P:/All_20200428_COVID_plasma_multiomics/Proteomics/EAT_unsupervised_analysis/Meta_Proteomics_PatientsONLY.csv")
 ##### Data without Controls #####
 
-# Remove rows that are connected with Control Data
+# Remove rows that are connected with Control Data (128 x 517)
 proteomics_noControls <- proteomics[which(rownames(proteomics) %in% meta_patientONLY_merged$Sample_Label),]
 
 # For metaboanalyst
@@ -218,7 +233,7 @@ Disease.state <- sub("_.*", "",rownames(proteomics_noControls))
 metaboanalyst_df <- cbind(Disease.state,proteomics_noControls)
 metaboanalyst_df <- t(metaboanalyst_df)
 rownames(metaboanalyst_df) <- c("Disease.state",proteins_meta$majority.protein)
-#write.csv(metaboanalyst_df, file = "H:/Projects/COVID19/COVID_proteomics_onlyPatients_normalized.csv")
+#write.csv(metaboanalyst_df, file = "H:/Projects/COVID19/Proteomics/Files/metaboanalyst_COVID_proteomics_onlyPatients_normalized.csv")
 
 # Annotations for patients
 patient_annotation <- meta_patientONLY_merged[,c(3,4,7,8,9)]
@@ -442,7 +457,7 @@ plot(out$tree_col,
 #Export fold change data frame ordered by protein clustering
 # Re-0rder original data (proteins) to match ordering in heatmap (top-to-bottom)
 df_fc_export <- df_fc[rownames(df_fc[out$tree_row[["order"]],]),colnames(df_fc[,out$tree_col[["order"]]])]
-write.csv(df_fc_export, file = "P:/All_20200428_COVID_plasma_multiomics/Proteomics/EAT_unsupervised_analysis/COVID_proteomics_Heatmap_COVIDrelativeNONCOVIDmedian.csv")
+#write.csv(df_fc_export, file = "P:/All_20200428_COVID_plasma_multiomics/Proteomics/EAT_unsupervised_analysis/COVID_proteomics_Heatmap_COVIDrelativeNONCOVIDmedian.csv")
 
 # Histogram of Fold Changes
 par(mar = c(6.1, 4.1, 4.1, 4.1))
@@ -505,11 +520,11 @@ pheatmap(df_fc,
 
 ##### Fold Change Median of NONCOVID not in ICU ####
 # Calculate the median for each column = metabolite/feature
-NONCOVID_NOICU_Mean <- mean(proteomics_NONCOVID_noICU)
+NONCOVID_NOICU_Median <- rowMedians(proteomics_NONCOVID_noICU)
 
 # Foldchange function -> take every row and divide it by the median vector
-fold_change.FUNC <- function(x) x-NONCOVID_NOICU_Mean
-df_fc <- apply(coagulation_proteomics_COVID,1, fold_change.FUNC)
+fold_change.FUNC <- function(x) x-NONCOVID_NOICU_Median
+df_fc <- apply(proteomics_COVID,2, fold_change.FUNC)
 
 # Heatmap of the Fold Change calculated from the median in NONCOVID cohort
 scaleRYG <- colorRampPalette(c("#3C99B2","#ffffff","#EF2D00"), space = "rgb")(20)
@@ -524,7 +539,7 @@ pheatmap(df_fc,
          show_colnames = F,
          show_rownames = F,
          #scale = "row",
-         main = "Heatmap Fold Change COVID/NONCOVID not in the ICU(mean)")
+         main = "Heatmap Fold Change COVID/NONCOVID not in the ICU(median)")
 
 ##### Fold Change in Coagulation Subset ######
 
@@ -555,3 +570,4 @@ plot(out$tree_row,
 
 plot(out$tree_col,
      main = "Dendogram of COVID Patients\n Fold Change COVID/NONCOVID(median) in Coagulation Subset")
+
