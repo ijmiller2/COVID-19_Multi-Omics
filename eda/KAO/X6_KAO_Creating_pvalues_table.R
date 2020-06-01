@@ -6,6 +6,8 @@
 ## 
 ## These data will be stored in a table in the database called pvalues
 ## 
+## 20200601 - KAO edit due to earlier error in sample IDs - this new calculation
+## overwrites the old table. 
 
 library(DBI)
 library(RSQLite)
@@ -70,17 +72,20 @@ df_proteins<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, n
            ")
 dbDisconnect(con)
 
+
 #### Creating dataframe to hold pvalues #######
 
 df <- rbind(df_metabolites,df_lipids, df_proteins)
+ 
+df_pvalues <- data.frame(biomolecule_id = as.numeric(unique(df$biomolecule_id)), test = "LR_test", comparison = "COVID_vs_NONCOVID", confounders = "ICU_1;Gender;Age_less_than_90")
 
-df_pvalues <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "COVID_vs_NONCOVID", confounders = "ICU_1;Gender;Age_less_than_90")
 
-df_pvalues$p_value <- apply(df_pvalues, 1, function(x)  
+p_value <- apply(df_pvalues, 1, function(x)  
             compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ ICU_1 + Gender + Age_less_than_90, 
              formula_test = normalized_abundance ~ COVID * ICU_1 + Gender + Age_less_than_90,
              data = df, return = 'pvalue'))
 
+df_pvalues$p_value <- p_value
 df_pvalues$q_value <- p.adjust(df_pvalues$p_value, method = "fdr")
 
 df_pvalues <- cbind(pvalue_id = row.names(df_pvalues), df_pvalues)
@@ -90,10 +95,10 @@ con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multi
 
 #### write table to DB ####
 
-dbWriteTable(con, "pvalues", df_pvalues)
+dbWriteTable(con, "pvalues", df_pvalues, overwrite = T)
 
 # check
-dbReadTable(con, "pvalues")
+pvalues <- dbReadTable(con, "pvalues")
 
 # disconnect
 dbDisconnect(con) 
