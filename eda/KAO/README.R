@@ -130,7 +130,7 @@
 #   were added to the databse as pvalues table.
 # issue: #4
 # date created: 5/26/2020
-# date last modified: 5/27/2020
+# date last modified: 6/1/2020
 # input: 
 # - Covid-19 Study DB.sqlite
 # output:
@@ -156,3 +156,13 @@
 # output:
 # - Covid-19 Study DB.sqlite, modified metadata biomolecule_id 
 
+## "07_KAO_Exploring_lipidomics_feature_quality.R"
+# description: explore aspects of lipidomics feature quality, updates
+#   keep column in the biomolecules table. 
+# issue: #7 
+# date created: 5/30/2020
+# date last modified: 6/1/2020
+# input: 
+# - Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite, modified biomolecules keep  
