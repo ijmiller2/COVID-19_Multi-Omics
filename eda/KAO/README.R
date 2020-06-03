@@ -179,3 +179,16 @@
 # output:
 # - "heatmap_cross_ome_correlations_kendall_KAO_v2.pdf
 
+## 09_KAO_crossome_correltions_pearson.R
+# description: Generates a heatmap proteins x metabolites-lipids with
+#   significant pearson correlation coefficient. 
+# issue #9
+# date created: 6/3/2020
+# date last modified: 6/3/2020
+# input:
+# - Covid-19 Study DB.sqlite 
+# - 'P:/All_20200428_COVID_plasma_multiomics/Correlation/cor_4omes_pearson.RData'
+# output:
+# - "heatmap_cross_ome_correlations_pearson_KAO_v2.pdf
+
+
