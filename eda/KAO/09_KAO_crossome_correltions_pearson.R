@@ -61,10 +61,11 @@ highlight_sig[!highlight_sig] <- ""
 highlight_sig[highlight_sig == TRUE] <- "*"
 
 # for plotting,extract gene names from proteins-metadata table.
-geneNames<- apply(df_proteins , 1, function(x) strsplit(strsplit(x[4], "GN=")[[1]][2], " ")[[1]][1])
+df_proteins$geneNames<- apply(df_proteins , 1, function(x) strsplit(strsplit(x[4], "GN=")[[1]][2], " ")[[1]][1])
 
 # row labels as genes 
-row_labels <- geneNames[match(df_proteins$biomolecule_id, names_cor[proteins])][filter_row]
+df_proteins_filter <- df_proteins[df_proteins$biomolecule_id %in% names_cor[proteins],]
+row_labels <- df_proteins_filter$geneNames[match(df_proteins_filter$biomolecule_id, names_cor[proteins])][filter_row]
 
 # col labels as metabolites ID
 biomolecules_metabolties_lipids <- biomolecules[biomolecules$biomolecule_id %in% names_cor[metabolites_lipids][filter_col],]
