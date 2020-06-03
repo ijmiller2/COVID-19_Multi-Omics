@@ -80,7 +80,7 @@ annotation_colors <- list(sig_with_COVID = c(3,1,"white"))
 names(annotation_colors[["sig_with_COVID"]]) <- as.character(levels(annotation_row$sig_with_COVID))
 
 # Creating heatmap for cross-ome correlation 
-pdf("heatmap_cross_ome_correlations_pearson_KAO_v2.pdf", width = 30, height = 30)
+pdf("heatmap_cross_ome_correlations_pearson_KAO_v2.pdf", width = 50, height = 40)
 pheatmap(cor_4omes_pearson$cor[proteins,metabolites_lipids][filter_row, filter_col],
          annotation_row = annotation_row,
          annotation_col = annotation_row,
