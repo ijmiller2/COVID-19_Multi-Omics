@@ -18,9 +18,20 @@ As of 5/27/20:
 - Install svg software on remote server
 - Replace protein gene names with fasta headers
 - Color selected biomolecule
+
+As of 5/28/20:
 - Restructure app to multi-page layout  
 - Add differential expression tab
 
+As of 6/3/20:
+- Add QQQ data (& fix issue with raw file table filtering)
+
 To do:
+- Downsample less interesting features in plots with n>1000 (for performance)
+- Redeploy with volcano plot
+
+- Display selected biomolecule data in separate table (whether or not in plot)
+- Work on cross page data sharing/caching to improve performance
+- Add load bars
 - Add correlation/linear regression tab  
 - Build table lookup page  
