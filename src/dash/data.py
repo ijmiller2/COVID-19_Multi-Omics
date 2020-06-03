@@ -5,7 +5,7 @@ import re
 import numpy as np
 
 # SQLite path
-db_path = 'sqlite:///../../data/SQLite Database/20200528/Covid-19 Study DB.sqlite'
+db_path = 'sqlite:///../../data/SQLite Database/20200602/Covid-19 Study DB.sqlite'
 
 omics_id_dict = {
         "proteomics":1,
@@ -33,8 +33,15 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
     omics_runs_df = pd.read_sql_query(query, connection)
 
     # pull table into df
-    query = "SELECT * from rawfiles WHERE ome_id={} AND sample_ID<>-1 and keep=1".format(omics_id)
+    if dataset == "metabolomics":
+        query = "SELECT * from rawfiles WHERE ome_id=3 OR ome_id=4 AND sample_ID<>-1 AND keep=1".format(omics_id)
+
+    else:
+        query = "SELECT * from rawfiles WHERE ome_id={} AND sample_ID<>-1 and keep=1".format(omics_id)
+
     rawfiles_df = pd.read_sql_query(query, connection)
+    ## NOTE: For some reason, SQL filter not working for keep on raw files
+    rawfiles_df = rawfiles_df[rawfiles_df['keep']==1]
 
     # pull table into df
     deidentified_patient_metadata_df = pd.read_sql_query("SELECT * from deidentified_patient_metadata", connection)
@@ -57,7 +64,11 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
     wide_df = joined_df.pivot_table(index='sample_id', columns='biomolecule_id', values='normalized_abundance')
     wide_df.columns = [str(col) for col in wide_df.columns]
 
-    query = "SELECT * from biomolecules WHERE omics_id={}".format(omics_id)
+    if dataset == "metabolomics":
+        query = "SELECT * from biomolecules WHERE omics_id=3 OR omics_id=4".format(omics_id)
+    else:
+        query = "SELECT * from biomolecules WHERE omics_id={}".format(omics_id)
+
     # get biomolecule names
     biomolecules_df = pd.read_sql_query(query, connection)
 
@@ -106,7 +117,11 @@ def get_biomolecule_names(dataset='proteomics'):
     # Establish connection
     connection = engine.connect()
 
-    query = "SELECT * from biomolecules WHERE omics_id={} and KEEP=1".format(omics_id)
+    if dataset == "metabolomics":
+        query = "SELECT * from biomolecules WHERE omics_id=3 OR omics_id=4 and KEEP=1".format(omics_id)
+    else:
+        query = "SELECT * from biomolecules WHERE omics_id={} and KEEP=1".format(omics_id)
+
     # get biomolecule names
     biomolecules_df = pd.read_sql_query(query, connection)
 
@@ -218,8 +233,8 @@ def get_volcano_data(pvalues_df, df_dict, quant_value_range,
     group_1_quant_value_dict = {}
     comparison_column = 'COVID'
 
-    group_1 = "1"
-    group_2 = "0"
+    group_1 = 1
+    group_2 = 0
 
     combined_df = df_dict['combined']
     quant_value_columns = combined_df.columns[:quant_value_range]
