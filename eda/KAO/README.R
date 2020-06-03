@@ -177,5 +177,5 @@
 # - Covid-19 Study DB.sqlite 
 # - 'P:/All_20200428_COVID_plasma_multiomics/Correlation/cor_4omes_kendall.RData'
 # output:
-# - "heatmap_cross_ome_correlations_kendall_KAO.pdf
+# - "heatmap_cross_ome_correlations_kendall_KAO_v2.pdf
 

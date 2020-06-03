@@ -7,6 +7,8 @@
 library(DBI)
 library(RSQLite)
 library(pheatmap)
+colors <- read.csv("reference/color_palette.txt",  stringsAsFactors = F)[,2]
+palette(colors)
 
 ###### Loading in data from Yuchen, kendall correlations #####
 
@@ -24,6 +26,9 @@ df_proteins<- dbGetQuery(con, "SELECT * FROM metadata
            ")
 
 biomolecules <-dbGetQuery(con, "SELECT * FROM biomolecules")
+
+pvalues <- dbGetQuery(con, "SELECT * FROM pvalues WHERE comparison = 'COVID_vs_NONCOVID'")
+
 dbDisconnect(con)
 
 ##### Find gelsolin biomolecule_id ####### 
@@ -50,13 +55,39 @@ table(filter_row) #112
 filter_col <- colSums(abs(cor_4omes_kendall$cor[proteins,metabolites_lipids]) > 0.4)>1
 table(filter_col) #118
 
+# significance star
+highlight_sig <- cor_4omes_kendall[[3]][proteins,metabolites_lipids] <  0.05
+highlight_sig[!highlight_sig] <- ""
+highlight_sig[highlight_sig == TRUE] <- "*"
+
 # for plotting,extract gene names from proteins-metadata table.
 geneNames<- apply(df_proteins , 1, function(x) strsplit(strsplit(x[4], "GN=")[[1]][2], " ")[[1]][1])
-  row_labels <- geneNames[df_proteins$biomolecule_id %in% row.names(cor_4omes_kendall$cor)[proteins]][filter_row]
+
+# row labels as genes 
+row_labels <- geneNames[match(df_proteins$biomolecule_id, names_cor[proteins])][filter_row]
+
+# col labels as metabolites ID
+biomolecules_metabolties_lipids <- biomolecules[biomolecules$biomolecule_id %in% names_cor[metabolites_lipids][filter_col],]
+col_labels <- biomolecules_metabolties_lipids$standardized_name[match(biomolecules_metabolties_lipids$biomolecule_id, names_cor[metabolites_lipids][filter_col])]
+
+# annotation based on significant with COVID
+annotation_row <- data.frame(sig_with_COVID = as.factor(pvalues$q_value < 0.05))
+row.names(annotation_row) <- pvalues$biomolecule_id
+
+# annotation colors 
+annotation_colors <- list(sig_with_COVID = c(3,1,"white"))
+
+names(annotation_colors[["sig_with_COVID"]]) <- as.character(levels(annotation_row$sig_with_COVID))
 
 # Creating heatmap for cross-ome correlation 
-pdf("heatmap_cross_ome_correlations_kendall_KAO.pdf", width = 40, height = 40)
+pdf("heatmap_cross_ome_correlations_kendall_KAO_v2.pdf", width = 30, height = 30)
 pheatmap(cor_4omes_kendall$cor[proteins,metabolites_lipids][filter_row, filter_col],
-         labels_col = biomolecules$standardized_name[biomolecules$biomolecule_id %in% row.names(cor_4omes_kendall$cor)[metabolites_lipids][filter_col]],
-         labels_row = row_labels, cellwidth = 10, cellheight = 10)
+         annotation_row = annotation_row,
+         annotation_col = annotation_row,
+         annotation_colors = annotation_colors,
+         display_numbers = highlight_sig[filter_row,filter_col],
+         labels_col = col_labels,
+         labels_row = row_labels,
+         cellwidth = 10, cellheight = 10)
 dev.off()
+
