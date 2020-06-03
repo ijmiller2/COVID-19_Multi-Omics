@@ -2,6 +2,7 @@
 import plotly.express as px
 import pandas as pd
 import numpy as np
+from scipy.spatial import distance
 
 color_dict = {
                 "COVID_ICU":"#D53E4F",
@@ -127,13 +128,16 @@ def pca_scores_plot(combined_df, quant_value_range):
 
     color_list = get_color_list(combined_df)
 
-    df = pd.DataFrame({'x':PC1s, 'y':PC2s, 'sample_id':combined_df.index.tolist()})
+    df = pd.DataFrame({'x':PC1s, 'y':PC2s,
+        'sample_id':combined_df.index.tolist(),
+        'COVID':combined_df['COVID']})
 
     fig = px.scatter(df, x="x", y="y", hover_data=['sample_id'],
                     color=color_list,
-                    color_discrete_map=color_dict)
+                    color_discrete_map=color_dict,
+                    symbol='COVID')
 
-    fig.update_traces(marker=dict(size=20, opacity=0.8))
+    fig.update_traces(marker=dict(size=15, opacity=0.8))
 
     fig.update_layout(
         title="Samples (n={})".format(quant_df.shape[0]),
@@ -173,17 +177,22 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
 
     df = pd.DataFrame({'x':PC1_loadings, 'y':PC2_loadings,
         'biomolecule_id':quant_df.columns.tolist(),
-        'standardized_name':[biomolecule_names_dict[i] for i in quant_df.columns.tolist()]})
+        'standardized_name':[biomolecule_names_dict[i] for i in quant_df.columns.tolist()],
+        'ome_type':ome_type_list})
+
+    # downsample larger plots
+    if df.shape[0] > 1000:
+        df = downsample_scatter_data(df)
 
     fig = px.scatter(df, x="x", y="y",
         hover_data=['biomolecule_id', 'standardized_name'],
-        color=ome_type_list,
+        color="ome_type",
         color_discrete_map=color_dict)
 
     fig.update_traces(marker=dict(size=10, opacity=0.5))
 
     fig.update_layout(
-        title="{} (n={})".format(dataset_id, quant_df.shape[1]),
+        title="{} (n={}/{})".format(dataset_id, df.shape[0], quant_df.shape[1]),
         legend_title_text='Group',
         xaxis_title='Loadings on PC1',
         yaxis_title='Loadings on PC2',
@@ -198,6 +207,45 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
     #    fig.update_layout(showlegend=False)
 
     return fig
+
+def downsample_scatter_data(df):
+
+    # df should have, x, y, and ome_type columns
+
+    # filter top n biomolecules on loadings plot, by distance from origin
+    origin = (0,0)
+    distance_list = []
+    for index, row in df.iterrows():
+        x = row['x']
+        y = row['y']
+        coordinates = (x, y)
+        d = distance.euclidean(origin, coordinates)
+        distance_list.append(d)
+
+    df['ditance_from_origin'] = distance_list
+
+    distance_std = np.std(distance_list)
+
+    drop_index_list = []
+    for ome_type in list(set(df['ome_type'])):
+        # drop 20 % of measurements for each ome, randomly subsample 50% of those
+        #drop_row_num = round(df[df['ome_type'] == ome_type].shape[0] * 0.2)
+        #drop_indices = df[df['ome_type'] == ome_type].\
+        #    sort_values(by='ditance_from_origin').\
+        #    iloc[:drop_row_num].sample(frac=0.5, random_state=1).index.tolist()
+
+        # randomly downsample half of data within one standard deviation from origin
+        ome_df = df[(df['ome_type'] == ome_type) & (df['ditance_from_origin'] < distance_std)]
+        drop_indices = ome_df.sample(random_state=1, frac=0.5).index.tolist()
+        drop_index_list.extend(drop_indices)
+
+    df = df.drop(drop_index_list)
+
+    return df
+
+    # n = 1000
+    #df = df.sort_values(by='ditance_from_origin', ascending=False).iloc[:n]
+    df = df.drop(drop_index_list)
 
 def volcano_plot(volcano_df):
 
