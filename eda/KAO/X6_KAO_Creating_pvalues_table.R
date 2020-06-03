@@ -77,7 +77,7 @@ dbDisconnect(con)
 
 df <- rbind(df_metabolites,df_lipids, df_proteins)
  
-df_pvalues <- data.frame(biomolecule_id = as.numeric(unique(df$biomolecule_id)), test = "LR_test", comparison = "COVID_vs_NONCOVID", confounders = "ICU_1;Gender;Age_less_than_90")
+df_pvalues <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "COVID_vs_NONCOVID", confounders = "ICU_1;Gender;Age_less_than_90")
 
 
 p_value <- apply(df_pvalues, 1, function(x)  
@@ -95,7 +95,7 @@ con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multi
 
 #### write table to DB ####
 
-dbWriteTable(con, "pvalues", df_pvalues, overwrite = T)
+#dbWriteTable(con, "pvalues", df_pvalues, overwrite = T)
 
 # check
 pvalues <- dbReadTable(con, "pvalues")
@@ -103,3 +103,123 @@ pvalues <- dbReadTable(con, "pvalues")
 # disconnect
 dbDisconnect(con) 
 
+##### P-values for gender ###### 
+
+df_pvalues_gender <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "GENDER", confounders = "COVID;ICU_1;Age_less_than_90")
+
+df_pvalues_gender$p_value <- apply(df_pvalues_gender, 1, function(x)  
+  compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ COVID + ICU_1 + Age_less_than_90, 
+             formula_test = normalized_abundance ~ COVID + ICU_1 + Gender + Age_less_than_90,
+             data = df, return = 'pvalue'))
+
+#hist(df_pvalues_gender$p_value, breaks = 100, main = 'Histogram of pvalues +/- gender')
+
+df_pvalues_gender$q_value <- p.adjust(df_pvalues_gender$p_value, method = "fdr")
+
+df_pvalues_gender <- cbind(pvalue_id = seq(nrow(pvalues)+1, length.out = nrow(df_pvalues_gender), by =1 ), df_pvalues_gender)
+
+table(df_pvalues_gender$q_value < 0.05)
+
+## Append gender Pvalues to db 
+## Establish a connection to the DB 
+con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
+
+#### write table to DB 
+
+dbWriteTable(con, "pvalues", df_pvalues_gender, append = T)
+
+# check
+pvalues <- dbReadTable(con, "pvalues")
+
+# disconnect
+dbDisconnect(con) 
+
+####### Pvalues w/ age ######
+
+df_pvalues_age <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "Age_less_than_90", confounders = "COVID;ICU_1;Gender")
+
+df_pvalues_age$p_value <- apply(df_pvalues_age, 1, function(x)  
+  compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ COVID + ICU_1 + Gender, 
+             formula_test = normalized_abundance ~ COVID + ICU_1 + Gender + Age_less_than_90,
+             data = df, return = 'pvalue'))
+
+hist(df_pvalues_age$p_value, breaks = 100, main = 'Histogram of pvalues +/- age')
+
+
+df_pvalues_age$q_value <- p.adjust(df_pvalues_age$p_value, method = "fdr")
+
+df_pvalues_age <- cbind(pvalue_id = seq(nrow(pvalues)+1, length.out = nrow(df_pvalues_age), by =1 ), df_pvalues_age)
+
+## Append age Pvalues to db 
+## Establish a connection to the DB 
+con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
+
+#### write table to DB 
+
+dbWriteTable(con, "pvalues", df_pvalues_age, append = T)
+
+# check
+pvalues <- dbReadTable(con, "pvalues")
+
+# disconnect
+dbDisconnect(con) 
+
+####### Pvalues w/ ICU status 
+
+df_pvalues_icu <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "ICU", confounders = "COVID;Gender;Age_less_than_90")
+
+df_pvalues_icu$p_value <- apply(df_pvalues_icu, 1, function(x)  
+  compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ COVID + Gender + Age_less_than_90, 
+             formula_test = normalized_abundance ~ COVID + ICU_1 + Gender + Age_less_than_90,
+             data = df, return = 'pvalue'))
+
+hist(df_pvalues_icu$p_value, breaks = 100, main = 'Histogram of pvalues +/- ICU')
+
+
+df_pvalues_icu$q_value <- p.adjust(df_pvalues_icu$p_value, method = "fdr")
+
+df_pvalues_icu <- cbind(pvalue_id = seq(nrow(pvalues)+1, length.out = nrow(df_pvalues_icu), by =1 ), df_pvalues_icu)
+
+## Append icu Pvalues to db 
+## Establish a connection to the DB 
+con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
+
+#### write table to DB 
+
+dbWriteTable(con, "pvalues", df_pvalues_icu, append = T)
+
+# check
+pvalues <- dbReadTable(con, "pvalues")
+
+# disconnect
+dbDisconnect(con) 
+
+
+####### Pvalues w/ COVID ICU interaction 
+
+df_pvalues_interaction <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "COVID ICU interaction", confounders = "ICU_1;Gender;Age_less_than_90")
+
+df_pvalues_interaction$p_value <- apply(df_pvalues_interaction, 1, function(x)  
+  compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ COVID + ICU_1 + Gender + Age_less_than_90, 
+             formula_test = normalized_abundance ~ COVID * ICU_1 + Gender + Age_less_than_90,
+             data = df, return = 'pvalue'))
+
+hist(df_pvalues_interaction$p_value, breaks = 100, main = 'Histogram of pvalues +/- COVID ICU interaction')
+
+df_pvalues_interaction$q_value <- p.adjust(df_pvalues_interaction$p_value, method = "fdr")
+
+df_pvalues_interaction <- cbind(pvalue_id = seq(nrow(pvalues)+1, length.out = nrow(df_pvalues_interaction), by =1 ), df_pvalues_interaction)
+
+## Append interaction Pvalues to db 
+## Establish a connection to the DB 
+con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
+
+#### write table to DB 
+
+dbWriteTable(con, "pvalues", df_pvalues_interaction, append = T)
+
+# check
+pvalues <- dbReadTable(con, "pvalues")
+
+# disconnect
+dbDisconnect(con) 
