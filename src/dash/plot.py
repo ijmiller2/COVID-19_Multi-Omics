@@ -32,19 +32,19 @@ def get_color_list(combined_df):
         if pd.isnull(ICU_1):
             color = "Col12"
 
-        elif ICU_1 == "1" and COVID == "1":
+        elif ICU_1 == 1 and COVID == 1:
             color = color_dict["COVID_ICU"]
             color = "COVID_ICU"
 
-        elif ICU_1 == "1" and COVID == "0":
+        elif ICU_1 == 1 and COVID == 0:
             color = color_dict["NONCOVID_ICU"]
             color = "NONCOVID_ICU"
 
-        elif ICU_1 == "0" and COVID == "1":
+        elif ICU_1 == 0 and COVID == 1:
             color = color_dict["COVID_NONICU"]
             color = 'COVID_NONICU'
 
-        elif ICU_1 == "0" and COVID == "0":
+        elif ICU_1 == 0 and COVID == 0:
             color = color_dict["NONCOVID_NONICU"]
             color = "NONCOVID_NONICU"
 

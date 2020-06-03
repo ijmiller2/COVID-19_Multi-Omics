@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+import datetime
 
 from data import get_omics_data, get_biomolecule_names, get_combined_data, get_p_values, get_volcano_data
 from plot import volcano_plot
@@ -11,6 +12,10 @@ from plot import volcano_plot
 # importing app through index page
 from app import app
 
+print()
+print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+print("Loading data for differential_expression...")
+print()
 # load metabolomics data matrix
 print("Loading metabolomics data...")
 metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
@@ -81,6 +86,22 @@ plotly_config = {"toImageButtonOptions":{'format':'svg',
                 'filename': 'dash_plot'},
                 "displaylogo": False}
 
+dataset = 'combined'
+combined_omics_df = df_dict[dataset]
+quant_value_range = quant_value_range_dict[dataset]
+
+print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+print("Getting pvalue data..")
+pvalues_df = get_p_values()
+print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+print("Building volcano plot..")
+volcano_df = get_volcano_data(pvalues_df, df_dict,
+    quant_value_range, global_names_dict)
+print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+print("Rendering volcano plot..")
+fig = volcano_plot(volcano_df)
+print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
 control_panel = dbc.Card(
     [
         dbc.CardHeader("CONTROL PANEL",
@@ -110,7 +131,7 @@ first_card = dbc.Card(
                             style={"background-color":"#5bc0de",
                                         "font-weight":"bold",
                                         "font-size":"large"}),
-        dbc.CardBody(dcc.Graph(id='volcano-plot',
+        dbc.CardBody(dcc.Graph(figure=fig,
         config=plotly_config))
     ])
 
@@ -224,7 +245,7 @@ layout = dbc.Container([
 ], fluid=True, style={"height": "100vh"})
 
 
-@app.callback(
+"""@app.callback(
     Output('volcano-plot', 'figure'),
     [Input('biomolecule_id-de', 'value')])
 def update_volcano_plot(biomolecule_id):
@@ -233,10 +254,16 @@ def update_volcano_plot(biomolecule_id):
     combined_omics_df = df_dict[dataset]
     quant_value_range = quant_value_range_dict[dataset]
 
+    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print("Getting pvalue data..")
     pvalues_df = get_p_values()
+    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print("Building volcano plot..")
     volcano_df = get_volcano_data(pvalues_df, df_dict,
         quant_value_range, global_names_dict)
-
+    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print("Rendering volcano plot..")
     fig = volcano_plot(volcano_df)
+    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-    return fig
+    return fig"""
