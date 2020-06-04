@@ -64,12 +64,15 @@ highlight_sig[highlight_sig == TRUE] <- "*"
 df_proteins$geneNames<- apply(df_proteins , 1, function(x) strsplit(strsplit(x[4], "GN=")[[1]][2], " ")[[1]][1])
 
 # row labels as genes 
-df_proteins_filter <- df_proteins[df_proteins$biomolecule_id %in% names_cor[proteins],]
-row_labels <- df_proteins_filter$geneNames[match(df_proteins_filter$biomolecule_id, names_cor[proteins])][filter_row]
+row_labels <- df_proteins$geneNames[match(names_cor[proteins][filter_row], df_proteins$biomolecule_id) ]
+
+df_proteins$biomolecule_id[match(names_cor[proteins][filter_row], df_proteins$biomolecule_id) ]== names_cor[proteins][filter_row]
 
 # col labels as metabolites ID
-biomolecules_metabolties_lipids <- biomolecules[biomolecules$biomolecule_id %in% names_cor[metabolites_lipids][filter_col],]
-col_labels <- biomolecules_metabolties_lipids$standardized_name[match(biomolecules_metabolties_lipids$biomolecule_id, names_cor[metabolites_lipids][filter_col])]
+col_labels <- biomolecules$standardized_name[match(names_cor[metabolites_lipids][filter_col], biomolecules$biomolecule_id)]
+
+#checkmatch
+biomolecules$biomolecule_id[match(names_cor[metabolites_lipids][filter_col], biomolecules$biomolecule_id)] == names_cor[metabolites_lipids][filter_col] 
 
 # annotation based on significant with COVID
 annotation_row <- data.frame(sig_with_COVID = as.factor(pvalues$q_value < 0.05))

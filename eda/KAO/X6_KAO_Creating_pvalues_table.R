@@ -76,7 +76,9 @@ dbDisconnect(con)
 #### Creating dataframe to hold pvalues #######
 
 df <- rbind(df_metabolites,df_lipids, df_proteins)
- 
+
+df <- df[df$sample_id != 54, ]
+
 df_pvalues <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "COVID_vs_NONCOVID", confounders = "ICU_1;Gender;Age_less_than_90")
 
 
@@ -90,12 +92,14 @@ df_pvalues$q_value <- p.adjust(df_pvalues$p_value, method = "fdr")
 
 df_pvalues <- cbind(pvalue_id = row.names(df_pvalues), df_pvalues)
 
+hist(df_pvalues$p_value)
+
 #### Establish a connection to the DB #####
 con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
 
 #### write table to DB ####
 
-#dbWriteTable(con, "pvalues", df_pvalues, overwrite = T)
+dbWriteTable(con, "pvalues", df_pvalues, overwrite = T)
 
 # check
 pvalues <- dbReadTable(con, "pvalues")
@@ -104,15 +108,16 @@ pvalues <- dbReadTable(con, "pvalues")
 dbDisconnect(con) 
 
 ##### P-values for gender ###### 
+df_gender <- df[df$Gender != "", ]
 
 df_pvalues_gender <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "GENDER", confounders = "COVID;ICU_1;Age_less_than_90")
 
 df_pvalues_gender$p_value <- apply(df_pvalues_gender, 1, function(x)  
-  compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ COVID + ICU_1 + Age_less_than_90, 
+compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ COVID + ICU_1 + Age_less_than_90, 
              formula_test = normalized_abundance ~ COVID + ICU_1 + Gender + Age_less_than_90,
-             data = df, return = 'pvalue'))
+             data = df_gender, return = 'pvalue'))
 
-#hist(df_pvalues_gender$p_value, breaks = 100, main = 'Histogram of pvalues +/- gender')
+hist(df_pvalues_gender$p_value, breaks = 100, main = 'Histogram of pvalues +/- gender')
 
 df_pvalues_gender$q_value <- p.adjust(df_pvalues_gender$p_value, method = "fdr")
 
@@ -223,3 +228,4 @@ pvalues <- dbReadTable(con, "pvalues")
 
 # disconnect
 dbDisconnect(con) 
+

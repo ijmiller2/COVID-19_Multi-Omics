@@ -64,12 +64,15 @@ highlight_sig[highlight_sig == TRUE] <- "*"
 df_proteins$geneNames<- apply(df_proteins , 1, function(x) strsplit(strsplit(x[4], "GN=")[[1]][2], " ")[[1]][1])
 
 # row labels as genes 
-df_proteins_filter <- df_proteins[df_proteins$biomolecule_id %in% names_cor[proteins],]
-row_labels <- df_proteins_filter$geneNames[match(df_proteins_filter$biomolecule_id, names_cor[proteins])][filter_row]
+row_labels <- df_proteins$geneNames[match(names_cor[proteins][filter_row], df_proteins$biomolecule_id) ]
+
+df_proteins$biomolecule_id[match(names_cor[proteins][filter_row], df_proteins$biomolecule_id) ]== names_cor[proteins][filter_row]
 
 # col labels as metabolites ID
-biomolecules_metabolties_lipids <- biomolecules[biomolecules$biomolecule_id %in% names_cor[metabolites_lipids][filter_col],]
-col_labels <- biomolecules_metabolties_lipids$standardized_name[match(biomolecules_metabolties_lipids$biomolecule_id, names_cor[metabolites_lipids][filter_col])]
+col_labels <- biomolecules$standardized_name[match(names_cor[metabolites_lipids][filter_col], biomolecules$biomolecule_id)]
+
+#checkmatch
+biomolecules$biomolecule_id[match(names_cor[metabolites_lipids][filter_col], biomolecules$biomolecule_id)] == names_cor[metabolites_lipids][filter_col] 
 
 # annotation based on significant with COVID
 annotation_row <- data.frame(sig_with_COVID = as.factor(pvalues$q_value < 0.05))
@@ -82,6 +85,38 @@ names(annotation_colors[["sig_with_COVID"]]) <- as.character(levels(annotation_r
 
 # Creating heatmap for cross-ome correlation 
 pdf("heatmap_cross_ome_correlations_kendall_KAO_v2.pdf", width = 40, height = 30)
+pheatmap(cor_4omes_kendall$cor[proteins,metabolites_lipids][filter_row, filter_col],
+         annotation_row = annotation_row,
+         annotation_col = annotation_row,
+         annotation_colors = annotation_colors,
+         display_numbers = highlight_sig[filter_row,filter_col],
+         labels_col = col_labels,
+         labels_row = row_labels,
+         cellwidth = 10, cellheight = 10)
+dev.off()
+
+##### Corrlation heatmap: proteins in Row and metabolties in column p < 0.05 #### 
+# Creating a filter for proteins where it must have at least 0.4 Tau with a metabolite
+filter_row <- rowSums(cor_4omes_kendall$adjusted_pvalue[proteins,metabolites_lipids] < 0.05 )>1
+table(filter_row) #152
+
+# Creating a filter for metabolites-lipids where they must have at least one Tau value over 0.4 
+filter_col <- colSums(cor_4omes_kendall$adjusted_pvalue[proteins,metabolites_lipids] < 0.05 )>1
+table(filter_col) #220
+
+# row labels as genes 
+row_labels <- df_proteins$geneNames[match(names_cor[proteins][filter_row], df_proteins$biomolecule_id) ]
+
+df_proteins$biomolecule_id[match(names_cor[proteins][filter_row], df_proteins$biomolecule_id) ]== names_cor[proteins][filter_row]
+
+# col labels as metabolites ID
+col_labels <- biomolecules$standardized_name[match(names_cor[metabolites_lipids][filter_col], biomolecules$biomolecule_id)]
+
+#checkmatch
+biomolecules$biomolecule_id[match(names_cor[metabolites_lipids][filter_col], biomolecules$biomolecule_id)] == names_cor[metabolites_lipids][filter_col] 
+
+# Creating heatmap for cross-ome correlation 
+pdf("heatmap_cross_ome_correlations_kendall_KAO_v3.pdf", width = 50, height = 50)
 pheatmap(cor_4omes_kendall$cor[proteins,metabolites_lipids][filter_row, filter_col],
          annotation_row = annotation_row,
          annotation_col = annotation_row,
