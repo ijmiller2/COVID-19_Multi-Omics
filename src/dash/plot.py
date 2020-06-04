@@ -192,7 +192,7 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
     fig.update_traces(marker=dict(size=10, opacity=0.5))
 
     fig.update_layout(
-        title="{} (n={}/{})".format(dataset_id, df.shape[0], quant_df.shape[1]),
+        title="{} (n={})".format(dataset_id, quant_df.shape[1]),
         legend_title_text='Group',
         xaxis_title='Loadings on PC1',
         yaxis_title='Loadings on PC2',
@@ -222,21 +222,22 @@ def downsample_scatter_data(df):
         d = distance.euclidean(origin, coordinates)
         distance_list.append(d)
 
-    df['ditance_from_origin'] = distance_list
+    df['distance_from_origin'] = distance_list
 
     distance_std = np.std(distance_list)
+    downsample_range = distance_std
 
     drop_index_list = []
     for ome_type in list(set(df['ome_type'])):
         # drop 20 % of measurements for each ome, randomly subsample 50% of those
         #drop_row_num = round(df[df['ome_type'] == ome_type].shape[0] * 0.2)
         #drop_indices = df[df['ome_type'] == ome_type].\
-        #    sort_values(by='ditance_from_origin').\
+        #    sort_values(by='distance_from_origin').\
         #    iloc[:drop_row_num].sample(frac=0.5, random_state=1).index.tolist()
 
         # randomly downsample half of data within one standard deviation from origin
-        ome_df = df[(df['ome_type'] == ome_type) & (df['ditance_from_origin'] < distance_std)]
-        drop_indices = ome_df.sample(random_state=1, frac=0.5).index.tolist()
+        ome_df = df[(df['ome_type'] == ome_type) & (df['distance_from_origin'] < downsample_range)]
+        drop_indices = ome_df.sample(random_state=1, frac=0.25).index.tolist()
         drop_index_list.extend(drop_indices)
 
     df = df.drop(drop_index_list)
@@ -244,15 +245,27 @@ def downsample_scatter_data(df):
     return df
 
     # n = 1000
-    #df = df.sort_values(by='ditance_from_origin', ascending=False).iloc[:n]
+    #df = df.sort_values(by='distance_from_origin', ascending=False).iloc[:n]
     df = df.drop(drop_index_list)
 
 def volcano_plot(volcano_df):
 
-    fig = px.scatter(volcano_df.dropna(), x="log2_FC", y="neg_log10_p_value",
+    volcano_df.dropna(inplace=True)
+
+    df = pd.DataFrame({'x':volcano_df['log2_FC'],
+        'y':volcano_df['neg_log10_p_value'],
+        'biomolecule_id':volcano_df['biomolecule_id'],
+        'standardized_name':volcano_df['standardized_name'],
+        'ome_type':volcano_df['ome_type'],
+        'p_value':volcano_df['p_value'],
+        'q_value':volcano_df['q_value']})
+
+    df = downsample_scatter_data(df)
+
+    fig = px.scatter(df, x="x", y="y",
     hover_data=['biomolecule_id', 'standardized_name', 'p_value', 'q_value'],
     opacity=0.5,
-    size='neg_log10_p_value',
+    size='y',
     color='ome_type',
     color_discrete_map=color_dict)
 

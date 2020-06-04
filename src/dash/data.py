@@ -228,7 +228,8 @@ def get_p_values():
     return pvalues_df
 
 def get_volcano_data(pvalues_df, df_dict, quant_value_range,
-    global_names_dict, comparison_column='COVID'):
+    global_names_dict, comparison_column='COVID',
+    confounders='ICU_1;Gender;Age_less_than_90'):
 
     group_1_quant_value_dict = {}
     comparison_column = 'COVID'
@@ -276,6 +277,9 @@ def get_volcano_data(pvalues_df, df_dict, quant_value_range,
         FC = np.mean(group_1_quant_values) - np.mean(group_2_quant_values)
 
         FC_dict[biomolecule_id] = FC
+
+    # filter by confounders subset
+    #pvalues_df = pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')]
 
     FC_list = []
     ome_list = []

@@ -1,10 +1,12 @@
 
 import dash
+import dash_table
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 import datetime
+import pandas as pd
 
 from data import get_omics_data, get_biomolecule_names, get_combined_data, get_p_values, get_volcano_data
 from plot import volcano_plot
@@ -35,12 +37,12 @@ lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
 proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
 
 # drop unknown lipids (to test speed up)
-lipidomics_drop_list = []
+"""lipidomics_drop_list = []
 for biomolecule_id in lipidomics_df.columns[:lipidomics_quant_range]:
     if "Unknown" in lipidomics_biomolecule_names_dict[biomolecule_id]:
         lipidomics_drop_list.append(biomolecule_id)
 lipidomics_df.drop(lipidomics_drop_list, axis=1, inplace=True)
-lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)
+lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)"""
 
 # define dataset dictionaries
 dataset_dict = {
@@ -93,6 +95,7 @@ quant_value_range = quant_value_range_dict[dataset]
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print("Getting pvalue data..")
 pvalues_df = get_p_values()
+print(pvalues_df.columns)
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print("Building volcano plot..")
 volcano_df = get_volcano_data(pvalues_df, df_dict,
@@ -101,6 +104,8 @@ print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print("Rendering volcano plot..")
 fig = volcano_plot(volcano_df)
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+biomolecule_options = [{'label': value, 'value': key} for key, value in sorted_biomolecule_names_dict.items() if int(key) in pvalues_df['biomolecule_id'].to_list()]
 
 control_panel = dbc.Card(
     [
@@ -111,13 +116,13 @@ control_panel = dbc.Card(
         dbc.CardBody(
             [
 
-            html.P("Select Biomolecule", className="card-title", style={"font-weight":"bold"}),
+            html.P("Biomolecule Data", className="card-title", style={"font-weight":"bold"}),
 
             # NOTE: This is dcc object not dbc
             dcc.Dropdown(
                 id='biomolecule_id-de',
                 # label maps to biomolecule name, value to biomolecule_id
-                options=[{'label': value, 'value': key} for key, value in sorted_biomolecule_names_dict.items()],
+                options=biomolecule_options,
                 # only passing in quant value columns
                 value=default_biomolecule,
                 className="dropdown-item p-0"),
@@ -131,9 +136,25 @@ first_card = dbc.Card(
                             style={"background-color":"#5bc0de",
                                         "font-weight":"bold",
                                         "font-size":"large"}),
-        dbc.CardBody(dcc.Graph(figure=fig,
+        dbc.CardBody(dcc.Graph(figure=fig, id='volcano',
         config=plotly_config))
     ])
+
+pvalues_columns = ['biomolecule_id', 'comparison', 'log2_FC', 'neg_log10_p_value', 'p_value', 'q_value']
+table_example = dash_table.DataTable(
+    id='table',
+    style_table={'overflowX': 'auto'},
+    columns=[{"name": i, "id": i} for i in pvalues_columns],
+    data=pvalues_df[pvalues_df['biomolecule_id']==int(default_biomolecule)].to_dict('records'),
+)
+second_card = dbc.Card(
+    [
+        dbc.CardHeader("BIOMOLECULE DATA",
+                            style={"background-color":"#5bc0de",
+                                        "font-weight":"bold",
+                                        "font-size":"large"}),
+        dbc.CardBody(table_example)
+    ], className="mb-3")
 
 COONLAB_LOGO="https://coonlabs.com/wp-content/uploads/2016/07/coon-logo-white.png"
 navbar = dbc.NavbarSimple(
@@ -236,34 +257,37 @@ layout = dbc.Container([
     pills=True
         ), md=2, className="mb-3"),
 
-        dbc.Col(first_card, md=7, style={"height": "100%"}),
+        dbc.Col(first_card, md=7),
         ],
 
-        className="mb-3 h-100"),
+        className="mb-3"),
+
+    dbc.Row([dbc.Col(html.Div(), md=2, align="center"), dbc.Col(second_card, md=7, align="center")], className="mb-3")
 
 
 ], fluid=True, style={"height": "100vh"})
 
 
-"""@app.callback(
-    Output('volcano-plot', 'figure'),
+
+
+@app.callback(
+    Output('table', 'data'),
     [Input('biomolecule_id-de', 'value')])
-def update_volcano_plot(biomolecule_id):
+def update_table(biomolecule_id):
 
-    dataset = 'combined'
-    combined_omics_df = df_dict[dataset]
-    quant_value_range = quant_value_range_dict[dataset]
+    print(pvalues_df.head())
+    print(volcano_df.head())
+    data = pvalues_df[pvalues_df['biomolecule_id']==int(biomolecule_id)].to_dict('records')
+    data = data[0] # list of dict
+    print(data)
+    for key, value in data.items():
 
-    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    print("Getting pvalue data..")
-    pvalues_df = get_p_values()
-    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    print("Building volcano plot..")
-    volcano_df = get_volcano_data(pvalues_df, df_dict,
-        quant_value_range, global_names_dict)
-    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    print("Rendering volcano plot..")
-    fig = volcano_plot(volcano_df)
-    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        if key in ['p_value', 'q_value']:
+            data[key] = '%.3E' % value
 
-    return fig"""
+        elif key in ['log2_FC', 'neg_log10_p_value']:
+            data[key] = '%.3f' % value
+
+    data = [data]
+
+    return data

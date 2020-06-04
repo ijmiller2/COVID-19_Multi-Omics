@@ -50,12 +50,12 @@ lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
 proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
 
 # drop unknown lipids (to test speed up)
-lipidomics_drop_list = []
+"""lipidomics_drop_list = []
 for biomolecule_id in lipidomics_df.columns[:lipidomics_quant_range]:
     if "Unknown" in lipidomics_biomolecule_names_dict[biomolecule_id]:
         lipidomics_drop_list.append(biomolecule_id)
 lipidomics_df.drop(lipidomics_drop_list, axis=1, inplace=True)
-lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)
+lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)"""
 
 # define dataset dictionaries
 dataset_dict = {

@@ -25,12 +25,12 @@ As of 5/28/20:
 
 As of 6/3/20:
 - Add QQQ data (& fix issue with raw file table filtering)
+- Downsample less interesting features in plots with n>1000 (for performance)
+- Display selected biomolecule data in separate table (whether or not in plot)
 
 To do:
-- Downsample less interesting features in plots with n>1000 (for performance)
+- Add dropdown for confounders
 - Redeploy with volcano plot
-
-- Display selected biomolecule data in separate table (whether or not in plot)
 - Work on cross page data sharing/caching to improve performance
 - Add load bars
 - Add correlation/linear regression tab  
