@@ -98,7 +98,10 @@ pvalues_df = get_p_values()
 print(pvalues_df.columns)
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print("Building volcano plot..")
-volcano_df = get_volcano_data(pvalues_df, df_dict,
+
+confounders='ICU_1;Gender;Age_less_than_90'
+volcano_df = get_volcano_data(pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')],
+    df_dict,
     quant_value_range, global_names_dict)
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print("Rendering volcano plot..")
@@ -140,7 +143,8 @@ first_card = dbc.Card(
         config=plotly_config))
     ])
 
-pvalues_columns = ['biomolecule_id', 'comparison', 'log2_FC', 'neg_log10_p_value', 'p_value', 'q_value']
+# drop p_value_id
+pvalues_columns = pvalues_df.columns[1:]
 table_example = dash_table.DataTable(
     id='table',
     style_table={'overflowX': 'auto'},
@@ -275,19 +279,15 @@ layout = dbc.Container([
     [Input('biomolecule_id-de', 'value')])
 def update_table(biomolecule_id):
 
-    print(pvalues_df.head())
-    print(volcano_df.head())
-    data = pvalues_df[pvalues_df['biomolecule_id']==int(biomolecule_id)].to_dict('records')
-    data = data[0] # list of dict
-    print(data)
-    for key, value in data.items():
+    data_list = pvalues_df[pvalues_df['biomolecule_id']==int(biomolecule_id)].to_dict('records')
 
-        if key in ['p_value', 'q_value']:
-            data[key] = '%.3E' % value
+    for data in data_list:
+        for key, value in data.items():
 
-        elif key in ['log2_FC', 'neg_log10_p_value']:
-            data[key] = '%.3f' % value
+            if key in ['p_value', 'q_value']:
+                data[key] = '%.3E' % value
 
-    data = [data]
+            elif key in ['log2_FC', 'neg_log10_p_value']:
+                data[key] = '%.3f' % value
 
-    return data
+    return data_list # list of dicts

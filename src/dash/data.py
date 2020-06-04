@@ -5,7 +5,7 @@ import re
 import numpy as np
 
 # SQLite path
-db_path = 'sqlite:///../../data/SQLite Database/20200602/Covid-19 Study DB.sqlite'
+db_path = 'sqlite:///../../data/SQLite Database/20200603/Covid-19 Study DB.sqlite'
 
 omics_id_dict = {
         "proteomics":1,
@@ -202,7 +202,8 @@ def get_combined_data(df_dict, quant_range_dict):
 
     return df_dict, quant_range_dict
 
-def get_p_values():
+def get_p_values(confounders='ICU_1;Gender;Age_less_than_90',
+    comparison='COVID_vs_NONCOVID'):
 
     # Create an engine that connects to the Covid-19 Study DB.sqlite file: engine
     engine = create_engine(db_path)
@@ -224,6 +225,8 @@ def get_p_values():
     query = "SELECT * from pvalues"
     # get biomolecule names
     pvalues_df = pd.read_sql_query(query, connection)
+
+    #pvalues_df = pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')]
 
     return pvalues_df
 
