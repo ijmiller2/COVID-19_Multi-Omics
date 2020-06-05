@@ -191,4 +191,18 @@
 # output:
 # - "heatmap_cross_ome_correlations_pearson_KAO_v2.pdf
 
+## X8_KAO_transcriptomics_table_upload.R
+# desciptiom: appends transcriptomics data to the db. 
+# date created: 6/4/2020
+# date last modified: 6/5/2020
+# input: 
+# - Covid-19 Study DB.sqlite
+# - 'P:/All_20200428_COVID_plasma_multiomics/Transcriptomics/genes.l2ec.no_hg.norm.tsv'
+# - 'P:/All_20200428_COVID_plasma_multiomics/Transcriptomics/genes.ec.no_hg.norm.tsv'
+# output: 
+# - Covid-19 Study DB.sqlite modified to include transciptomics_runs and transcriptomics_measurements 
+
+
+
+
 
