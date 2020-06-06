@@ -210,5 +210,16 @@
 # input: 
 # - Covid-19 Study DB.sqlite
 
+## 11_KAO_Looking_at_effect_of_DM_status.R
+# description: This script uses linear regressaion with response factor of hospital 
+#  free days at 45 to see if diabetes (DM) status has any effect. There does not apprear
+#  to be any significant effect with diabetes.
+# date create: 6/5/20
+# date last modified: 6/5/20
+# input:
+# - Covid-19 Study DB.sqlite
+
+
+
 
 
