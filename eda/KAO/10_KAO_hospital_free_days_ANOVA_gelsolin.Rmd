@@ -1,0 +1,80 @@
+---
+title: "Gelsolin ANOVA with confounders"
+author: "Katie Overmyer"
+date: "6/5/2020"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE, message=F, error=F, warning=FALSE}
+library(DBI)
+library(RSQLite)
+
+#### Establish a connection to the DB
+con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
+
+# check
+pvalues <- dbGetQuery(con, "SELECT * FROM pvalues WHERE biomolecule_id = 7974")
+
+
+df_proteins<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, proteomics_measurements.biomolecule_id, COVID, Hospital_free_days_45, Age_less_than_90, Gender, ICU_1, DM, Charlson_score, SOFA
+           FROM proteomics_measurements
+           INNER JOIN proteomics_runs ON proteomics_runs.replicate_id = proteomics_measurements.replicate_id
+           INNER JOIN rawfiles ON rawfiles.rawfile_id = proteomics_runs.rawfile_id
+           INNER JOIN deidentified_patient_metadata ON deidentified_patient_metadata.sample_id = rawfiles.sample_id
+           INNER JOIN biomolecules on biomolecules.biomolecule_id = proteomics_measurements.biomolecule_id
+           WHERE rawfiles.keep = 1  
+           AND biomolecules.biomolecule_id = '7974'
+           ")
+
+# disconnect
+dbDisconnect(con) 
+
+
+df_proteins$Gender[df_proteins$Gender == ""] <- NA
+
+```
+
+## Analysis uing linear regression to test the effect of gelsolin normalized abundance levels on response variable Hospital Free Days at 45. 
+
+### These data suggest Gelsolin is predictive of hospital free days. 
+
+```{r}
+fit <- lm(Hospital_free_days_45 ~ normalized_abundance * COVID, data = df_proteins)
+anova(fit)
+
+```
+
+### Let's also ask if COVID status has effect on hospital free days:
+
+```{r}
+
+fit2 <- lm(Hospital_free_days_45 ~ COVID, data =df_proteins)
+anova(fit2)
+
+```
+
+### The pvalue of 0.003 suggest that COVID status is significant also.
+
+### However, likelyhood ratio test between models suggests that Gelsolin values improves prediction of hospital free days
+
+```{r}
+anova(fit, fit2)
+```
+
+### If we include confounders of gender and age, Gelsolin levels still have significant effect on hospital free days. 
+
+```{r}
+
+fit_3 <- lm(Hospital_free_days_45 ~ normalized_abundance + COVID + Gender + Age_less_than_90, data = df_proteins)
+
+anova(fit_3)
+
+```
+
