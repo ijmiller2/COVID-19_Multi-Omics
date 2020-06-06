@@ -202,7 +202,13 @@
 # output: 
 # - Covid-19 Study DB.sqlite modified to include transciptomics_runs and transcriptomics_measurements 
 
-
+## 10_KAO_hospital_free_days_ANOVA_gelsolin.Rmd
+# description: For the gelsolin story, wanted to explore the effect of confounders
+#  on hostpital free days. 
+# date created: 6/5/20
+# date last modified: 6/5/20
+# input: 
+# - Covid-19 Study DB.sqlite
 
 
 

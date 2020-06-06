@@ -81,6 +81,9 @@ df_proteins<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, n
            ")
 dbDisconnect(con)
 
+df <- rbind(df_metabolites, df_lipids, df_proteins)
+
+df <- df[df$sample_id != 54, ]
 
 #### Creating dataframe to hold pvalues #######
 
