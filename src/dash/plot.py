@@ -285,3 +285,36 @@ def volcano_plot(volcano_df):
         )
 
     return fig
+
+def correlation_scatter(combined_df, biomolecule_id, biomolecule_name,
+    clinical_measurement):
+
+    # drop samples with missing values for clinical measurement
+    combined_df.dropna(subset=[clinical_measurement], inplace=True)
+
+    color_list = get_color_list(combined_df)
+
+    df = pd.DataFrame({'x':combined_df[clinical_measurement],
+        'y':combined_df[biomolecule_id],
+        'sample_id':combined_df.index.tolist(),
+        'COVID':combined_df['COVID']})
+
+    fig = px.scatter(df, x="x", y="y", hover_data=['sample_id'],
+                    color=color_list,
+                    color_discrete_map=color_dict)
+
+    fig.update_traces(marker=dict(size=15, opacity=0.8))
+
+    fig.update_layout(
+        title="Samples (n={})".format(combined_df.shape[0]),
+        legend_title_text='Group',
+        xaxis_title='{}'.format(clinical_measurement),
+        yaxis_title='{} \nlog2 intensity'.format(biomolecule_name),
+        showlegend=True,
+        font=dict(
+            family="Helvetica",
+            size=18,
+            color="#7f7f7f")
+        )
+
+    return fig

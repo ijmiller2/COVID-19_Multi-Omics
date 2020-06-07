@@ -1,6 +1,8 @@
 
 ## Changes and updates
 
+ get commit id: `git log --pretty=format:'%h' -n 1`
+
 As of 5/25/20:  
 - Add sample ID to boxplot scatter/jitter  
 - Rename datasets: "GC/MS Metabolomics" -> "Metabolites"  
@@ -28,10 +30,14 @@ As of 6/3/20:
 - Downsample less interesting features in plots with n>1000 (for performance)
 - Display selected biomolecule data in separate table (whether or not in plot)
 
-To do:
+As of 6/5/20:
 - Add dropdown for confounders
-- Redeploy with volcano plot
+- Redeploy with volcano plot (commit id: 8adfd87, database 20200527 -> bb2979d, 20200603)
+
+As of 6/6/20:
+- Add correlation/linear regression tab  
+
+To do:
+- Add option to color PCA scores by HFD
 - Work on cross page data sharing/caching to improve performance
 - Add load bars
-- Add correlation/linear regression tab  
-- Build table lookup page  

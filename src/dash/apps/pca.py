@@ -241,7 +241,7 @@ layout = dbc.Container([
                     "Linear Regression",
                     id="tooltip-lr",
                     style={"cursor": "pointer", "color":"grey"},
-                ),disabled=False, href="#")),
+                ),disabled=False, href="linear_regression")),
 
         dbc.NavItem(dbc.NavLink(
             html.Span(
@@ -256,12 +256,6 @@ layout = dbc.Container([
                             id="tooltip-pa",
                             style={"cursor":"pointer", "color":"grey"},
                         ),disabled=False, href="#")),
-
-        # tooltip for linear regression
-        dbc.Tooltip(
-        "Coming Soon!",
-        target="tooltip-lr"
-        ),
 
         # tooltip for pathway analysis
         dbc.Tooltip(

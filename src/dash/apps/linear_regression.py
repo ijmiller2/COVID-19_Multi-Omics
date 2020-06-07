@@ -9,38 +9,35 @@ import datetime
 import pandas as pd
 
 from data import get_omics_data, get_biomolecule_names, get_combined_data, get_p_values, get_volcano_data
-from plot import volcano_plot
+from plot import correlation_scatter
 
 # importing app through index page
 from app import app
+from apps import differential_expression
 
 print()
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-print("Loading data for differential_expression...")
+print("Loading data for linear regression...")
 print()
+
 # load metabolomics data matrix
 print("Loading metabolomics data...")
-metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
+#metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
+metabolomics_df, metabolomics_quant_range = differential_expression.metabolomics_df, differential_expression.metabolomics_quant_range
 print("Metabolomics data shape: {}".format(metabolomics_df.shape))
 print("Loading lipidomics data...")
-lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
+#lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
+lipidomics_df, lipidomics_quant_range = differential_expression.lipidomics_df, differential_expression.lipidomics_quant_range
 print("Lipidomics data shape: {}".format(lipidomics_df.shape))
 print("Loading proteomics data...")
-proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
+#proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
+proteomics_df, proteomics_quant_range = differential_expression.proteomics_df, differential_expression.proteomics_quant_range
 print("Proteomics data shape: {}".format(proteomics_df.shape))
 
 # make biomolecule_name_dict
 metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
 lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
 proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
-
-# drop unknown lipids (to test speed up)
-"""lipidomics_drop_list = []
-for biomolecule_id in lipidomics_df.columns[:lipidomics_quant_range]:
-    if "Unknown" in lipidomics_biomolecule_names_dict[biomolecule_id]:
-        lipidomics_drop_list.append(biomolecule_id)
-lipidomics_df.drop(lipidomics_drop_list, axis=1, inplace=True)
-lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)"""
 
 # define dataset dictionaries
 dataset_dict = {
@@ -74,7 +71,7 @@ global_names_dict = {
 
 # get combined omics df and quant value range
 print("Creating combined omics df...")
-df_dict, quant_value_range_dict = get_combined_data(df_dict, quant_value_range_dict)
+df_dict, quant_value_range_dict = differential_expression.df_dict, differential_expression.quant_value_range_dict # get_combined_data(df_dict, quant_value_range_dict)
 
 # start with proteomics data
 sorted_biomolecule_names_dict = {k: v for k, v in sorted(global_names_dict['combined'].items(), key=lambda item: item[1])}
@@ -90,22 +87,10 @@ dataset = 'combined'
 combined_omics_df = df_dict[dataset]
 quant_value_range = quant_value_range_dict[dataset]
 
-print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-print("Getting pvalue data..")
-pvalues_df = get_p_values()
-print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-print("Building volcano plot..")
-
-confounders='ICU_1;Gender;Age_less_than_90'
-volcano_df = get_volcano_data(pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')],
-    df_dict,
-    quant_value_range, global_names_dict)
-print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-print("Rendering volcano plot..")
-fig = volcano_plot(volcano_df)
-print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
-biomolecule_options = [{'label': value, 'value': key} for key, value in sorted_biomolecule_names_dict.items() if int(key) in pvalues_df['biomolecule_id'].to_list()]
+available_datasets = ['Combined']
+# start at COVID status
+clinical_metadata_options = combined_omics_df.columns[quant_value_range+4:]
+biomolecule_options = [{'label': value, 'value': key} for key, value in sorted_biomolecule_names_dict.items() if key in combined_omics_df.columns.to_list()]
 
 control_panel = dbc.Card(
     [
@@ -114,13 +99,18 @@ control_panel = dbc.Card(
                                         "font-weight":"bold",
                                         "font-size":"large"}),
         dbc.CardBody(
-            [
-
-            html.P("Biomolecule Data", className="card-title", style={"font-weight":"bold"}),
+            [html.P("Select Clinical Measurement", className="card-title", style={"font-weight":"bold"}),
+            dcc.Dropdown(
+                id='clinical_measurement-lr',
+                options=[{'label': i, 'value': i} for i in clinical_metadata_options],
+                # only passing in quant value columns
+                value=clinical_metadata_options[0]),
+            html.Hr(),
+            html.P("Select Biomolecule", className="card-title", style={"font-weight":"bold"}),
 
             # NOTE: This is dcc object not dbc
             dcc.Dropdown(
-                id='biomolecule_id-de',
+                id='biomolecule_id-lr',
                 # label maps to biomolecule name, value to biomolecule_id
                 options=biomolecule_options,
                 # only passing in quant value columns
@@ -132,30 +122,14 @@ control_panel = dbc.Card(
 
 first_card = dbc.Card(
     [
-        dbc.CardHeader("VOLCANO PLOT",
+        dbc.CardHeader("BIOMOLECULE SCATTER PLOT",
                             style={"background-color":"#5bc0de",
                                         "font-weight":"bold",
                                         "font-size":"large"}),
-        dbc.CardBody(dcc.Graph(figure=fig, id='volcano',
+        dbc.CardBody(dcc.Graph(id='scatter-lr',
         config=plotly_config))
     ])
 
-# drop p_value_id
-pvalues_columns = pvalues_df.columns[1:]
-table_example = dash_table.DataTable(
-    id='table',
-    style_table={'overflowX': 'auto'},
-    columns=[{"name": i, "id": i} for i in pvalues_columns],
-    data=pvalues_df[pvalues_df['biomolecule_id']==int(default_biomolecule)].to_dict('records'),
-)
-second_card = dbc.Card(
-    [
-        dbc.CardHeader("BIOMOLECULE DATA",
-                            style={"background-color":"#5bc0de",
-                                        "font-weight":"bold",
-                                        "font-size":"large"}),
-        dbc.CardBody(table_example)
-    ], className="mb-3")
 
 COONLAB_LOGO="https://coonlabs.com/wp-content/uploads/2016/07/coon-logo-white.png"
 navbar = dbc.NavbarSimple(
@@ -222,15 +196,17 @@ layout = dbc.Container([
             href="pca",
             style={"color":"grey"})),
 
+
+
+        dbc.NavItem(dbc.NavLink("Linear Regression", active=True, href="linear_regression", style={"background-color":"grey"})),
+
         dbc.NavItem(dbc.NavLink(
 
             html.Span(
-                    "Linear Regression",
+                    "Differential Expression",
                     id="tooltip-lr",
                     style={"cursor": "pointer", "color":"grey"},
-                ),disabled=False, href="linear_regression")),
-
-        dbc.NavItem(dbc.NavLink("Differential Expression", active=True, href="differential_expression", style={"background-color":"grey"})),
+                ),disabled=False, href="differential_expression")),
 
         dbc.NavItem(dbc.NavLink(
             html.Span(
@@ -238,6 +214,7 @@ layout = dbc.Container([
                     id="tooltip-pa",
                     style={"cursor":"pointer", "color":"grey"},
                 ),disabled=False, href="#")),
+
 
         # tooltip for pathway analysis
         dbc.Tooltip(
@@ -257,28 +234,18 @@ layout = dbc.Container([
 
         className="mb-3"),
 
-    dbc.Row([dbc.Col(html.Div(), md=2, align="center"), dbc.Col(second_card, md=7, align="center")], className="mb-3")
-
 
 ], fluid=True, style={"height": "100vh"})
 
 
-
-
 @app.callback(
-    Output('table', 'data'),
-    [Input('biomolecule_id-de', 'value')])
-def update_table(biomolecule_id):
+    Output('scatter-lr', 'figure'),
+    [Input('biomolecule_id-lr', 'value'),
+    Input('clinical_measurement-lr', 'value')])
+def update_biomolecule_barplot(biomolecule_id, clinical_measurement):
 
-    data_list = pvalues_df[pvalues_df['biomolecule_id']==int(biomolecule_id)].to_dict('records')
+    biomolecule_name = global_names_dict["combined"][biomolecule_id]
+    fig = correlation_scatter(combined_omics_df, biomolecule_id,
+        biomolecule_name, clinical_measurement)
 
-    for data in data_list:
-        for key, value in data.items():
-
-            if key in ['p_value', 'q_value']:
-                data[key] = '%.3E' % value
-
-            elif key in ['log2_FC', 'neg_log10_p_value']:
-                data[key] = '%.3f' % value
-
-    return data_list # list of dicts
+    return fig
