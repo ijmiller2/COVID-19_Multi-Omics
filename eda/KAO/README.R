@@ -219,7 +219,7 @@
 # input:
 # - Covid-19 Study DB.sqlite
 
-## X9_KAO_Adding_Yuchens_pvalues_into_DB.R #### 
+## X9_KAO_Adding_Yuchens_pvalues_into_DB.R
 # description: Yuchen performed analysis on HFD for each biomolecue. 
 # linear regression stats - anova(lm(biomolecule abundance ~ Hopsital_free_days_45))
 # These data are found in Rdata files in regression folder and were added to the 
@@ -231,6 +231,16 @@
 # - Covid-19 Study DB.sqlite
 # output:
 # - Covid-19 Study DB.sqlite modified pvalues table. 
+
+## X10_KAO_adding_GO_terms_to_db.R
+# description: Anji extracted GO terms based on uniprot ID. this script adds that 
+#  data into the db. 
+# date created: 6/8/20
+# date last modified: 6/8/20
+# input: 
+# - Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite modified metadata table. 
 
 
 
