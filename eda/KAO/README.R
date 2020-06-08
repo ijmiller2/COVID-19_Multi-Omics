@@ -219,6 +219,18 @@
 # input:
 # - Covid-19 Study DB.sqlite
 
+## X9_KAO_Adding_Yuchens_pvalues_into_DB.R #### 
+# description: Yuchen performed analysis on HFD for each biomolecue. 
+# linear regression stats - anova(lm(biomolecule abundance ~ Hopsital_free_days_45))
+# These data are found in Rdata files in regression folder and were added to the 
+# pvalues table. 
+# issue: #4
+# date create: 6/8/20
+# date last modified: 6/8/20
+# input:
+# - Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite modified pvalues table. 
 
 
 
