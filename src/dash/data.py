@@ -2,9 +2,10 @@
 from sqlalchemy import create_engine, MetaData, Table, select, join
 import pandas as pd
 import re
+import numpy as np
 
 # SQLite path
-db_path = 'sqlite:///../../data/SQLite Database/20200527/Covid-19 Study DB.sqlite'
+db_path = 'sqlite:///../../data/SQLite Database/20200603/Covid-19 Study DB.sqlite'
 
 omics_id_dict = {
         "proteomics":1,
@@ -32,8 +33,15 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
     omics_runs_df = pd.read_sql_query(query, connection)
 
     # pull table into df
-    query = "SELECT * from rawfiles WHERE ome_id={} AND sample_ID<>-1 and keep=1".format(omics_id)
+    if dataset == "metabolomics":
+        query = "SELECT * from rawfiles WHERE ome_id=3 OR ome_id=4 AND sample_ID<>-1 AND keep=1".format(omics_id)
+
+    else:
+        query = "SELECT * from rawfiles WHERE ome_id={} AND sample_ID<>-1 and keep=1".format(omics_id)
+
     rawfiles_df = pd.read_sql_query(query, connection)
+    ## NOTE: For some reason, SQL filter not working for keep on raw files
+    rawfiles_df = rawfiles_df[rawfiles_df['keep']==1]
 
     # pull table into df
     deidentified_patient_metadata_df = pd.read_sql_query("SELECT * from deidentified_patient_metadata", connection)
@@ -56,7 +64,11 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
     wide_df = joined_df.pivot_table(index='sample_id', columns='biomolecule_id', values='normalized_abundance')
     wide_df.columns = [str(col) for col in wide_df.columns]
 
-    query = "SELECT * from biomolecules WHERE omics_id={}".format(omics_id)
+    if dataset == "metabolomics":
+        query = "SELECT * from biomolecules WHERE omics_id=3 OR omics_id=4".format(omics_id)
+    else:
+        query = "SELECT * from biomolecules WHERE omics_id={}".format(omics_id)
+
     # get biomolecule names
     biomolecules_df = pd.read_sql_query(query, connection)
 
@@ -105,7 +117,11 @@ def get_biomolecule_names(dataset='proteomics'):
     # Establish connection
     connection = engine.connect()
 
-    query = "SELECT * from biomolecules WHERE omics_id={} and KEEP=1".format(omics_id)
+    if dataset == "metabolomics":
+        query = "SELECT * from biomolecules WHERE omics_id=3 OR omics_id=4 and KEEP=1".format(omics_id)
+    else:
+        query = "SELECT * from biomolecules WHERE omics_id={} and KEEP=1".format(omics_id)
+
     # get biomolecule names
     biomolecules_df = pd.read_sql_query(query, connection)
 
@@ -185,3 +201,126 @@ def get_combined_data(df_dict, quant_range_dict):
     quant_range_dict['combined'] = combined_quant_range
 
     return df_dict, quant_range_dict
+
+def get_p_values(confounders='ICU_1;Gender;Age_less_than_90',
+    comparison='COVID_vs_NONCOVID'):
+
+    # Create an engine that connects to the Covid-19 Study DB.sqlite file: engine
+    engine = create_engine(db_path)
+
+    # Establish connection
+    connection = engine.connect()
+
+    query = "SELECT * from biomolecules WHERE KEEP=1"
+    # get biomolecule names
+    biomolecules_df = pd.read_sql_query(query, connection)
+
+    # build biomolecule name dict and drop list
+    biomolecule_name_dict = {}
+    for index, row in biomolecules_df.iterrows():
+        biomolecule_id = str(row['biomolecule_id'])
+        standardized_name = row['standardized_name']
+        biomolecule_name_dict[biomolecule_id] = standardized_name
+
+    query = "SELECT * from pvalues"
+    # get biomolecule names
+    pvalues_df = pd.read_sql_query(query, connection)
+
+    #pvalues_df = pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')]
+
+    return pvalues_df
+
+def get_volcano_data(pvalues_df, df_dict, quant_value_range,
+    global_names_dict, comparison_column='COVID',
+    confounders='ICU_1;Gender;Age_less_than_90'):
+
+    group_1_quant_value_dict = {}
+    comparison_column = 'COVID'
+
+    group_1 = 1
+    group_2 = 0
+
+    combined_df = df_dict['combined']
+    quant_value_columns = combined_df.columns[:quant_value_range]
+
+    group_1_quant_value_dict = {}
+
+    for sample_id, row in combined_df[combined_df[comparison_column]==group_1].iterrows():
+
+        for biomolecule_id in quant_value_columns:
+            quant_value = row[biomolecule_id]
+
+            if not biomolecule_id in group_1_quant_value_dict:
+                group_1_quant_value_dict[biomolecule_id] = [quant_value]
+
+            else:
+                group_1_quant_value_dict[biomolecule_id].append(quant_value)
+
+    group_2_quant_value_dict = {}
+
+    for sample_id, row in combined_df[combined_df[comparison_column]==group_2].iterrows():
+
+        for biomolecule_id in quant_value_columns:
+            quant_value = row[biomolecule_id]
+
+            if not biomolecule_id in group_2_quant_value_dict:
+                group_2_quant_value_dict[biomolecule_id] = [quant_value]
+
+            else:
+                group_2_quant_value_dict[biomolecule_id].append(quant_value)
+
+
+    FC_dict = {}
+    for biomolecule_id in quant_value_columns:
+
+        group_1_quant_values = group_1_quant_value_dict[biomolecule_id]
+        group_2_quant_values = group_2_quant_value_dict[biomolecule_id]
+
+        # in log2 space; subtract
+        FC = np.mean(group_1_quant_values) - np.mean(group_2_quant_values)
+
+        FC_dict[biomolecule_id] = FC
+
+    # filter by confounders subset
+    #pvalues_df = pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')]
+
+    FC_list = []
+    ome_list = []
+    standardized_name_list = []
+    for index, row in pvalues_df.iterrows():
+        biomolecule_id = str(row['biomolecule_id'])
+
+        ## NOTE: should create biomolecule_ome_dict
+        if biomolecule_id in df_dict['proteomics'].columns:
+            ome_list.append("proteomics")
+        elif biomolecule_id in df_dict['lipidomics'].columns:
+            ome_list.append("lipidomics")
+        elif biomolecule_id in df_dict['metabolomics'].columns:
+            ome_list.append("metabolomics")
+        else:
+            #print("Biomolecule {} not mapped to ome!".format(biomolecule_id)) # don't currenly have targeted metabolomics included
+            ome_list.append(np.nan)
+            #break
+
+        try:
+            FC = FC_dict[biomolecule_id]
+        except:
+            # may have been a dropped biomolecule or from a different ome
+            FC = np.nan
+
+        FC_list.append(FC)
+
+        try:
+            standardized_name = global_names_dict['combined'][biomolecule_id]
+        except:
+            # may have been a dropped biomolecule or from a different ome
+            standardized_name = np.nan
+
+        standardized_name_list.append(standardized_name)
+
+    pvalues_df['log2_FC'] = FC_list
+    pvalues_df['ome_type'] = ome_list
+    pvalues_df['standardized_name'] = standardized_name_list
+    pvalues_df['neg_log10_p_value'] = pvalues_df['p_value'].apply(np.log10).apply(np.negative)
+
+    return pvalues_df

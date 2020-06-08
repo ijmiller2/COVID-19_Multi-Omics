@@ -2,6 +2,7 @@
 import plotly.express as px
 import pandas as pd
 import numpy as np
+from scipy.spatial import distance
 
 color_dict = {
                 "COVID_ICU":"#D53E4F",
@@ -32,19 +33,19 @@ def get_color_list(combined_df):
         if pd.isnull(ICU_1):
             color = "Col12"
 
-        elif ICU_1 == "1" and COVID == "1":
+        elif ICU_1 == 1 and COVID == 1:
             color = color_dict["COVID_ICU"]
             color = "COVID_ICU"
 
-        elif ICU_1 == "1" and COVID == "0":
+        elif ICU_1 == 1 and COVID == 0:
             color = color_dict["NONCOVID_ICU"]
             color = "NONCOVID_ICU"
 
-        elif ICU_1 == "0" and COVID == "1":
+        elif ICU_1 == 0 and COVID == 1:
             color = color_dict["COVID_NONICU"]
             color = 'COVID_NONICU'
 
-        elif ICU_1 == "0" and COVID == "0":
+        elif ICU_1 == 0 and COVID == 0:
             color = color_dict["NONCOVID_NONICU"]
             color = "NONCOVID_NONICU"
 
@@ -127,13 +128,16 @@ def pca_scores_plot(combined_df, quant_value_range):
 
     color_list = get_color_list(combined_df)
 
-    df = pd.DataFrame({'x':PC1s, 'y':PC2s, 'sample_id':combined_df.index.tolist()})
+    df = pd.DataFrame({'x':PC1s, 'y':PC2s,
+        'sample_id':combined_df.index.tolist(),
+        'COVID':combined_df['COVID']})
 
     fig = px.scatter(df, x="x", y="y", hover_data=['sample_id'],
                     color=color_list,
-                    color_discrete_map=color_dict)
+                    color_discrete_map=color_dict,
+                    symbol='COVID')
 
-    fig.update_traces(marker=dict(size=20, opacity=0.8))
+    fig.update_traces(marker=dict(size=15, opacity=0.8))
 
     fig.update_layout(
         title="Samples (n={})".format(quant_df.shape[0]),
@@ -173,11 +177,16 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
 
     df = pd.DataFrame({'x':PC1_loadings, 'y':PC2_loadings,
         'biomolecule_id':quant_df.columns.tolist(),
-        'standardized_name':[biomolecule_names_dict[i] for i in quant_df.columns.tolist()]})
+        'standardized_name':[biomolecule_names_dict[i] for i in quant_df.columns.tolist()],
+        'ome_type':ome_type_list})
+
+    # downsample larger plots
+    if df.shape[0] > 1000:
+        df = downsample_scatter_data(df)
 
     fig = px.scatter(df, x="x", y="y",
         hover_data=['biomolecule_id', 'standardized_name'],
-        color=ome_type_list,
+        color="ome_type",
         color_discrete_map=color_dict)
 
     fig.update_traces(marker=dict(size=10, opacity=0.5))
@@ -196,5 +205,116 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
     # only show the color legend with combined datasets
     #if not dataset_id=="Combined":
     #    fig.update_layout(showlegend=False)
+
+    return fig
+
+def downsample_scatter_data(df):
+
+    # df should have, x, y, and ome_type columns
+
+    # filter top n biomolecules on loadings plot, by distance from origin
+    origin = (0,0)
+    distance_list = []
+    for index, row in df.iterrows():
+        x = row['x']
+        y = row['y']
+        coordinates = (x, y)
+        d = distance.euclidean(origin, coordinates)
+        distance_list.append(d)
+
+    df['distance_from_origin'] = distance_list
+
+    distance_std = np.std(distance_list)
+    downsample_range = distance_std
+
+    drop_index_list = []
+    for ome_type in list(set(df['ome_type'])):
+        # drop 20 % of measurements for each ome, randomly subsample 50% of those
+        #drop_row_num = round(df[df['ome_type'] == ome_type].shape[0] * 0.2)
+        #drop_indices = df[df['ome_type'] == ome_type].\
+        #    sort_values(by='distance_from_origin').\
+        #    iloc[:drop_row_num].sample(frac=0.5, random_state=1).index.tolist()
+
+        # randomly downsample half of data within one standard deviation from origin
+        ome_df = df[(df['ome_type'] == ome_type) & (df['distance_from_origin'] < downsample_range)]
+        drop_indices = ome_df.sample(random_state=1, frac=0.25).index.tolist()
+        drop_index_list.extend(drop_indices)
+
+    df = df.drop(drop_index_list)
+
+    return df
+
+    # n = 1000
+    #df = df.sort_values(by='distance_from_origin', ascending=False).iloc[:n]
+    df = df.drop(drop_index_list)
+
+def volcano_plot(volcano_df):
+
+    volcano_df.dropna(inplace=True)
+
+    df = pd.DataFrame({'x':volcano_df['log2_FC'],
+        'y':volcano_df['neg_log10_p_value'],
+        'biomolecule_id':volcano_df['biomolecule_id'],
+        'standardized_name':volcano_df['standardized_name'],
+        'ome_type':volcano_df['ome_type'],
+        'p_value':volcano_df['p_value'],
+        'q_value':volcano_df['q_value']})
+
+    df = downsample_scatter_data(df)
+
+    fig = px.scatter(df, x="x", y="y",
+    hover_data=['biomolecule_id', 'standardized_name', 'p_value', 'q_value'],
+    opacity=0.5,
+    size='y',
+    color='ome_type',
+    color_discrete_map=color_dict)
+
+    #fig.update_traces(marker=dict(size=10, opacity=0.5))
+
+    confounders = ", ".join(volcano_df.iloc[0]['confounders'].split(";"))
+
+    fig.update_layout(
+        title="P values corrected by: {} (n={})".format(confounders, volcano_df.shape[0]),
+        legend_title_text='Dataset',
+        xaxis_title='Effect Size (log2 FC)',
+        yaxis_title='Significance (-log10(Corrected P-value))',
+        font=dict(
+            family="Helvetica",
+            size=18,
+            color="#7f7f7f")
+        )
+
+    return fig
+
+def correlation_scatter(combined_df, biomolecule_id, biomolecule_name,
+    clinical_measurement):
+
+    # drop samples with missing values for clinical measurement
+    combined_df.dropna(subset=[clinical_measurement], inplace=True)
+
+    color_list = get_color_list(combined_df)
+
+    df = pd.DataFrame({'x':combined_df[clinical_measurement],
+        'y':combined_df[biomolecule_id],
+        'sample_id':combined_df.index.tolist(),
+        'COVID':combined_df['COVID']})
+
+    fig = px.scatter(df, x="x", y="y", hover_data=['sample_id'],
+                    color=color_list,
+                    color_discrete_map=color_dict)
+
+    fig.update_traces(marker=dict(size=15, opacity=0.8))
+
+    fig.update_layout(
+        title="Samples (n={})".format(combined_df.shape[0]),
+        legend_title_text='Group',
+        xaxis_title='{}'.format(clinical_measurement),
+        yaxis_title='{} \nlog2 intensity'.format(biomolecule_name),
+        showlegend=True,
+        font=dict(
+            family="Helvetica",
+            size=18,
+            color="#7f7f7f")
+        )
 
     return fig

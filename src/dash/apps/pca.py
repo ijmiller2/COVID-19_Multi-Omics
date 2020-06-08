@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+import datetime
 
 from data import get_omics_data, get_biomolecule_names, get_combined_data
 #from layouts import pca_layout
@@ -20,16 +21,25 @@ external_stylesheets=[dbc.themes.BOOTSTRAP]
 app.title = 'COVID-19 Multi-Omics'"""
 
 from app import app
+from apps import differential_expression
+
+print()
+print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+print("Loading data for pca...")
+print()
 
 # load metabolomics data matrix
 print("Loading metabolomics data...")
-metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
+#metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
+metabolomics_df, metabolomics_quant_range = differential_expression.metabolomics_df, differential_expression.metabolomics_quant_range
 print("Metabolomics data shape: {}".format(metabolomics_df.shape))
 print("Loading lipidomics data...")
-lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
+#lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
+lipidomics_df, lipidomics_quant_range = differential_expression.lipidomics_df, differential_expression.lipidomics_quant_range
 print("Lipidomics data shape: {}".format(lipidomics_df.shape))
 print("Loading proteomics data...")
-proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
+#proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
+proteomics_df, proteomics_quant_range = differential_expression.proteomics_df, differential_expression.proteomics_quant_range
 print("Proteomics data shape: {}".format(proteomics_df.shape))
 
 available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined']
@@ -40,12 +50,12 @@ lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
 proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
 
 # drop unknown lipids (to test speed up)
-lipidomics_drop_list = []
+"""lipidomics_drop_list = []
 for biomolecule_id in lipidomics_df.columns[:lipidomics_quant_range]:
     if "Unknown" in lipidomics_biomolecule_names_dict[biomolecule_id]:
         lipidomics_drop_list.append(biomolecule_id)
 lipidomics_df.drop(lipidomics_drop_list, axis=1, inplace=True)
-lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)
+lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)"""
 
 # define dataset dictionaries
 dataset_dict = {
@@ -223,7 +233,7 @@ layout = dbc.Container([
     [
         html.H3("TYPE OF ANALYSIS", style={"font-weight":"bold", "color":"black"}),
 
-        dbc.NavItem(dbc.NavLink("PCA", active=True, href="#", style={"background-color":"grey"})),
+        dbc.NavItem(dbc.NavLink("PCA", active=True, href="pca", style={"background-color":"grey"})),
 
         dbc.NavItem(dbc.NavLink(
 
@@ -245,19 +255,7 @@ layout = dbc.Container([
                             "Pathway Analysis",
                             id="tooltip-pa",
                             style={"cursor":"pointer", "color":"grey"},
-                        ),disabled=False, href="pathway_analysis")),
-
-        # tooltip for linear regression
-        dbc.Tooltip(
-        "Coming Soon!",
-        target="tooltip-lr"
-        ),
-
-        # tooltip for differential expression
-        dbc.Tooltip(
-        "Coming Soon!",
-        target="tooltip-de"
-        ),
+                        ),disabled=False, href="#")),
 
         # tooltip for pathway analysis
         dbc.Tooltip(

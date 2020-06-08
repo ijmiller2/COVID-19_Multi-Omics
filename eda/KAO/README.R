@@ -1,5 +1,18 @@
 ##### README ###### 
 
+## "0_pathway_toolkit.R"
+# description: This script contains 2 function useful for pathway 
+#   analysis in R. Priciple is categorical terms are used to make 
+#   a master list of id-to-category relationships. Then 2nd function
+#   uses the mater list (AKA reference set) when performing enrichment
+#   analysis usign fisher exact test, outputs the enrichemnt score/pvalue
+#   and adjusted p-value for the categorical terms. This code was originally
+#   produced for the dental informatics project. 
+# issue: #9
+# date created: 11/07/2017
+# date last modified: 05/30/2020
+
+
 ## "01_KAO_Establishing_connection_to_db_extracting_timeStamp.R"
 # description: Establishes DB connection using RSQLite package and 
 #     fetches time stamp information for Raw files.
@@ -117,7 +130,7 @@
 #   were added to the databse as pvalues table.
 # issue: #4
 # date created: 5/26/2020
-# date last modified: 5/27/2020
+# date last modified: 6/5/2020
 # input: 
 # - Covid-19 Study DB.sqlite
 # output:
@@ -131,5 +144,94 @@
 # date last modified: 5/27/2020
 # input: 
 # - Covid-19 Study DB.sqlite
+
+## "X7_KAO_updating_metadata_biomolecule_id.R"
+# description: updates metadata table with non-duplicate biomolecule ids 
+#   for lipidomics features. Also see file:  "X5_KAO_creating_new_lipidomics
+#   _table_to_match_original.R" 
+# date created: 5/30/2020
+# date last modified: 5/30/2020
+# input: 
+# - Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite, modified metadata biomolecule_id 
+
+## "07_KAO_Exploring_lipidomics_feature_quality.R"
+# description: explore aspects of lipidomics feature quality, updates
+#   keep column in the biomolecules table. 
+# issue: #7 
+# date created: 5/30/2020
+# date last modified: 6/1/2020
+# input: 
+# - Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite, modified biomolecules keep  
+
+## "08_KAO_Crossomes_correlations.R"
+# description: Generates a heatmap proteins x metabolites-lipids 
+#   correlations > 0.4 or < -0.4 
+# issue: #9
+# date created: 6/2/2020
+# date last modified: 6/3/2020
+# input:
+# - Covid-19 Study DB.sqlite 
+# - 'P:/All_20200428_COVID_plasma_multiomics/Correlation/cor_4omes_kendall.RData'
+# output:
+# - "heatmap_cross_ome_correlations_kendall_KAO_v2.pdf
+
+## 09_KAO_crossome_correltions_pearson.R
+# description: Generates a heatmap proteins x metabolites-lipids with
+#   significant pearson correlation coefficient. 
+# issue #9
+# date created: 6/3/2020
+# date last modified: 6/3/2020
+# input:
+# - Covid-19 Study DB.sqlite 
+# - 'P:/All_20200428_COVID_plasma_multiomics/Correlation/cor_4omes_pearson.RData'
+# output:
+# - "heatmap_cross_ome_correlations_pearson_KAO_v2.pdf
+
+## X8_KAO_transcriptomics_table_upload.R
+# desciptiom: appends transcriptomics data to the db. 
+# date created: 6/4/2020
+# date last modified: 6/5/2020
+# input: 
+# - Covid-19 Study DB.sqlite
+# - 'P:/All_20200428_COVID_plasma_multiomics/Transcriptomics/genes.l2ec.no_hg.norm.tsv'
+# - 'P:/All_20200428_COVID_plasma_multiomics/Transcriptomics/genes.ec.no_hg.norm.tsv'
+# output: 
+# - Covid-19 Study DB.sqlite modified to include transciptomics_runs and transcriptomics_measurements 
+
+## 10_KAO_hospital_free_days_ANOVA_gelsolin.Rmd
+# description: For the gelsolin story, wanted to explore the effect of confounders
+#  on hostpital free days. 
+# date created: 6/5/20
+# date last modified: 6/5/20
+# input: 
+# - Covid-19 Study DB.sqlite
+
+## 11_KAO_Looking_at_effect_of_DM_status.R
+# description: This script uses linear regressaion with response factor of hospital 
+#  free days at 45 to see if diabetes (DM) status has any effect. There does not apprear
+#  to be any significant effect with diabetes.
+# date create: 6/5/20
+# date last modified: 6/5/20
+# input:
+# - Covid-19 Study DB.sqlite
+
+## X9_KAO_Adding_Yuchens_pvalues_into_DB.R #### 
+# description: Yuchen performed analysis on HFD for each biomolecue. 
+# linear regression stats - anova(lm(biomolecule abundance ~ Hopsital_free_days_45))
+# These data are found in Rdata files in regression folder and were added to the 
+# pvalues table. 
+# issue: #4
+# date create: 6/8/20
+# date last modified: 6/8/20
+# input:
+# - Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite modified pvalues table. 
+
+
 
 
