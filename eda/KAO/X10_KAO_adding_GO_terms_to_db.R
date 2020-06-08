@@ -7,7 +7,7 @@
 library(DBI)
 library(RSQLite)
 
-## get biomolecule_id_standardized dame from db 
+## get biomolecule_id_standardized name from db 
 
 ## Establish a connection to the DB 
 con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
