@@ -3,6 +3,9 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 from scipy.spatial import distance
+from plotly import graph_objects
+import statsmodels.api as sm
+from statsmodels.stats.outliers_influence import summary_table
 
 color_dict = {
                 "COVID_ICU":"#D53E4F",
@@ -289,13 +292,43 @@ def volcano_plot(volcano_df):
 def correlation_scatter(combined_df, biomolecule_id, biomolecule_name,
     clinical_measurement):
 
+    ## NOTE: See https://pythonplot.com/ for confidence interval example
+    if clinical_measurement == "Gender":
+        combined_df.replace("M", 0, inplace=True)
+        combined_df.replace("F", 1, inplace=True)
+
     # drop samples with missing values for clinical measurement
+    combined_df.replace('', np.nan, inplace=True)
     combined_df.dropna(subset=[clinical_measurement], inplace=True)
 
     color_list = get_color_list(combined_df)
 
-    df = pd.DataFrame({'x':combined_df[clinical_measurement],
-        'y':combined_df[biomolecule_id],
+    # set target and explanatory variables
+    y_var = biomolecule_id
+    x_var = clinical_measurement
+
+    ### Run regression with statsmodels ###
+    x=combined_df[x_var].astype(float)
+    y=combined_df[y_var].astype(float)
+    X = sm.add_constant(x)
+    res = sm.OLS(y, X).fit()
+    rsquared = round(res.rsquared, 3)
+    formula = "Biomolecule {} ~ {}".format(biomolecule_id, x_var)
+    p_val = '%.3E' % res.f_pvalue
+
+    # get regression data for range of HFD values
+    x_min = round(min(x),1)
+    x_max = round(max(x), 1)
+    x_range = np.arange(x_min,x_max,0.1)
+    #x_range = np.array([i for i in range(min(combined_df[biomolecule_id]), max(combined_df[biomolecule_id], 0.1))])
+    X = sm.add_constant(x_range)
+    out_of_sample_predictions = res.get_prediction(X)
+    preds = out_of_sample_predictions.summary_frame(alpha=0.05)
+
+    ###
+
+    df = pd.DataFrame({'x':x,
+        'y':y,
         'sample_id':combined_df.index.tolist(),
         'COVID':combined_df['COVID']})
 
@@ -305,10 +338,48 @@ def correlation_scatter(combined_df, biomolecule_id, biomolecule_name,
 
     fig.update_traces(marker=dict(size=15, opacity=0.8))
 
+    # add regression data
+    line_of_best_fit = graph_objects.Scatter({
+    'mode' : 'lines',
+    'x' : x_range,
+    'y' : preds['mean'],
+    'name' : 'Regression',
+    })
+
+    #Add a lower bound for the confidence interval, white
+    mean_ci_lower = graph_objects.Scatter({
+        'mode' : 'lines',
+        'x' : x_range,
+        'y' : preds['mean_ci_lower'],
+        'name' : 'Lower 95% CI',
+        'showlegend' : False,
+        'line' : {
+            'color' : 'white'
+        }
+    })
+    # Upper bound for the confidence band, transparent but with fill
+    mean_ci_upper = graph_objects.Scatter( {
+        'type' : 'scatter',
+        'mode' : 'lines',
+        'x' : x_range,
+        'y' : preds['mean_ci_upper'],
+        'name' : '95% CI',
+        'fill' : 'tonexty',
+        'line' : {
+            'color' : 'white'
+        },
+        'fillcolor' : 'rgba(255, 127, 14, 0.3)'
+    })
+
+    fig.add_trace(line_of_best_fit)
+    fig.add_trace(mean_ci_lower)
+    fig.add_trace(mean_ci_upper)
+
+    plot_title = "{}, R2: {}, p value: {}, n={}".format(formula, rsquared, p_val, combined_df.shape[0])
     fig.update_layout(
-        title="Samples (n={})".format(combined_df.shape[0]),
+        title=plot_title,
         legend_title_text='Group',
-        xaxis_title='{}'.format(clinical_measurement),
+        xaxis_title='{}'.format(x_var),
         yaxis_title='{} \nlog2 intensity'.format(biomolecule_name),
         showlegend=True,
         font=dict(
