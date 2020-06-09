@@ -278,7 +278,7 @@ def update_table(biomolecule_id):
             if key in ['p_value', 'q_value']:
                 data[key] = '%.3E' % value
 
-            elif key in ['log2_FC', 'neg_log10_p_value']:
+            elif key in ['log2_FC', 'neg_log10_p_value', 'effect_size']:
                 data[key] = '%.3f' % value
 
     return data_list # list of dicts

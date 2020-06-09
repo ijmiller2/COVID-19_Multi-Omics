@@ -319,7 +319,7 @@ def correlation_scatter(combined_df, biomolecule_id, biomolecule_name,
     # get regression data for range of HFD values
     x_min = round(min(x),1)
     x_max = round(max(x), 1)
-    x_range = np.arange(x_min,x_max,0.1)
+    x_range = np.arange(x_min,x_max + 0.1 ,0.1)
     #x_range = np.array([i for i in range(min(combined_df[biomolecule_id]), max(combined_df[biomolecule_id], 0.1))])
     X = sm.add_constant(x_range)
     out_of_sample_predictions = res.get_prediction(X)

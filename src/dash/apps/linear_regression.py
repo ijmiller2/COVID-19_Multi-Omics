@@ -89,7 +89,7 @@ quant_value_range = quant_value_range_dict[dataset]
 
 available_datasets = ['Combined']
 # start at COVID status
-clinical_metadata_options = combined_omics_df.columns[quant_value_range+4:]
+clinical_metadata_options = combined_omics_df.columns[quant_value_range+4:].sort_values()
 biomolecule_options = [{'label': value, 'value': key} for key, value in sorted_biomolecule_names_dict.items() if key in combined_omics_df.columns.to_list()]
 
 control_panel = dbc.Card(

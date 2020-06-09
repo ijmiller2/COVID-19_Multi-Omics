@@ -5,7 +5,7 @@ import re
 import numpy as np
 
 # SQLite path
-db_path = 'sqlite:///../../data/SQLite Database/20200603/Covid-19 Study DB.sqlite'
+db_path = 'sqlite:///../../data/SQLite Database/20200609/Covid-19 Study DB.sqlite'
 
 omics_id_dict = {
         "proteomics":1,
@@ -109,6 +109,7 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
 
 def get_biomolecule_names(dataset='proteomics'):
 
+    print("Getting biomolecule names for dataset: {}".format(dataset))
     omics_id = omics_id_dict[dataset]
 
     # Create an engine that connects to the Covid-19 Study DB.sqlite file: engine
@@ -148,12 +149,15 @@ def get_biomolecule_names(dataset='proteomics'):
     metadata_df = pd.read_sql_query(query, connection)
 
     fasta_header_df = metadata_df[metadata_df['metadata_type'] == 'fasta_header']
-    fasta_header_df = fasta_header_df.astype({'biomolecule_id': 'str'})
+    fasta_header_dict = {}
+    for index, row in fasta_header_df.iterrows():
+        biomolecule_id = str(int(row['biomolecule_id'])) # string was getting truncated by rstrip(".0")
+        fasta_header = str(row['metadata_value'])
+        fasta_header_dict[biomolecule_id] = fasta_header
 
     for biomolecule_id in biomolecule_name_dict:
-        # update to gene name
-        #gene_name = gene_name_df[gene_name_df['biomolecule_id']==biomolecule_id]['metadata_value'].values[0]
-        fasta_header = fasta_header_df[fasta_header_df['biomolecule_id']==biomolecule_id]['metadata_value'].values[0]
+
+        fasta_header = fasta_header_dict[biomolecule_id]
         fasta_header = re.search("\s(.*?)\sO[SX]=", fasta_header).group(1)
         biomolecule_name_dict[biomolecule_id] = fasta_header
 
