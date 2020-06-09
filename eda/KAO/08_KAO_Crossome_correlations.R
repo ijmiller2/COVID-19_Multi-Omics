@@ -60,6 +60,27 @@ highlight_sig <- cor_4omes_kendall[[3]][proteins,metabolites_lipids] <  0.05
 highlight_sig[!highlight_sig] <- ""
 highlight_sig[highlight_sig == TRUE] <- "*"
 
+
+###### Extracting out cluster information #########
+# clustering proteins
+protein_hclust <- hclust(dist(t(cor_4omes_kendall$cor[proteins,metabolites_lipids][filter_row, filter_col])), method = "complete")
+plot(protein_hclust, labels = F)
+k = 8
+protein_hclust_clusters <- cutree(as.hclust(protein_hclust), k=k)
+
+rect.hclust(protein_hclust, k = k, border = "red")
+
+clusplot(t(cor_4omes_kendall$cor[proteins,metabolites_lipids][filter_row, filter_col]), protein_hclust_clusters, color =T, shade = T, lines = 0, col.clus = 1:10)
+
+# clustering lipids/metabolites
+metabolite_lipid_hclust <- hclust(dist(cor_4omes_kendall$cor[proteins,metabolites_lipids][filter_row, filter_col]), method = "complete")
+plot(metabolite_lipid_hclust, labels = F)
+rect.hclust(metabolite_lipid_hclust, k = 7, border = "red")
+
+metabolite_lipid_hclust_clusters <- cutree(as.hclust(metabolite_lipid_hclust), k = 7)
+
+###### Annotations for heatmap #######
+
 # for plotting,extract gene names from proteins-metadata table.
 df_proteins$geneNames<- apply(df_proteins , 1, function(x) strsplit(strsplit(x[4], "GN=")[[1]][2], " ")[[1]][1])
 
@@ -74,20 +95,25 @@ col_labels <- biomolecules$standardized_name[match(names_cor[metabolites_lipids]
 #checkmatch
 biomolecules$biomolecule_id[match(names_cor[metabolites_lipids][filter_col], biomolecules$biomolecule_id)] == names_cor[metabolites_lipids][filter_col] 
 
-# annotation based on significant with COVID
-annotation_row <- data.frame(sig_with_COVID = as.factor(pvalues$q_value < 0.05))
-row.names(annotation_row) <- pvalues$biomolecule_id
+# annotation based on significant with COVID and cluster member
+merge_annotation <- merge(pvalues, protein_hclust_clusters, by.x = "biomolecule_id", by.y = 0)
+merge_annotation_2 <- merge(merge_annotation, metabolite_lipid_hclust_clusters, by.x = "biomolecule.id", by.y = 0)
+
+annotation_row <- data.frame(protein_clusters = as.factor(merge_annotation_row$protein_hclust_clusters), metabolite_lipid_clusters = as.factor(merge_annotation_2$metabolite_lipid_hclust_clusters) ,sig_with_COVID = as.factor(merge_annotation_row$q_value < 0.05))
+row.names(annotation_row) <- merge_annotation_row$biomolecule_id
 
 # annotation colors 
-annotation_colors <- list(sig_with_COVID = c(3,1,"white"))
+annotation_colors <- list(protein_clusters = c(5:12), metabolite_lipid_clusters = c(5:11), sig_with_COVID = c(3,1,"white"))
 
+names(annotation_colors[["protein_clusters"]]) <- as.character(levels(annotation_row$protein_clusters))
+names(annotation_colors[["metabolite_lipid_clusters"]]) <- as.character(levels(annotation_row$metabolite_lipid_clusters))
 names(annotation_colors[["sig_with_COVID"]]) <- as.character(levels(annotation_row$sig_with_COVID))
 
 # Creating heatmap for cross-ome correlation 
 pdf("heatmap_cross_ome_correlations_kendall_KAO_v2.pdf", width = 40, height = 30)
 pheatmap(cor_4omes_kendall$cor[proteins,metabolites_lipids][filter_row, filter_col],
-         annotation_row = annotation_row,
-         annotation_col = annotation_row,
+         annotation_row = annotation_row[c(1,3)],
+         annotation_col = annotation_row[c(2,3)],
          annotation_colors = annotation_colors,
          display_numbers = highlight_sig[filter_row,filter_col],
          labels_col = col_labels,
