@@ -242,6 +242,14 @@
 # output:
 # - Covid-19 Study DB.sqlite modified metadata table. 
 
+## 12_KAO_GO_term_enrichment_for_significant_p_values.R
+# description: GO term encrichmetn for significant p_values 
+# date created: 6/9/20
+# date last modified: 6/9/20
+# input: 
+# - Covid-19 Study DB.sqlite
+# output: 
+# - plots/
 
 
 
