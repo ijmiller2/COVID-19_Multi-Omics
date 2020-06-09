@@ -89,7 +89,8 @@ quant_value_range = quant_value_range_dict[dataset]
 
 available_datasets = ['Combined']
 # start at COVID status
-clinical_metadata_options = combined_omics_df.columns[quant_value_range+4:].sort_values()
+clinical_metadata_options = combined_omics_df.columns[quant_value_range+4:].sort_values().tolist()
+clinical_metadata_options.remove("DM")
 biomolecule_options = [{'label': value, 'value': key} for key, value in sorted_biomolecule_names_dict.items() if key in combined_omics_df.columns.to_list()]
 
 control_panel = dbc.Card(
@@ -105,6 +106,19 @@ control_panel = dbc.Card(
                 options=[{'label': i, 'value': i} for i in clinical_metadata_options],
                 # only passing in quant value columns
                 value=clinical_metadata_options[0]),
+            html.Hr(),
+            html.P("Select Groups", className="card-title", style={"font-weight":"bold"}),
+            dcc.Checklist(
+                id='group-checklist-lr',
+                options=[
+                    {'label': ' COVID ICU', 'value': 'COVID_ICU'},
+                    {'label': ' COVID NONICU', 'value': 'COVID_NONICU'},
+                    {'label': ' NONCOVID ICU', 'value': 'NONCOVID_ICU'},
+                    {'label': ' NONCOVID NONICU', 'value': 'NONCOVID_NONICU'}
+                ],
+                value=['COVID_ICU', 'COVID_NONICU'],
+                labelStyle={'display': 'inline-block'}
+            ),
             html.Hr(),
             html.P("Select Biomolecule", className="card-title", style={"font-weight":"bold"}),
 
@@ -241,11 +255,12 @@ layout = dbc.Container([
 @app.callback(
     Output('scatter-lr', 'figure'),
     [Input('biomolecule_id-lr', 'value'),
+    Input('group-checklist-lr','value'),
     Input('clinical_measurement-lr', 'value')])
-def update_biomolecule_barplot(biomolecule_id, clinical_measurement):
+def update_biomolecule_barplot(biomolecule_id, groups, clinical_measurement):
 
     biomolecule_name = global_names_dict["combined"][biomolecule_id]
-    fig = correlation_scatter(combined_omics_df, biomolecule_id,
+    fig = correlation_scatter(combined_omics_df, biomolecule_id, groups,
         biomolecule_name, clinical_measurement)
 
     return fig

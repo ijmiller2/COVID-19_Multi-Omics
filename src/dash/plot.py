@@ -289,8 +289,14 @@ def volcano_plot(volcano_df):
 
     return fig
 
-def correlation_scatter(combined_df, biomolecule_id, biomolecule_name,
-    clinical_measurement):
+def correlation_scatter(combined_df, biomolecule_id, selected_groups,
+    biomolecule_name, clinical_measurement):
+
+    print(selected_groups)
+
+    # shorten biomolecule name
+    if len(biomolecule_name) > 15:
+        biomolecule_name = biomolecule_name[:15] + ".."
 
     ## NOTE: See https://pythonplot.com/ for confidence interval example
     if clinical_measurement == "Gender":
@@ -299,9 +305,15 @@ def correlation_scatter(combined_df, biomolecule_id, biomolecule_name,
 
     # drop samples with missing values for clinical measurement
     combined_df.replace('', np.nan, inplace=True)
-    combined_df.dropna(subset=[clinical_measurement], inplace=True)
+    combined_df = combined_df.dropna(subset=[clinical_measurement, 'COVID'])
 
     color_list = get_color_list(combined_df)
+    combined_df['group'] = color_list
+
+    # drop by group
+    for group in ['COVID_ICU', 'COVID_NONICU', 'NONCOVID_ICU', "NONCOVID_NONICU"]:
+        if not group in selected_groups:
+            combined_df = combined_df[combined_df['group'] != group]
 
     # set target and explanatory variables
     y_var = biomolecule_id
@@ -313,7 +325,6 @@ def correlation_scatter(combined_df, biomolecule_id, biomolecule_name,
     X = sm.add_constant(x)
     res = sm.OLS(y, X).fit()
     rsquared = round(res.rsquared, 3)
-    formula = "Biomolecule {} ~ {}".format(biomolecule_id, x_var)
     p_val = '%.3E' % res.f_pvalue
 
     # get regression data for range of HFD values
@@ -330,10 +341,11 @@ def correlation_scatter(combined_df, biomolecule_id, biomolecule_name,
     df = pd.DataFrame({'x':x,
         'y':y,
         'sample_id':combined_df.index.tolist(),
-        'COVID':combined_df['COVID']})
+        'COVID':combined_df['COVID'],
+        'group':combined_df['group']})
 
     fig = px.scatter(df, x="x", y="y", hover_data=['sample_id'],
-                    color=color_list,
+                    color='group',
                     color_discrete_map=color_dict)
 
     fig.update_traces(marker=dict(size=15, opacity=0.8))
@@ -343,7 +355,11 @@ def correlation_scatter(combined_df, biomolecule_id, biomolecule_name,
     'mode' : 'lines',
     'x' : x_range,
     'y' : preds['mean'],
-    'name' : 'Regression',
+    'name' : 'Trend',
+    'opacity' : 0.6,
+    'line' : {
+        'color' : 'black'
+    }
     })
 
     #Add a lower bound for the confidence interval, white
@@ -375,11 +391,15 @@ def correlation_scatter(combined_df, biomolecule_id, biomolecule_name,
     fig.add_trace(mean_ci_lower)
     fig.add_trace(mean_ci_upper)
 
+    if len(x_var) > 10:
+        x_var = x_var[:10] + ".."
+    formula = "Biomolecule {} ~ {}".format(biomolecule_id, x_var)
     plot_title = "{}, R2: {}, p value: {}, n={}".format(formula, rsquared, p_val, combined_df.shape[0])
+
     fig.update_layout(
         title=plot_title,
         legend_title_text='Group',
-        xaxis_title='{}'.format(x_var),
+        xaxis_title='{}'.format(clinical_measurement),
         yaxis_title='{} \nlog2 intensity'.format(biomolecule_name),
         showlegend=True,
         font=dict(
