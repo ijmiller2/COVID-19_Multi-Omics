@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, MetaData, Table, select, join
 import pandas as pd
 
 # SQLite path
-db_path = 'sqlite:///../../data/SQLite Database/20200525/Covid-19 Study DB.sqlite'
+db_path = 'sqlite:///../../data/SQLite Database/20200609/Covid-19 Study DB.sqlite'
 
 def get_omics_data(with_metadata=False, dataset="proteomics"):
 
@@ -10,7 +10,7 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
         "proteomics":1,
         "lipidomics":2,
         "metabolomics":3,
-        "transcriptomics":4
+        "transcriptomics":5
     }
 
     omics_id = omics_id_dict[dataset]
@@ -95,8 +95,8 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
 
 if __name__ == "__main__":
     dataset="proteomics"
-    proteomics_df, quant_value_range = get_omics_data(with_metadata=True, dataset=dataset)
-    quant_columns = proteomics_df.columns[:quant_value_range]
-    quant_df = proteomics_df[quant_columns]
-    print("{} combined data set has shape: {}".format(dataset, proteomics_df.shape))
+    omics_df, quant_value_range = get_omics_data(with_metadata=True, dataset=dataset)
+    quant_columns = omics_df.columns[:quant_value_range]
+    quant_df = omics_df[quant_columns]
+    print("{} combined data set has shape: {}".format(dataset, omics_df.shape))
     print("{} quant data set has shape: {}".format(dataset, quant_df.shape))
