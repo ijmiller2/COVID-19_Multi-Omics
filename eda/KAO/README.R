@@ -172,7 +172,7 @@
 #   correlations > 0.4 or < -0.4 
 # issue: #9
 # date created: 6/2/2020
-# date last modified: 6/3/2020
+# date last modified: 6/11/2020
 # input:
 # - Covid-19 Study DB.sqlite 
 # - 'P:/All_20200428_COVID_plasma_multiomics/Correlation/cor_4omes_kendall.RData'
