@@ -1,9 +1,18 @@
 
 ## Notes on launch server
 
-1. Running on 209.188.7.206:8080
+1. Transfer SQLITE database to 'data/SQLite Database/DATE'
+
+2. Sync git repo
+- `git checkout --force # to avoid conflicts from local changes`
+- `git pull`
+
+3. Update `index.py`
 - `app.run_server(debug=False, host='0.0.0.0', port='8080')`
+- Running on: 209.188.7.206:8080
 
-2. Run with anaconda3: /root/anaconda3/bin/python
-
-3. Transfer SQLITE database to 'data/SQLite Database/'
+4. Run with anaconda3:
+- start screen: `screen`
+- Or reattach to screen: `screen -ls` + `scree -r $screen_id`
+- `/root/anaconda3/bin/python index.py`
+- Detach from screen: `screen cntrl+a cntrl+d`

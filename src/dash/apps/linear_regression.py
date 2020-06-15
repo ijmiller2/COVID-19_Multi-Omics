@@ -91,6 +91,7 @@ available_datasets = ['Combined']
 # start at COVID status
 clinical_metadata_options = combined_omics_df.columns[quant_value_range+4:].sort_values().tolist()
 clinical_metadata_options.remove("DM")
+clinical_metadata_options.append('COVID')
 biomolecule_options = [{'label': value, 'value': key} for key, value in sorted_biomolecule_names_dict.items() if key in combined_omics_df.columns.to_list()]
 
 control_panel = dbc.Card(
@@ -116,7 +117,7 @@ control_panel = dbc.Card(
                     {'label': ' NONCOVID ICU', 'value': 'NONCOVID_ICU'},
                     {'label': ' NONCOVID NONICU', 'value': 'NONCOVID_NONICU'}
                 ],
-                value=['COVID_ICU', 'COVID_NONICU'],
+                value=['COVID_ICU', 'COVID_NONICU', 'NONCOVID_ICU', 'NONCOVID_NONICU'],
                 labelStyle={'display': 'inline-block'}
             ),
             html.Hr(),
@@ -257,7 +258,7 @@ layout = dbc.Container([
     [Input('biomolecule_id-lr', 'value'),
     Input('group-checklist-lr','value'),
     Input('clinical_measurement-lr', 'value')])
-def update_biomolecule_barplot(biomolecule_id, groups, clinical_measurement):
+def update_biomolecule_scatter(biomolecule_id, groups, clinical_measurement):
 
     biomolecule_name = global_names_dict["combined"][biomolecule_id]
     fig = correlation_scatter(combined_omics_df, biomolecule_id, groups,
