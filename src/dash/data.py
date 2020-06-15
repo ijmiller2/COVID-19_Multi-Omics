@@ -109,6 +109,8 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
 
 def get_biomolecule_names(dataset='proteomics'):
 
+    dataset_abr_prefix = "[{}] ".format(dataset[0].upper())
+
     print("Getting biomolecule names for dataset: {}".format(dataset))
     omics_id = omics_id_dict[dataset]
 
@@ -131,7 +133,7 @@ def get_biomolecule_names(dataset='proteomics'):
     for index, row in biomolecules_df.iterrows():
         biomolecule_id = str(row['biomolecule_id'])
         standardized_name = row['standardized_name']
-        biomolecule_name_dict[biomolecule_id] = standardized_name
+        biomolecule_name_dict[biomolecule_id] = dataset_abr_prefix + standardized_name
 
     # return dictionary with biomolecule ids and standard names
 
@@ -159,7 +161,7 @@ def get_biomolecule_names(dataset='proteomics'):
 
         fasta_header = fasta_header_dict[biomolecule_id]
         fasta_header = re.search("\s(.*?)\sO[SX]=", fasta_header).group(1)
-        biomolecule_name_dict[biomolecule_id] = fasta_header
+        biomolecule_name_dict[biomolecule_id] = dataset_abr_prefix + fasta_header
 
     # close DB connection
     connection.close()

@@ -46,9 +46,11 @@ As of 6/9/20:
 - Remove DM from clinical measurement options
 - Redeploy with linear regression page with fixed/updates (commit id: 174ca0f, database 20200603 -> 5f8628f, 20200609)
 
-To do:
+As of 6/15/20:
 - Add transcriptomics data
 - Add ome prefix with for drop down menu
+
+To do:
 - Add horizontal scroll in drop down menu
 - Add option to color PCA scores by HFD
 - Add heatmap
