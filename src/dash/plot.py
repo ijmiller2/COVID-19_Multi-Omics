@@ -186,8 +186,15 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
     # downsample larger plots
     if df.shape[0] > 1000:
         print("Original plot has {} points...".format(df.shape[0]))
-        df = downsample_scatter_data(df)
-        print("Downsampled plot has {} points...".format(df.shape[0]))
+        #df = downsample_scatter_data(df)
+        keep_list = downsample_scatter_data_by_variance(quant_df)
+        print("Downsampled plot has {} points...".format(len(keep_list)))
+
+        df_drop_list = []
+        for index,row in df.iterrows():
+            if not row['biomolecule_id'] in keep_list:
+                df_drop_list.append(index)
+        df = df.drop(df_drop_list)
 
     fig = px.scatter(df, x="x", y="y",
         hover_data=['biomolecule_id', 'standardized_name'],
@@ -249,9 +256,11 @@ def downsample_scatter_data(df):
 
     return df
 
-    # n = 1000
-    #df = df.sort_values(by='distance_from_origin', ascending=False).iloc[:n]
-    df = df.drop(drop_index_list)
+def downsample_scatter_data_by_variance(df):
+    # return top 1000 features by variance
+    keep_list = df.std(axis=0).sort_values(ascending=False)[:1000]
+
+    return keep_list
 
 def volcano_plot(volcano_df):
 
