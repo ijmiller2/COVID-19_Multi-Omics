@@ -41,23 +41,29 @@ print("Loading proteomics data...")
 #proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
 proteomics_df, proteomics_quant_range = differential_expression.proteomics_df, differential_expression.proteomics_quant_range
 print("Proteomics data shape: {}".format(proteomics_df.shape))
+print("Loading transcriptomics data...")
+#proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
+transcriptomics_df, transcriptomics_quant_range = differential_expression.transcriptomics_df, differential_expression.transcriptomics_df
+print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
 
-available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined']
+available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined', 'Transcripts']
 
-# make biomolecule_name_dict
+# define dataset dictionaries
+dataset_dict = differential_expression.dataset_dict
+df_dict = differential_expression.df_dict
+quant_value_range_dict = differential_expression.quant_value_range_dict
+global_names_dict = differential_expression.global_names_dict
+
+metabolomics_biomolecule_names_dict = differential_expression.metabolomics_biomolecule_names_dict
+lipidomics_biomolecule_names_dict = differential_expression.lipidomics_biomolecule_names_dict
+proteomics_biomolecule_names_dict = differential_expression.proteomics_biomolecule_names_dict
+transcriptomics_biomolecule_names_dict = differential_expression.transcriptomics_biomolecule_names_dict
+
+"""# make biomolecule_name_dict
 metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
 lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
 proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
 
-# drop unknown lipids (to test speed up)
-"""lipidomics_drop_list = []
-for biomolecule_id in lipidomics_df.columns[:lipidomics_quant_range]:
-    if "Unknown" in lipidomics_biomolecule_names_dict[biomolecule_id]:
-        lipidomics_drop_list.append(biomolecule_id)
-lipidomics_df.drop(lipidomics_drop_list, axis=1, inplace=True)
-lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)"""
-
-# define dataset dictionaries
 dataset_dict = {
         "Proteins":"proteomics",
         "Lipids":"lipidomics",
@@ -85,7 +91,7 @@ global_names_dict = {
     "combined":{**proteomics_biomolecule_names_dict,
                 **lipidomics_biomolecule_names_dict,
                 **metabolomics_biomolecule_names_dict}
-}
+}"""
 
 # get combined omics df and quant value range
 print("Creating combined omics df...")

@@ -28,19 +28,15 @@ print("Lipidomics data shape: {}".format(lipidomics_df.shape))
 print("Loading proteomics data...")
 proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
 print("Proteomics data shape: {}".format(proteomics_df.shape))
+print("Loading transcriptomics data...")
+transcriptomics_df, transcriptomics_quant_range = get_omics_data(dataset='transcriptomics', with_metadata=True)
+print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
 
 # make biomolecule_name_dict
 metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
 lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
 proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
-
-# drop unknown lipids (to test speed up)
-"""lipidomics_drop_list = []
-for biomolecule_id in lipidomics_df.columns[:lipidomics_quant_range]:
-    if "Unknown" in lipidomics_biomolecule_names_dict[biomolecule_id]:
-        lipidomics_drop_list.append(biomolecule_id)
-lipidomics_df.drop(lipidomics_drop_list, axis=1, inplace=True)
-lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)"""
+transcriptomics_biomolecule_names_dict = get_biomolecule_names(dataset='transcriptomics')
 
 # define dataset dictionaries
 dataset_dict = {
@@ -55,18 +51,21 @@ df_dict = {
     "proteomics":proteomics_df,
     "lipidomics":lipidomics_df,
     "metabolomics":metabolomics_df,
+    "transcriptomics":transcriptomics_df
 }
 
 quant_value_range_dict = {
     "proteomics":proteomics_quant_range,
     "lipidomics":lipidomics_quant_range,
     "metabolomics":metabolomics_quant_range,
+    "transcriptomics":transcriptomics_quant_range
 }
 
 global_names_dict = {
     "proteomics":proteomics_biomolecule_names_dict,
     "lipidomics":lipidomics_biomolecule_names_dict,
     "metabolomics":metabolomics_biomolecule_names_dict,
+    "transcriptomics":transcriptomics_biomolecule_names_dict,
     "combined":{**proteomics_biomolecule_names_dict,
                 **lipidomics_biomolecule_names_dict,
                 **metabolomics_biomolecule_names_dict}
