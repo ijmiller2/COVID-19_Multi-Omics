@@ -11,7 +11,7 @@ omics_id_dict = {
         "proteomics":1,
         "lipidomics":2,
         "metabolomics":3,
-        "transcriptomics":4
+        "transcriptomics":5
     }
 
 def get_omics_data(with_metadata=False, dataset="proteomics"):

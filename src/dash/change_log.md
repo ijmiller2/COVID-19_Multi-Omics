@@ -48,8 +48,8 @@ As of 6/9/20:
 
 To do:
 - Add transcriptomics data
-- Add horizontal scroll in drop down menu
 - Add ome prefix with for drop down menu
+- Add horizontal scroll in drop down menu
 - Add option to color PCA scores by HFD
 - Add heatmap
 - Add GO term enrichment (Pathway Analysis)

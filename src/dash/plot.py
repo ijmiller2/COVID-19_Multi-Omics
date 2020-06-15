@@ -185,7 +185,9 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
 
     # downsample larger plots
     if df.shape[0] > 1000:
+        print("Original plot has {} points...".format(df.shape[0]))
         df = downsample_scatter_data(df)
+        print("Downsampled plot has {} points...".format(df.shape[0]))
 
     fig = px.scatter(df, x="x", y="y",
         hover_data=['biomolecule_id', 'standardized_name'],
