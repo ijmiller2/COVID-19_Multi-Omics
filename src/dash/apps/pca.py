@@ -46,7 +46,7 @@ print("Loading transcriptomics data...")
 transcriptomics_df, transcriptomics_quant_range = differential_expression.transcriptomics_df, differential_expression.transcriptomics_df
 print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
 
-available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined', 'Transcripts']
+available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined Biomolecules', 'Transcripts']
 
 # define dataset dictionaries
 dataset_dict = differential_expression.dataset_dict

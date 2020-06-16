@@ -38,6 +38,7 @@ print("Proteomics data shape: {}".format(proteomics_df.shape))
 metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
 lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
 proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
+transcriptomics_biomolecule_names_dict = get_biomolecule_names(dataset='transcriptomics')
 
 # define dataset dictionaries
 dataset_dict = {
@@ -66,12 +67,15 @@ global_names_dict = {
     "metabolomics":metabolomics_biomolecule_names_dict,
     "combined":{**proteomics_biomolecule_names_dict,
                 **lipidomics_biomolecule_names_dict,
-                **metabolomics_biomolecule_names_dict}
+                **metabolomics_biomolecule_names_dict,
+                **transcriptomics_biomolecule_names_dict}
 }
 
 # get combined omics df and quant value range
 print("Creating combined omics df...")
-df_dict, quant_value_range_dict = differential_expression.df_dict, differential_expression.quant_value_range_dict # get_combined_data(df_dict, quant_value_range_dict)
+# get combined data with transcriptomics
+df_dict, quant_value_range_dict = get_combined_data(df_dict,
+    quant_value_range_dict, with_transcripts=True)
 
 # start with proteomics data
 sorted_biomolecule_names_dict = {k: v for k, v in sorted(global_names_dict['combined'].items(), key=lambda item: item[1])}
@@ -83,6 +87,7 @@ plotly_config = {"toImageButtonOptions":{'format':'svg',
                 'filename': 'dash_plot'},
                 "displaylogo": False}
 
+# # NOTE: Need to add transcriptomics data here
 dataset = 'combined'
 combined_omics_df = df_dict[dataset]
 quant_value_range = quant_value_range_dict[dataset]

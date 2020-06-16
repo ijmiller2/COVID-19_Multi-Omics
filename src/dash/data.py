@@ -168,12 +168,14 @@ def get_biomolecule_names(dataset='proteomics'):
 
     return biomolecule_name_dict
 
-def get_combined_data(df_dict, quant_range_dict):
+def get_combined_data(df_dict, quant_range_dict, with_transcripts=False):
 
     # load metabolomics data matrix
     metabolomics_df, metabolomics_quant_range = df_dict['metabolomics'], quant_range_dict['metabolomics']
     lipidomics_df, lipidomics_quant_range = df_dict['lipidomics'], quant_range_dict['lipidomics']
     proteomics_df, proteomics_quant_range = df_dict['proteomics'], quant_range_dict['proteomics']
+    if with_transcripts:
+        transcriptomics_df, transcriptomics_quant_range = get_omics_data(dataset='transcriptomics', with_metadata=True)
 
     # get quant columns
     lipidomics_quant_columns = lipidomics_df.columns[:lipidomics_quant_range]
@@ -185,13 +187,20 @@ def get_combined_data(df_dict, quant_range_dict):
     proteomics_quant_columns = proteomics_df.columns[:proteomics_quant_range]
     proteomics_quant_df = proteomics_df[proteomics_quant_columns]
 
+    if with_transcripts:
+        transcriptomics_quant_columns = transcriptomics_df.columns[:transcriptomics_quant_range]
+        transcriptomics_quant_df = transcriptomics_df[transcriptomics_quant_columns]
+
     # get clinical_metadata_df
     clinical_metadata_columns = proteomics_df.columns[proteomics_quant_range:]
     clinical_metadata_df = proteomics_df[clinical_metadata_columns]
     clinical_metadata_df
 
     # join quant values together
-    combined_df = proteomics_quant_df.join(lipidomics_quant_df).join(metabolomics_quant_df)
+    if with_transcripts:
+        combined_df = proteomics_quant_df.join(lipidomics_quant_df).join(metabolomics_quant_df).join(transcriptomics_quant_df)
+    else:
+        combined_df = proteomics_quant_df.join(lipidomics_quant_df).join(metabolomics_quant_df)
     combined_quant_range = combined_df.shape[1]
     combined_quant_columns = combined_df.columns[:combined_quant_range]
     # now join with clinical metadata

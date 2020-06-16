@@ -44,7 +44,7 @@ dataset_dict = {
         "Lipids":"lipidomics",
         "Metabolites":"metabolomics",
         "Transcripts":"transcriptomics",
-        "Combined":"combined"
+        "Combined Biomolecules":"combined"
     }
 
 df_dict = {

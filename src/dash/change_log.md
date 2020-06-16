@@ -46,8 +46,8 @@ As of 6/9/20:
 - Remove DM from clinical measurement options
 - Redeploy with linear regression page with fixed/updates (commit id: 174ca0f, database 20200603 -> 5f8628f, 20200609)
 
-As of 6/15/20:
-- Add transcriptomics data
+As of 6/16/20:
+- Add transcriptomics data to PCA and linear regression pages
 - Add ome prefix with for drop down menu
 
 To do:
