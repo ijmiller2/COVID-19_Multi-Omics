@@ -185,10 +185,7 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
 
     # downsample larger plots
     if df.shape[0] > 1000:
-        print("Original plot has {} points...".format(df.shape[0]))
-        #df = downsample_scatter_data(df)
         keep_list = downsample_scatter_data_by_variance(quant_df)
-        print("Downsampled plot has {} points...".format(len(keep_list)))
 
         df_drop_list = []
         for index,row in df.iterrows():
@@ -290,11 +287,7 @@ def volcano_plot(volcano_df):
         'q_value':volcano_df['q_value'],
         'std':volcano_df['std']})
 
-    print("Volcano ome_type count before:")
-    print(df['ome_type'].value_counts())
     df = downsample_volcano_data(df)
-    print("Volcano ome_type count after:")
-    print(df['ome_type'].value_counts())
 
     fig = px.scatter(df, x="x", y="y",
     hover_data=['biomolecule_id', 'standardized_name', 'p_value', 'q_value'],
@@ -323,8 +316,6 @@ def volcano_plot(volcano_df):
 
 def correlation_scatter(combined_df, biomolecule_id, selected_groups,
     biomolecule_name, clinical_measurement):
-
-    print(selected_groups)
 
     # shorten biomolecule name
     if len(biomolecule_name) > 15:

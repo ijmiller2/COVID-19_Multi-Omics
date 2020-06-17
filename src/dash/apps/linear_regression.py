@@ -15,53 +15,6 @@ from plot import correlation_scatter
 from app import app
 from apps import differential_expression
 
-"""print()
-print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-print("Loading data for linear regression...")
-print()
-
-# load metabolomics data matrix
-print("Loading metabolomics data...")
-#metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
-metabolomics_df, metabolomics_quant_range = differential_expression.metabolomics_df, differential_expression.metabolomics_quant_range
-print("Metabolomics data shape: {}".format(metabolomics_df.shape))
-print("Loading lipidomics data...")
-#lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
-lipidomics_df, lipidomics_quant_range = differential_expression.lipidomics_df, differential_expression.lipidomics_quant_range
-print("Lipidomics data shape: {}".format(lipidomics_df.shape))
-print("Loading proteomics data...")
-#proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
-proteomics_df, proteomics_quant_range = differential_expression.proteomics_df, differential_expression.proteomics_quant_range
-print("Proteomics data shape: {}".format(proteomics_df.shape))
-
-# make biomolecule_name_dict
-metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
-lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
-proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
-transcriptomics_biomolecule_names_dict = get_biomolecule_names(dataset='transcriptomics')
-
-# define dataset dictionaries
-dataset_dict = {
-        "Proteins":"proteomics",
-        "Lipids":"lipidomics",
-        "Metabolites":"metabolomics",
-        "Transcripts":"transcriptomics",
-        "Combined":"combined"
-    }
-
-df_dict = {
-    "proteomics":proteomics_df,
-    "lipidomics":lipidomics_df,
-    "metabolomics":metabolomics_df,
-}
-
-quant_value_range_dict = {
-    "proteomics":proteomics_quant_range,
-    "lipidomics":lipidomics_quant_range,
-    "metabolomics":metabolomics_quant_range,
-}"""
-
-
 print()
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print("Loading data for linear_regression...")

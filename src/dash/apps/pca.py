@@ -44,45 +44,11 @@ print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
 available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined Biomolecules', 'Transcripts']
 
 # define dataset dictionaries
-from app import dataset_dict, df_dict, quant_value_range_dict, global_names_dict 
+from app import dataset_dict, df_dict, quant_value_range_dict, global_names_dict
 from app import metabolomics_biomolecule_names_dict
 from app import lipidomics_biomolecule_names_dict
 from app import proteomics_biomolecule_names_dict
 from app import transcriptomics_biomolecule_names_dict
-
-"""# make biomolecule_name_dict
-metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
-lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
-proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
-
-dataset_dict = {
-        "Proteins":"proteomics",
-        "Lipids":"lipidomics",
-        "Metabolites":"metabolomics",
-        "Transcripts":"transcriptomics",
-        "Combined":"combined"
-    }
-
-df_dict = {
-    "proteomics":proteomics_df,
-    "lipidomics":lipidomics_df,
-    "metabolomics":metabolomics_df,
-}
-
-quant_value_range_dict = {
-    "proteomics":proteomics_quant_range,
-    "lipidomics":lipidomics_quant_range,
-    "metabolomics":metabolomics_quant_range,
-}
-
-global_names_dict = {
-    "proteomics":proteomics_biomolecule_names_dict,
-    "lipidomics":lipidomics_biomolecule_names_dict,
-    "metabolomics":metabolomics_biomolecule_names_dict,
-    "combined":{**proteomics_biomolecule_names_dict,
-                **lipidomics_biomolecule_names_dict,
-                **metabolomics_biomolecule_names_dict}
-}"""
 
 # get combined omics df and quant value range
 print("Creating combined omics df...")
