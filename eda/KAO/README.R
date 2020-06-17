@@ -130,7 +130,7 @@
 #   were added to the databse as pvalues table.
 # issue: #4
 # date created: 5/26/2020
-# date last modified: 6/5/2020
+# date last modified: 6/16/2020
 # input: 
 # - Covid-19 Study DB.sqlite
 # output:
@@ -226,7 +226,7 @@
 # pvalues table. 
 # issue: #4
 # date create: 6/8/20
-# date last modified: 6/8/20
+# date last modified: 6/17/20
 # input:
 # - Covid-19 Study DB.sqlite
 # output:
