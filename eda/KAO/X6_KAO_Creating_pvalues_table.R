@@ -79,15 +79,26 @@ df_proteins<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, n
            WHERE rawfiles.keep = 1  
            AND biomolecules.keep = '1'
            ")
+
+
+df_transcripts<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, transcriptomics_measurements.biomolecule_id, COVID, Age_less_than_90, Gender, ICU_1, DM, Charlson_score, SOFA
+           FROM transcriptomics_measurements
+           INNER JOIN transcriptomics_runs ON transcriptomics_runs.replicate_id = transcriptomics_measurements.replicate_id
+           INNER JOIN rawfiles ON rawfiles.rawfile_id = transcriptomics_runs.rawfile_id
+           INNER JOIN deidentified_patient_metadata ON deidentified_patient_metadata.sample_id = rawfiles.sample_id
+           INNER JOIN biomolecules on biomolecules.biomolecule_id = transcriptomics_measurements.biomolecule_id
+           WHERE rawfiles.keep = 1  
+           AND biomolecules.keep = '1'
+           ")
 dbDisconnect(con)
 
-df <- rbind(df_metabolites, df_lipids, df_proteins)
+df <- rbind(df_metabolites, df_lipids, df_proteins, df_transcripts)
 
 df <- df[df$sample_id != 54, ]
 
 #### Creating dataframe to hold pvalues #######
 
-df_pvalues <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "COVID_vs_NONCOVID", confounders = "ICU_1;Gender;Age_less_than_90")
+df_pvalues <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "COVID_vs_NONCOVID", formula = "normalized_abundance ~ COVID * ICU_1 + Gender + Age_less_than_90 vs. normalized_abundance ~ ICU_1 + Gender + Age_less_than_90")
 
 p_value <- apply(df_pvalues, 1, function(x)  
             compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ ICU_1 + Gender + Age_less_than_90, 
@@ -118,7 +129,7 @@ dbDisconnect(con)
 ##### P-values for gender ###### 
 df_gender <- df[df$Gender != "", ]
 
-df_pvalues_gender <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "GENDER", confounders = "COVID;ICU_1;Age_less_than_90")
+df_pvalues_gender <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "GENDER", formula = "normalized_abundance ~ COVID + ICU_1 + Gender + Age_less_than_90 vs. normalized_abundance ~ COVID + ICU_1 + Age_less_than_90")
 
 p_value <- apply(df_pvalues_gender, 1, function(x)  
 compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ COVID + ICU_1 + Age_less_than_90, 
@@ -149,7 +160,7 @@ dbDisconnect(con)
 
 ####### P-values w/ age ######
 
-df_pvalues_age <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "Age_less_than_90", confounders = "COVID;ICU_1;Gender")
+df_pvalues_age <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "Age_less_than_90", formula = "normalized_abundance ~ COVID + ICU_1 + Gender + Age_less_than_90 vs. normalized_abundance ~ COVID + ICU_1 + Gender")
 
 p_value <- apply(df_pvalues_age, 1, function(x)  
   compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ COVID + ICU_1 + Gender, 
@@ -182,7 +193,7 @@ dbDisconnect(con)
 
 ####### P-values w/ ICU status ######
 
-df_pvalues_icu <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "ICU", confounders = "COVID;Gender;Age_less_than_90")
+df_pvalues_icu <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "ICU", formula = "normalized_abundance ~ COVID + ICU_1 + Gender + Age_less_than_90 vs. normalized_abundance ~ COVID + Gender + Age_less_than_90")
 
 p_value <- apply(df_pvalues_icu, 1, function(x)  
   compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ COVID + Gender + Age_less_than_90, 
@@ -215,7 +226,7 @@ dbDisconnect(con)
 
 ####### Pvalues w/ COVID ICU interaction #####
 
-df_pvalues_interaction <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "COVID ICU interaction", confounders = "ICU_1;Gender;Age_less_than_90")
+df_pvalues_interaction <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "COVID ICU interaction", formula = "normalized_abundance ~ COVID * ICU_1 + Gender + Age_less_than_90 vs. normalized_abundance ~ COVID + ICU_1 + Gender + Age_less_than_90")
 
 p_value <- apply(df_pvalues_interaction, 1, function(x)  
   compare_lr(as.numeric(x[1]), formula_null = normalized_abundance ~ COVID + ICU_1 + Gender + Age_less_than_90, 
