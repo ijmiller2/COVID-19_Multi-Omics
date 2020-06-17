@@ -175,7 +175,8 @@ def get_combined_data(df_dict, quant_range_dict, with_transcripts=False):
     lipidomics_df, lipidomics_quant_range = df_dict['lipidomics'], quant_range_dict['lipidomics']
     proteomics_df, proteomics_quant_range = df_dict['proteomics'], quant_range_dict['proteomics']
     if with_transcripts:
-        transcriptomics_df, transcriptomics_quant_range = get_omics_data(dataset='transcriptomics', with_metadata=True)
+        #transcriptomics_df, transcriptomics_quant_range = get_omics_data(dataset='transcriptomics', with_metadata=True)
+        transcriptomics_df, transcriptomics_quant_range = df_dict['transcriptomics'], quant_range_dict['transcriptomics']
 
     # get quant columns
     lipidomics_quant_columns = lipidomics_df.columns[:lipidomics_quant_range]
@@ -298,8 +299,13 @@ def get_volcano_data(pvalues_df, df_dict, quant_value_range,
     FC_list = []
     ome_list = []
     standardized_name_list = []
+    std_list = []
     for index, row in pvalues_df.iterrows():
         biomolecule_id = str(row['biomolecule_id'])
+
+        # get standard deviation
+        std = np.std(combined_df[biomolecule_id])
+        std_list.append(std)
 
         ## NOTE: should create biomolecule_ome_dict
         if biomolecule_id in df_dict['proteomics'].columns:
@@ -308,6 +314,8 @@ def get_volcano_data(pvalues_df, df_dict, quant_value_range,
             ome_list.append("lipidomics")
         elif biomolecule_id in df_dict['metabolomics'].columns:
             ome_list.append("metabolomics")
+        elif biomolecule_id in df_dict['transcriptomics'].columns:
+            ome_list.append("transcriptomics")
         else:
             #print("Biomolecule {} not mapped to ome!".format(biomolecule_id)) # don't currenly have targeted metabolomics included
             ome_list.append(np.nan)
@@ -333,5 +341,6 @@ def get_volcano_data(pvalues_df, df_dict, quant_value_range,
     pvalues_df['ome_type'] = ome_list
     pvalues_df['standardized_name'] = standardized_name_list
     pvalues_df['neg_log10_p_value'] = pvalues_df['p_value'].apply(np.log10).apply(np.negative)
+    pvalues_df['std'] = std_list
 
     return pvalues_df

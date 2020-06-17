@@ -14,7 +14,7 @@ from plot import volcano_plot
 # importing app through index page
 from app import app
 
-print()
+"""print()
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print("Loading data for differential_expression...")
 print()
@@ -69,11 +69,52 @@ global_names_dict = {
     "combined":{**proteomics_biomolecule_names_dict,
                 **lipidomics_biomolecule_names_dict,
                 **metabolomics_biomolecule_names_dict}
+}"""
+
+print()
+print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+print("Loading data for differential_expression...")
+print()
+
+# load metabolomics data matrix
+print("Loading metabolomics data...")
+from app import metabolomics_df, metabolomics_quant_range
+print("Metabolomics data shape: {}".format(metabolomics_df.shape))
+print("Loading lipidomics data...")
+from app import lipidomics_df, lipidomics_quant_range
+print("Lipidomics data shape: {}".format(lipidomics_df.shape))
+print("Loading proteomics data...")
+from app import proteomics_df, proteomics_quant_range
+print("Proteomics data shape: {}".format(proteomics_df.shape))
+print("Loading transcriptomics data...")
+from app import transcriptomics_df, transcriptomics_quant_range
+print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
+
+available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined Biomolecules', 'Transcripts']
+
+# define dataset dictionaries
+# define dataset dictionaries
+from app import dataset_dict, df_dict, quant_value_range_dict
+from app import metabolomics_biomolecule_names_dict
+from app import lipidomics_biomolecule_names_dict
+from app import proteomics_biomolecule_names_dict
+from app import transcriptomics_biomolecule_names_dict
+
+global_names_dict = {
+    "proteomics":proteomics_biomolecule_names_dict,
+    "lipidomics":lipidomics_biomolecule_names_dict,
+    "metabolomics":metabolomics_biomolecule_names_dict,
+    "transcriptomics":transcriptomics_biomolecule_names_dict,
+    "combined":{**proteomics_biomolecule_names_dict,
+                **lipidomics_biomolecule_names_dict,
+                **metabolomics_biomolecule_names_dict,
+                **transcriptomics_biomolecule_names_dict}
 }
 
 # get combined omics df and quant value range
 print("Creating combined omics df...")
-df_dict, quant_value_range_dict = get_combined_data(df_dict, quant_value_range_dict)
+df_dict, quant_value_range_dict = get_combined_data(df_dict,
+    quant_value_range_dict, with_transcripts=True)
 
 # start with proteomics data
 sorted_biomolecule_names_dict = {k: v for k, v in sorted(global_names_dict['combined'].items(), key=lambda item: item[1])}

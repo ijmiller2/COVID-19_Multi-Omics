@@ -21,7 +21,6 @@ external_stylesheets=[dbc.themes.BOOTSTRAP]
 app.title = 'COVID-19 Multi-Omics'"""
 
 from app import app
-from apps import differential_expression
 
 print()
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -30,34 +29,26 @@ print()
 
 # load metabolomics data matrix
 print("Loading metabolomics data...")
-#metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
-metabolomics_df, metabolomics_quant_range = differential_expression.metabolomics_df, differential_expression.metabolomics_quant_range
+from app import metabolomics_df, metabolomics_quant_range
 print("Metabolomics data shape: {}".format(metabolomics_df.shape))
 print("Loading lipidomics data...")
-#lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
-lipidomics_df, lipidomics_quant_range = differential_expression.lipidomics_df, differential_expression.lipidomics_quant_range
+from app import lipidomics_df, lipidomics_quant_range
 print("Lipidomics data shape: {}".format(lipidomics_df.shape))
 print("Loading proteomics data...")
-#proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
-proteomics_df, proteomics_quant_range = differential_expression.proteomics_df, differential_expression.proteomics_quant_range
+from app import proteomics_df, proteomics_quant_range
 print("Proteomics data shape: {}".format(proteomics_df.shape))
 print("Loading transcriptomics data...")
-#proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
-transcriptomics_df, transcriptomics_quant_range = differential_expression.transcriptomics_df, differential_expression.transcriptomics_df
+from app import transcriptomics_df, transcriptomics_quant_range
 print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
 
 available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined Biomolecules', 'Transcripts']
 
 # define dataset dictionaries
-dataset_dict = differential_expression.dataset_dict
-df_dict = differential_expression.df_dict
-quant_value_range_dict = differential_expression.quant_value_range_dict
-global_names_dict = differential_expression.global_names_dict
-
-metabolomics_biomolecule_names_dict = differential_expression.metabolomics_biomolecule_names_dict
-lipidomics_biomolecule_names_dict = differential_expression.lipidomics_biomolecule_names_dict
-proteomics_biomolecule_names_dict = differential_expression.proteomics_biomolecule_names_dict
-transcriptomics_biomolecule_names_dict = differential_expression.transcriptomics_biomolecule_names_dict
+from app import dataset_dict, df_dict, quant_value_range_dict, global_names_dict 
+from app import metabolomics_biomolecule_names_dict
+from app import lipidomics_biomolecule_names_dict
+from app import proteomics_biomolecule_names_dict
+from app import transcriptomics_biomolecule_names_dict
 
 """# make biomolecule_name_dict
 metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
