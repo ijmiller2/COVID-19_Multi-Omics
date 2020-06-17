@@ -95,8 +95,7 @@ pvalues_df = get_p_values()
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print("Building volcano plot..")
 
-confounders='ICU_1;Gender;Age_less_than_90'
-volcano_df = get_volcano_data(pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')],
+volcano_df = get_volcano_data(pvalues_df,
     df_dict,
     quant_value_range, global_names_dict)
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))

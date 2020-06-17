@@ -285,10 +285,11 @@ def volcano_plot(volcano_df):
 
     #fig.update_traces(marker=dict(size=10, opacity=0.5))
 
-    confounders = ", ".join(volcano_df.iloc[0]['confounders'].split(";"))
+    #confounders = ", ".join(volcano_df.iloc[0]['confounders'].split(";"))
+    title = "COVID vs NONCOVID"
 
     fig.update_layout(
-        title="P values corrected by: {} (n={})".format(confounders, volcano_df.shape[0]),
+        title="{} (n={})".format(title, volcano_df.shape[0]),
         legend_title_text='Dataset',
         xaxis_title='Effect Size (log2 FC)',
         yaxis_title='Significance (-log10(Corrected P-value))',

@@ -5,7 +5,7 @@ import re
 import numpy as np
 
 # SQLite path
-db_path = 'sqlite:///../../data/SQLite Database/20200609/Covid-19 Study DB.sqlite'
+db_path = 'sqlite:///../../data/SQLite Database/20200617/Covid-19 Study DB.sqlite'
 
 omics_id_dict = {
         "proteomics":1,
@@ -217,8 +217,7 @@ def get_combined_data(df_dict, quant_range_dict, with_transcripts=False):
 
     return df_dict, quant_range_dict
 
-def get_p_values(confounders='ICU_1;Gender;Age_less_than_90',
-    comparison='COVID_vs_NONCOVID'):
+def get_p_values():
 
     # Create an engine that connects to the Covid-19 Study DB.sqlite file: engine
     engine = create_engine(db_path)
@@ -241,16 +240,16 @@ def get_p_values(confounders='ICU_1;Gender;Age_less_than_90',
     # get biomolecule names
     pvalues_df = pd.read_sql_query(query, connection)
 
-    #pvalues_df = pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')]
-
     return pvalues_df
 
 def get_volcano_data(pvalues_df, df_dict, quant_value_range,
-    global_names_dict, comparison_column='COVID',
-    confounders='ICU_1;Gender;Age_less_than_90'):
+    global_names_dict, comparison_column='COVID'):
 
     group_1_quant_value_dict = {}
-    comparison_column = 'COVID'
+    formula = 'normalized_abundance ~ COVID * ICU_1 + Gender + Age_less_than_90 vs. normalized_abundance ~ ICU_1 + Gender + Age_less_than_90'
+
+    pvalues_df = pvalues_df[(pvalues_df['comparison']=='COVID_vs_NONCOVID') & (pvalues_df['formula']==formula)]
+    print("Volcano data pvalues shape: {}".format(pvalues_df.shape))
 
     group_1 = 1
     group_2 = 0
@@ -295,9 +294,6 @@ def get_volcano_data(pvalues_df, df_dict, quant_value_range,
         FC = np.mean(group_1_quant_values) - np.mean(group_2_quant_values)
 
         FC_dict[biomolecule_id] = FC
-
-    # filter by confounders subset
-    #pvalues_df = pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')]
 
     FC_list = []
     ome_list = []
