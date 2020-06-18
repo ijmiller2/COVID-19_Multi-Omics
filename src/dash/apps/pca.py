@@ -21,7 +21,6 @@ external_stylesheets=[dbc.themes.BOOTSTRAP]
 app.title = 'COVID-19 Multi-Omics'"""
 
 from app import app
-from apps import differential_expression
 
 print()
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -30,62 +29,26 @@ print()
 
 # load metabolomics data matrix
 print("Loading metabolomics data...")
-#metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
-metabolomics_df, metabolomics_quant_range = differential_expression.metabolomics_df, differential_expression.metabolomics_quant_range
+from app import metabolomics_df, metabolomics_quant_range
 print("Metabolomics data shape: {}".format(metabolomics_df.shape))
 print("Loading lipidomics data...")
-#lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
-lipidomics_df, lipidomics_quant_range = differential_expression.lipidomics_df, differential_expression.lipidomics_quant_range
+from app import lipidomics_df, lipidomics_quant_range
 print("Lipidomics data shape: {}".format(lipidomics_df.shape))
 print("Loading proteomics data...")
-#proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
-proteomics_df, proteomics_quant_range = differential_expression.proteomics_df, differential_expression.proteomics_quant_range
+from app import proteomics_df, proteomics_quant_range
 print("Proteomics data shape: {}".format(proteomics_df.shape))
+print("Loading transcriptomics data...")
+from app import transcriptomics_df, transcriptomics_quant_range
+print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
 
-available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined']
-
-# make biomolecule_name_dict
-metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
-lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
-proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
-
-# drop unknown lipids (to test speed up)
-"""lipidomics_drop_list = []
-for biomolecule_id in lipidomics_df.columns[:lipidomics_quant_range]:
-    if "Unknown" in lipidomics_biomolecule_names_dict[biomolecule_id]:
-        lipidomics_drop_list.append(biomolecule_id)
-lipidomics_df.drop(lipidomics_drop_list, axis=1, inplace=True)
-lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)"""
+available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined Biomolecules', 'Transcripts']
 
 # define dataset dictionaries
-dataset_dict = {
-        "Proteins":"proteomics",
-        "Lipids":"lipidomics",
-        "Metabolites":"metabolomics",
-        "Transcripts":"transcriptomics",
-        "Combined":"combined"
-    }
-
-df_dict = {
-    "proteomics":proteomics_df,
-    "lipidomics":lipidomics_df,
-    "metabolomics":metabolomics_df,
-}
-
-quant_value_range_dict = {
-    "proteomics":proteomics_quant_range,
-    "lipidomics":lipidomics_quant_range,
-    "metabolomics":metabolomics_quant_range,
-}
-
-global_names_dict = {
-    "proteomics":proteomics_biomolecule_names_dict,
-    "lipidomics":lipidomics_biomolecule_names_dict,
-    "metabolomics":metabolomics_biomolecule_names_dict,
-    "combined":{**proteomics_biomolecule_names_dict,
-                **lipidomics_biomolecule_names_dict,
-                **metabolomics_biomolecule_names_dict}
-}
+from app import dataset_dict, df_dict, quant_value_range_dict, global_names_dict
+from app import metabolomics_biomolecule_names_dict
+from app import lipidomics_biomolecule_names_dict
+from app import proteomics_biomolecule_names_dict
+from app import transcriptomics_biomolecule_names_dict
 
 # get combined omics df and quant value range
 print("Creating combined omics df...")

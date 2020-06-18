@@ -18,63 +18,46 @@ print()
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print("Loading data for differential_expression...")
 print()
+
 # load metabolomics data matrix
 print("Loading metabolomics data...")
-metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
+from app import metabolomics_df, metabolomics_quant_range
 print("Metabolomics data shape: {}".format(metabolomics_df.shape))
 print("Loading lipidomics data...")
-lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
+from app import lipidomics_df, lipidomics_quant_range
 print("Lipidomics data shape: {}".format(lipidomics_df.shape))
 print("Loading proteomics data...")
-proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
+from app import proteomics_df, proteomics_quant_range
 print("Proteomics data shape: {}".format(proteomics_df.shape))
+print("Loading transcriptomics data...")
+from app import transcriptomics_df, transcriptomics_quant_range
+print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
 
-# make biomolecule_name_dict
-metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
-lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
-proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
-
-# drop unknown lipids (to test speed up)
-"""lipidomics_drop_list = []
-for biomolecule_id in lipidomics_df.columns[:lipidomics_quant_range]:
-    if "Unknown" in lipidomics_biomolecule_names_dict[biomolecule_id]:
-        lipidomics_drop_list.append(biomolecule_id)
-lipidomics_df.drop(lipidomics_drop_list, axis=1, inplace=True)
-lipidomics_quant_range = lipidomics_quant_range - len(lipidomics_drop_list)"""
+available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined Biomolecules', 'Transcripts']
 
 # define dataset dictionaries
-dataset_dict = {
-        "Proteins":"proteomics",
-        "Lipids":"lipidomics",
-        "Metabolites":"metabolomics",
-        "Transcripts":"transcriptomics",
-        "Combined":"combined"
-    }
-
-df_dict = {
-    "proteomics":proteomics_df,
-    "lipidomics":lipidomics_df,
-    "metabolomics":metabolomics_df,
-}
-
-quant_value_range_dict = {
-    "proteomics":proteomics_quant_range,
-    "lipidomics":lipidomics_quant_range,
-    "metabolomics":metabolomics_quant_range,
-}
+# define dataset dictionaries
+from app import dataset_dict, df_dict, quant_value_range_dict
+from app import metabolomics_biomolecule_names_dict
+from app import lipidomics_biomolecule_names_dict
+from app import proteomics_biomolecule_names_dict
+from app import transcriptomics_biomolecule_names_dict
 
 global_names_dict = {
     "proteomics":proteomics_biomolecule_names_dict,
     "lipidomics":lipidomics_biomolecule_names_dict,
     "metabolomics":metabolomics_biomolecule_names_dict,
+    "transcriptomics":transcriptomics_biomolecule_names_dict,
     "combined":{**proteomics_biomolecule_names_dict,
                 **lipidomics_biomolecule_names_dict,
-                **metabolomics_biomolecule_names_dict}
+                **metabolomics_biomolecule_names_dict,
+                **transcriptomics_biomolecule_names_dict}
 }
 
 # get combined omics df and quant value range
 print("Creating combined omics df...")
-df_dict, quant_value_range_dict = get_combined_data(df_dict, quant_value_range_dict)
+df_dict, quant_value_range_dict = get_combined_data(df_dict,
+    quant_value_range_dict, with_transcripts=True)
 
 # start with proteomics data
 sorted_biomolecule_names_dict = {k: v for k, v in sorted(global_names_dict['combined'].items(), key=lambda item: item[1])}
@@ -96,8 +79,7 @@ pvalues_df = get_p_values()
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print("Building volcano plot..")
 
-confounders='ICU_1;Gender;Age_less_than_90'
-volcano_df = get_volcano_data(pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')],
+volcano_df = get_volcano_data(pvalues_df,
     df_dict,
     quant_value_range, global_names_dict)
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))

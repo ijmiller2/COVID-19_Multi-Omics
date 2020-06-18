@@ -1,5 +1,16 @@
 from sqlalchemy import create_engine, MetaData, Table, select, join
 import pandas as pd
+from argparse import ArgumentParser
+from argparse import ArgumentDefaultsHelpFormatter
+from datetime import datetime
+
+#argument parser
+parser = ArgumentParser(description="Script to generate matrix from omics dataset.",\
+ epilog="Ya Welcome!",\
+  formatter_class=ArgumentDefaultsHelpFormatter)
+parser.add_argument('-d', '--dataset', metavar='e.g., "proteomics"',
+    help='Select dataset', required=True)
+args = vars(parser.parse_args())
 
 # SQLite path
 db_path = 'sqlite:///../../data/SQLite Database/20200609/Covid-19 Study DB.sqlite'
@@ -30,8 +41,15 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
     omics_runs_df = pd.read_sql_query(query, connection)
 
     # pull table into df
-    query = "SELECT * from rawfiles WHERE ome_id={} AND sample_ID<>-1 and keep=1".format(omics_id)
+    if dataset == "metabolomics":
+        query = "SELECT * from rawfiles WHERE ome_id=3 OR ome_id=4 AND sample_ID<>-1 AND keep=1".format(omics_id)
+
+    else:
+        query = "SELECT * from rawfiles WHERE ome_id={} AND sample_ID<>-1 and keep=1".format(omics_id)
+
     rawfiles_df = pd.read_sql_query(query, connection)
+    ## NOTE: For some reason, SQL filter not working for keep on raw files
+    rawfiles_df = rawfiles_df[rawfiles_df['keep']==1]
 
     # pull table into df
     deidentified_patient_metadata_df = pd.read_sql_query("SELECT * from deidentified_patient_metadata", connection)
@@ -54,7 +72,11 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
     wide_df = joined_df.pivot_table(index='sample_id', columns='biomolecule_id', values='normalized_abundance')
     wide_df.columns = [str(col) for col in wide_df.columns]
 
-    query = "SELECT * from biomolecules WHERE omics_id={}".format(omics_id)
+    if dataset == "metabolomics":
+        query = "SELECT * from biomolecules WHERE omics_id=3 OR omics_id=4".format(omics_id)
+    else:
+        query = "SELECT * from biomolecules WHERE omics_id={}".format(omics_id)
+
     # get biomolecule names
     biomolecules_df = pd.read_sql_query(query, connection)
 
@@ -94,9 +116,19 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
     return wide_df, quant_value_range
 
 if __name__ == "__main__":
-    dataset="proteomics"
+
+    dataset=args['dataset'].lower()
+    if not dataset in ['proteomics', 'metabolomics', 'lipidomics', 'transcriptomics']:
+        print("Dataset {} not recognized...".format(dataset))
+        print("Please select from: {}".format(",".join(dataset)))
+
     omics_df, quant_value_range = get_omics_data(with_metadata=True, dataset=dataset)
     quant_columns = omics_df.columns[:quant_value_range]
     quant_df = omics_df[quant_columns]
     print("{} combined data set has shape: {}".format(dataset, omics_df.shape))
     print("{} quant data set has shape: {}".format(dataset, quant_df.shape))
+
+    date = datetime.today().strftime('%Y-%m-%d')
+    outpath = "{}_{}.tsv".format(date, dataset)
+    print("Writing out data to: {}".format(outpath))
+    omics_df.to_csv(outpath, sep="\t")

@@ -17,48 +17,31 @@ from apps import differential_expression
 
 print()
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-print("Loading data for linear regression...")
+print("Loading data for linear_regression...")
 print()
 
 # load metabolomics data matrix
 print("Loading metabolomics data...")
-#metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
-metabolomics_df, metabolomics_quant_range = differential_expression.metabolomics_df, differential_expression.metabolomics_quant_range
+from app import metabolomics_df, metabolomics_quant_range
 print("Metabolomics data shape: {}".format(metabolomics_df.shape))
 print("Loading lipidomics data...")
-#lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
-lipidomics_df, lipidomics_quant_range = differential_expression.lipidomics_df, differential_expression.lipidomics_quant_range
+from app import lipidomics_df, lipidomics_quant_range
 print("Lipidomics data shape: {}".format(lipidomics_df.shape))
 print("Loading proteomics data...")
-#proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
-proteomics_df, proteomics_quant_range = differential_expression.proteomics_df, differential_expression.proteomics_quant_range
+from app import proteomics_df, proteomics_quant_range
 print("Proteomics data shape: {}".format(proteomics_df.shape))
+print("Loading transcriptomics data...")
+from app import transcriptomics_df, transcriptomics_quant_range
+print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
 
-# make biomolecule_name_dict
-metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
-lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
-proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
+available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined Biomolecules', 'Transcripts']
 
 # define dataset dictionaries
-dataset_dict = {
-        "Proteins":"proteomics",
-        "Lipids":"lipidomics",
-        "Metabolites":"metabolomics",
-        "Transcripts":"transcriptomics",
-        "Combined":"combined"
-    }
-
-df_dict = {
-    "proteomics":proteomics_df,
-    "lipidomics":lipidomics_df,
-    "metabolomics":metabolomics_df,
-}
-
-quant_value_range_dict = {
-    "proteomics":proteomics_quant_range,
-    "lipidomics":lipidomics_quant_range,
-    "metabolomics":metabolomics_quant_range,
-}
+from app import dataset_dict, df_dict, quant_value_range_dict, global_names_dict
+from app import metabolomics_biomolecule_names_dict
+from app import lipidomics_biomolecule_names_dict
+from app import proteomics_biomolecule_names_dict
+from app import transcriptomics_biomolecule_names_dict
 
 global_names_dict = {
     "proteomics":proteomics_biomolecule_names_dict,
@@ -66,12 +49,15 @@ global_names_dict = {
     "metabolomics":metabolomics_biomolecule_names_dict,
     "combined":{**proteomics_biomolecule_names_dict,
                 **lipidomics_biomolecule_names_dict,
-                **metabolomics_biomolecule_names_dict}
+                **metabolomics_biomolecule_names_dict,
+                **transcriptomics_biomolecule_names_dict}
 }
 
 # get combined omics df and quant value range
 print("Creating combined omics df...")
-df_dict, quant_value_range_dict = differential_expression.df_dict, differential_expression.quant_value_range_dict # get_combined_data(df_dict, quant_value_range_dict)
+# get combined data with transcriptomics
+df_dict, quant_value_range_dict = get_combined_data(df_dict,
+    quant_value_range_dict, with_transcripts=True)
 
 # start with proteomics data
 sorted_biomolecule_names_dict = {k: v for k, v in sorted(global_names_dict['combined'].items(), key=lambda item: item[1])}
@@ -83,6 +69,7 @@ plotly_config = {"toImageButtonOptions":{'format':'svg',
                 'filename': 'dash_plot'},
                 "displaylogo": False}
 
+# # NOTE: Need to add transcriptomics data here
 dataset = 'combined'
 combined_omics_df = df_dict[dataset]
 quant_value_range = quant_value_range_dict[dataset]
@@ -91,6 +78,7 @@ available_datasets = ['Combined']
 # start at COVID status
 clinical_metadata_options = combined_omics_df.columns[quant_value_range+4:].sort_values().tolist()
 clinical_metadata_options.remove("DM")
+clinical_metadata_options.append('COVID')
 biomolecule_options = [{'label': value, 'value': key} for key, value in sorted_biomolecule_names_dict.items() if key in combined_omics_df.columns.to_list()]
 
 control_panel = dbc.Card(
@@ -116,7 +104,7 @@ control_panel = dbc.Card(
                     {'label': ' NONCOVID ICU', 'value': 'NONCOVID_ICU'},
                     {'label': ' NONCOVID NONICU', 'value': 'NONCOVID_NONICU'}
                 ],
-                value=['COVID_ICU', 'COVID_NONICU'],
+                value=['COVID_ICU', 'COVID_NONICU', 'NONCOVID_ICU', 'NONCOVID_NONICU'],
                 labelStyle={'display': 'inline-block'}
             ),
             html.Hr(),
@@ -257,7 +245,7 @@ layout = dbc.Container([
     [Input('biomolecule_id-lr', 'value'),
     Input('group-checklist-lr','value'),
     Input('clinical_measurement-lr', 'value')])
-def update_biomolecule_barplot(biomolecule_id, groups, clinical_measurement):
+def update_biomolecule_scatter(biomolecule_id, groups, clinical_measurement):
 
     biomolecule_name = global_names_dict["combined"][biomolecule_id]
     fig = correlation_scatter(combined_omics_df, biomolecule_id, groups,

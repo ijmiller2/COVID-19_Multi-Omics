@@ -185,7 +185,13 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
 
     # downsample larger plots
     if df.shape[0] > 1000:
-        df = downsample_scatter_data(df)
+        keep_list = downsample_scatter_data_by_variance(quant_df)
+
+        df_drop_list = []
+        for index,row in df.iterrows():
+            if not row['biomolecule_id'] in keep_list:
+                df_drop_list.append(index)
+        df = df.drop(df_drop_list)
 
     fig = px.scatter(df, x="x", y="y",
         hover_data=['biomolecule_id', 'standardized_name'],
@@ -247,13 +253,30 @@ def downsample_scatter_data(df):
 
     return df
 
-    # n = 1000
-    #df = df.sort_values(by='distance_from_origin', ascending=False).iloc[:n]
-    df = df.drop(drop_index_list)
+def downsample_scatter_data_by_variance(df):
+    # return top 1000 features by variance
+    keep_list = df.std(axis=0).sort_values(ascending=False)[:1000]
+
+    return keep_list
+
+def downsample_volcano_data(df):
+
+    keep_index_list = []
+    for ome_type in list(set(df['ome_type'])):
+        # keep data for each ome with top 1000 features by variance (std)
+        ome_df = df[df['ome_type'] == ome_type].sort_values(by='std', ascending=False)
+        #ome_df = df[df['ome_type'] == ome_type].sort_values(by='q_value', ascending=True)
+        keep_indices = ome_df.index.tolist()[:2000]
+        keep_index_list.extend(keep_indices)
+
+    df = df.loc[keep_index_list]
+
+    return df
 
 def volcano_plot(volcano_df):
 
-    volcano_df.dropna(inplace=True)
+    #volcano_df.dropna(inplace=True)
+    volcano_df = volcano_df.dropna()
 
     df = pd.DataFrame({'x':volcano_df['log2_FC'],
         'y':volcano_df['neg_log10_p_value'],
@@ -261,9 +284,10 @@ def volcano_plot(volcano_df):
         'standardized_name':volcano_df['standardized_name'],
         'ome_type':volcano_df['ome_type'],
         'p_value':volcano_df['p_value'],
-        'q_value':volcano_df['q_value']})
+        'q_value':volcano_df['q_value'],
+        'std':volcano_df['std']})
 
-    df = downsample_scatter_data(df)
+    df = downsample_volcano_data(df)
 
     fig = px.scatter(df, x="x", y="y",
     hover_data=['biomolecule_id', 'standardized_name', 'p_value', 'q_value'],
@@ -274,10 +298,11 @@ def volcano_plot(volcano_df):
 
     #fig.update_traces(marker=dict(size=10, opacity=0.5))
 
-    confounders = ", ".join(volcano_df.iloc[0]['confounders'].split(";"))
+    #confounders = ", ".join(volcano_df.iloc[0]['confounders'].split(";"))
+    title = "COVID vs NONCOVID"
 
     fig.update_layout(
-        title="P values corrected by: {} (n={})".format(confounders, volcano_df.shape[0]),
+        title="{} (n={})".format(title, volcano_df.shape[0]),
         legend_title_text='Dataset',
         xaxis_title='Effect Size (log2 FC)',
         yaxis_title='Significance (-log10(Corrected P-value))',
@@ -291,8 +316,6 @@ def volcano_plot(volcano_df):
 
 def correlation_scatter(combined_df, biomolecule_id, selected_groups,
     biomolecule_name, clinical_measurement):
-
-    print(selected_groups)
 
     # shorten biomolecule name
     if len(biomolecule_name) > 15:

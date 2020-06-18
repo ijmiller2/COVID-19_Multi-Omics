@@ -5,13 +5,13 @@ import re
 import numpy as np
 
 # SQLite path
-db_path = 'sqlite:///../../data/SQLite Database/20200609/Covid-19 Study DB.sqlite'
+db_path = 'sqlite:///../../data/SQLite Database/20200617/Covid-19 Study DB.sqlite'
 
 omics_id_dict = {
         "proteomics":1,
         "lipidomics":2,
         "metabolomics":3,
-        "transcriptomics":4
+        "transcriptomics":5
     }
 
 def get_omics_data(with_metadata=False, dataset="proteomics"):
@@ -109,6 +109,8 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
 
 def get_biomolecule_names(dataset='proteomics'):
 
+    dataset_abr_prefix = "[{}] ".format(dataset[0].upper())
+
     print("Getting biomolecule names for dataset: {}".format(dataset))
     omics_id = omics_id_dict[dataset]
 
@@ -131,7 +133,7 @@ def get_biomolecule_names(dataset='proteomics'):
     for index, row in biomolecules_df.iterrows():
         biomolecule_id = str(row['biomolecule_id'])
         standardized_name = row['standardized_name']
-        biomolecule_name_dict[biomolecule_id] = standardized_name
+        biomolecule_name_dict[biomolecule_id] = dataset_abr_prefix + standardized_name
 
     # return dictionary with biomolecule ids and standard names
 
@@ -159,19 +161,22 @@ def get_biomolecule_names(dataset='proteomics'):
 
         fasta_header = fasta_header_dict[biomolecule_id]
         fasta_header = re.search("\s(.*?)\sO[SX]=", fasta_header).group(1)
-        biomolecule_name_dict[biomolecule_id] = fasta_header
+        biomolecule_name_dict[biomolecule_id] = dataset_abr_prefix + fasta_header
 
     # close DB connection
     connection.close()
 
     return biomolecule_name_dict
 
-def get_combined_data(df_dict, quant_range_dict):
+def get_combined_data(df_dict, quant_range_dict, with_transcripts=False):
 
     # load metabolomics data matrix
     metabolomics_df, metabolomics_quant_range = df_dict['metabolomics'], quant_range_dict['metabolomics']
     lipidomics_df, lipidomics_quant_range = df_dict['lipidomics'], quant_range_dict['lipidomics']
     proteomics_df, proteomics_quant_range = df_dict['proteomics'], quant_range_dict['proteomics']
+    if with_transcripts:
+        #transcriptomics_df, transcriptomics_quant_range = get_omics_data(dataset='transcriptomics', with_metadata=True)
+        transcriptomics_df, transcriptomics_quant_range = df_dict['transcriptomics'], quant_range_dict['transcriptomics']
 
     # get quant columns
     lipidomics_quant_columns = lipidomics_df.columns[:lipidomics_quant_range]
@@ -183,13 +188,20 @@ def get_combined_data(df_dict, quant_range_dict):
     proteomics_quant_columns = proteomics_df.columns[:proteomics_quant_range]
     proteomics_quant_df = proteomics_df[proteomics_quant_columns]
 
+    if with_transcripts:
+        transcriptomics_quant_columns = transcriptomics_df.columns[:transcriptomics_quant_range]
+        transcriptomics_quant_df = transcriptomics_df[transcriptomics_quant_columns]
+
     # get clinical_metadata_df
     clinical_metadata_columns = proteomics_df.columns[proteomics_quant_range:]
     clinical_metadata_df = proteomics_df[clinical_metadata_columns]
     clinical_metadata_df
 
     # join quant values together
-    combined_df = proteomics_quant_df.join(lipidomics_quant_df).join(metabolomics_quant_df)
+    if with_transcripts:
+        combined_df = proteomics_quant_df.join(lipidomics_quant_df).join(metabolomics_quant_df).join(transcriptomics_quant_df)
+    else:
+        combined_df = proteomics_quant_df.join(lipidomics_quant_df).join(metabolomics_quant_df)
     combined_quant_range = combined_df.shape[1]
     combined_quant_columns = combined_df.columns[:combined_quant_range]
     # now join with clinical metadata
@@ -206,8 +218,7 @@ def get_combined_data(df_dict, quant_range_dict):
 
     return df_dict, quant_range_dict
 
-def get_p_values(confounders='ICU_1;Gender;Age_less_than_90',
-    comparison='COVID_vs_NONCOVID'):
+def get_p_values():
 
     # Create an engine that connects to the Covid-19 Study DB.sqlite file: engine
     engine = create_engine(db_path)
@@ -230,16 +241,16 @@ def get_p_values(confounders='ICU_1;Gender;Age_less_than_90',
     # get biomolecule names
     pvalues_df = pd.read_sql_query(query, connection)
 
-    #pvalues_df = pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')]
-
     return pvalues_df
 
 def get_volcano_data(pvalues_df, df_dict, quant_value_range,
-    global_names_dict, comparison_column='COVID',
-    confounders='ICU_1;Gender;Age_less_than_90'):
+    global_names_dict, comparison_column='COVID'):
 
     group_1_quant_value_dict = {}
-    comparison_column = 'COVID'
+    formula = 'normalized_abundance ~ COVID * ICU_1 + Gender + Age_less_than_90 vs. normalized_abundance ~ ICU_1 + Gender + Age_less_than_90'
+
+    pvalues_df = pvalues_df[(pvalues_df['comparison']=='COVID_vs_NONCOVID') & (pvalues_df['formula']==formula)]
+    print("Volcano data pvalues shape: {}".format(pvalues_df.shape))
 
     group_1 = 1
     group_2 = 0
@@ -285,14 +296,16 @@ def get_volcano_data(pvalues_df, df_dict, quant_value_range,
 
         FC_dict[biomolecule_id] = FC
 
-    # filter by confounders subset
-    #pvalues_df = pvalues_df[(pvalues_df['confounders']==confounders) & (pvalues_df['comparison']=='COVID_vs_NONCOVID')]
-
     FC_list = []
     ome_list = []
     standardized_name_list = []
+    std_list = []
     for index, row in pvalues_df.iterrows():
         biomolecule_id = str(row['biomolecule_id'])
+
+        # get standard deviation
+        std = np.std(combined_df[biomolecule_id])
+        std_list.append(std)
 
         ## NOTE: should create biomolecule_ome_dict
         if biomolecule_id in df_dict['proteomics'].columns:
@@ -301,6 +314,8 @@ def get_volcano_data(pvalues_df, df_dict, quant_value_range,
             ome_list.append("lipidomics")
         elif biomolecule_id in df_dict['metabolomics'].columns:
             ome_list.append("metabolomics")
+        elif biomolecule_id in df_dict['transcriptomics'].columns:
+            ome_list.append("transcriptomics")
         else:
             #print("Biomolecule {} not mapped to ome!".format(biomolecule_id)) # don't currenly have targeted metabolomics included
             ome_list.append(np.nan)
@@ -326,5 +341,6 @@ def get_volcano_data(pvalues_df, df_dict, quant_value_range,
     pvalues_df['ome_type'] = ome_list
     pvalues_df['standardized_name'] = standardized_name_list
     pvalues_df['neg_log10_p_value'] = pvalues_df['p_value'].apply(np.log10).apply(np.negative)
+    pvalues_df['std'] = std_list
 
     return pvalues_df
