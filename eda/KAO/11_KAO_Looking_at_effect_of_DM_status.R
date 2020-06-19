@@ -49,7 +49,7 @@ con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multi
 
 dbListTables(con)
 
-df_metabolites<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, metabolomics_measurements.biomolecule_id, COVID, Hospital_free_days_45, Age_less_than_90, Gender, ICU_1, DM, Charlson_score, SOFA
+df_metabolites<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, metabolomics_measurements.biomolecule_id, COVID, Hospital_free_days_45, Age_less_than_90, Gender, ICU_1, DM, Charlson_score, SOFA, APACHEII
            FROM metabolomics_measurements
            INNER JOIN metabolomics_runs ON metabolomics_runs.replicate_id = metabolomics_measurements.replicate_id
            INNER JOIN rawfiles ON rawfiles.rawfile_id = metabolomics_runs.rawfile_id
@@ -59,7 +59,7 @@ df_metabolites<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id
            AND biomolecules.keep = '1'
            ")
 
-df_lipids<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, lipidomics_measurements.biomolecule_id, COVID, Hospital_free_days_45, Age_less_than_90, Gender, ICU_1, DM, Charlson_score, SOFA
+df_lipids<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, lipidomics_measurements.biomolecule_id, COVID, Hospital_free_days_45, Age_less_than_90, Gender, ICU_1, DM, Charlson_score, SOFA, APACHEII
            FROM lipidomics_measurements
            INNER JOIN lipidomics_runs ON lipidomics_runs.replicate_id = lipidomics_measurements.replicate_id
            INNER JOIN rawfiles ON rawfiles.rawfile_id = lipidomics_runs.rawfile_id
@@ -70,7 +70,7 @@ df_lipids<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, nor
            ")
 
 
-df_proteins<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, proteomics_measurements.biomolecule_id, COVID, Hospital_free_days_45, Age_less_than_90, Gender, ICU_1, DM, Charlson_score, SOFA
+df_proteins<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, proteomics_measurements.biomolecule_id, COVID, Hospital_free_days_45, Age_less_than_90, Gender, ICU_1, DM, Charlson_score, SOFA, APACHEII
            FROM proteomics_measurements
            INNER JOIN proteomics_runs ON proteomics_runs.replicate_id = proteomics_measurements.replicate_id
            INNER JOIN rawfiles ON rawfiles.rawfile_id = proteomics_runs.rawfile_id
@@ -87,6 +87,9 @@ df <- rbind(df_metabolites, df_lipids, df_proteins)
 df <- df[df$sample_id != 54, ]
 
 df$SOFA <- as.numeric(df$SOFA)
+df$Hospital_free_days_45[df$biomolecule_id == 1]
+
+Glucose <- df$normalized_abundance[df$biomolecule_id == 145]
 
 ###### HOstpital free days and other covariates ##### 
 
