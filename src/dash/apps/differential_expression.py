@@ -18,48 +18,30 @@ print()
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 print("Loading data for differential_expression...")
 print()
+
 # load metabolomics data matrix
 print("Loading metabolomics data...")
-metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
+from app import metabolomics_df, metabolomics_quant_range
 print("Metabolomics data shape: {}".format(metabolomics_df.shape))
 print("Loading lipidomics data...")
-lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
+from app import lipidomics_df, lipidomics_quant_range
 print("Lipidomics data shape: {}".format(lipidomics_df.shape))
 print("Loading proteomics data...")
-proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
+from app import proteomics_df, proteomics_quant_range
 print("Proteomics data shape: {}".format(proteomics_df.shape))
 print("Loading transcriptomics data...")
-transcriptomics_df, transcriptomics_quant_range = get_omics_data(dataset='transcriptomics', with_metadata=True)
+from app import transcriptomics_df, transcriptomics_quant_range
 print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
 
-# make biomolecule_name_dict
-metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
-lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
-proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
-transcriptomics_biomolecule_names_dict = get_biomolecule_names(dataset='transcriptomics')
+available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined Biomolecules', 'Transcripts']
 
 # define dataset dictionaries
-dataset_dict = {
-        "Proteins":"proteomics",
-        "Lipids":"lipidomics",
-        "Metabolites":"metabolomics",
-        "Transcripts":"transcriptomics",
-        "Combined Biomolecules":"combined"
-    }
-
-df_dict = {
-    "proteomics":proteomics_df,
-    "lipidomics":lipidomics_df,
-    "metabolomics":metabolomics_df,
-    "transcriptomics":transcriptomics_df
-}
-
-quant_value_range_dict = {
-    "proteomics":proteomics_quant_range,
-    "lipidomics":lipidomics_quant_range,
-    "metabolomics":metabolomics_quant_range,
-    "transcriptomics":transcriptomics_quant_range
-}
+# define dataset dictionaries
+from app import dataset_dict, df_dict, quant_value_range_dict
+from app import metabolomics_biomolecule_names_dict
+from app import lipidomics_biomolecule_names_dict
+from app import proteomics_biomolecule_names_dict
+from app import transcriptomics_biomolecule_names_dict
 
 global_names_dict = {
     "proteomics":proteomics_biomolecule_names_dict,
@@ -68,12 +50,14 @@ global_names_dict = {
     "transcriptomics":transcriptomics_biomolecule_names_dict,
     "combined":{**proteomics_biomolecule_names_dict,
                 **lipidomics_biomolecule_names_dict,
-                **metabolomics_biomolecule_names_dict}
+                **metabolomics_biomolecule_names_dict,
+                **transcriptomics_biomolecule_names_dict}
 }
 
 # get combined omics df and quant value range
 print("Creating combined omics df...")
-df_dict, quant_value_range_dict = get_combined_data(df_dict, quant_value_range_dict)
+df_dict, quant_value_range_dict = get_combined_data(df_dict,
+    quant_value_range_dict, with_transcripts=True)
 
 # start with proteomics data
 sorted_biomolecule_names_dict = {k: v for k, v in sorted(global_names_dict['combined'].items(), key=lambda item: item[1])}

@@ -1,1 +1,8 @@
 .env
+*ipynb_checkpoints*
+*DS_Store
+*__pycache__
+data/*
+figures/*
+# For Ben
+.idea

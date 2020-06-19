@@ -185,10 +185,7 @@ def pca_loadings_plot(combined_df, quant_value_range, dataset_id, biomolecule_na
 
     # downsample larger plots
     if df.shape[0] > 1000:
-        print("Original plot has {} points...".format(df.shape[0]))
-        #df = downsample_scatter_data(df)
         keep_list = downsample_scatter_data_by_variance(quant_df)
-        print("Downsampled plot has {} points...".format(len(keep_list)))
 
         df_drop_list = []
         for index,row in df.iterrows():
@@ -262,9 +259,24 @@ def downsample_scatter_data_by_variance(df):
 
     return keep_list
 
+def downsample_volcano_data(df):
+
+    keep_index_list = []
+    for ome_type in list(set(df['ome_type'])):
+        # keep data for each ome with top 1000 features by variance (std)
+        ome_df = df[df['ome_type'] == ome_type].sort_values(by='std', ascending=False)
+        #ome_df = df[df['ome_type'] == ome_type].sort_values(by='q_value', ascending=True)
+        keep_indices = ome_df.index.tolist()[:2000]
+        keep_index_list.extend(keep_indices)
+
+    df = df.loc[keep_index_list]
+
+    return df
+
 def volcano_plot(volcano_df):
 
-    volcano_df.dropna(inplace=True)
+    #volcano_df.dropna(inplace=True)
+    volcano_df = volcano_df.dropna()
 
     df = pd.DataFrame({'x':volcano_df['log2_FC'],
         'y':volcano_df['neg_log10_p_value'],
@@ -272,9 +284,10 @@ def volcano_plot(volcano_df):
         'standardized_name':volcano_df['standardized_name'],
         'ome_type':volcano_df['ome_type'],
         'p_value':volcano_df['p_value'],
-        'q_value':volcano_df['q_value']})
+        'q_value':volcano_df['q_value'],
+        'std':volcano_df['std']})
 
-    df = downsample_scatter_data(df)
+    df = downsample_volcano_data(df)
 
     fig = px.scatter(df, x="x", y="y",
     hover_data=['biomolecule_id', 'standardized_name', 'p_value', 'q_value'],
@@ -303,8 +316,6 @@ def volcano_plot(volcano_df):
 
 def correlation_scatter(combined_df, biomolecule_id, selected_groups,
     biomolecule_name, clinical_measurement):
-
-    print(selected_groups)
 
     # shorten biomolecule name
     if len(biomolecule_name) > 15:

@@ -17,49 +17,31 @@ from apps import differential_expression
 
 print()
 print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-print("Loading data for linear regression...")
+print("Loading data for linear_regression...")
 print()
 
 # load metabolomics data matrix
 print("Loading metabolomics data...")
-#metabolomics_df, metabolomics_quant_range = get_omics_data(dataset='metabolomics', with_metadata=True)
-metabolomics_df, metabolomics_quant_range = differential_expression.metabolomics_df, differential_expression.metabolomics_quant_range
+from app import metabolomics_df, metabolomics_quant_range
 print("Metabolomics data shape: {}".format(metabolomics_df.shape))
 print("Loading lipidomics data...")
-#lipidomics_df, lipidomics_quant_range = get_omics_data(dataset='lipidomics', with_metadata=True)
-lipidomics_df, lipidomics_quant_range = differential_expression.lipidomics_df, differential_expression.lipidomics_quant_range
+from app import lipidomics_df, lipidomics_quant_range
 print("Lipidomics data shape: {}".format(lipidomics_df.shape))
 print("Loading proteomics data...")
-#proteomics_df, proteomics_quant_range = get_omics_data(dataset='proteomics', with_metadata=True)
-proteomics_df, proteomics_quant_range = differential_expression.proteomics_df, differential_expression.proteomics_quant_range
+from app import proteomics_df, proteomics_quant_range
 print("Proteomics data shape: {}".format(proteomics_df.shape))
+print("Loading transcriptomics data...")
+from app import transcriptomics_df, transcriptomics_quant_range
+print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
 
-# make biomolecule_name_dict
-metabolomics_biomolecule_names_dict = get_biomolecule_names(dataset='metabolomics')
-lipidomics_biomolecule_names_dict = get_biomolecule_names(dataset='lipidomics')
-proteomics_biomolecule_names_dict = get_biomolecule_names(dataset='proteomics')
-transcriptomics_biomolecule_names_dict = get_biomolecule_names(dataset='transcriptomics')
+available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined Biomolecules', 'Transcripts']
 
 # define dataset dictionaries
-dataset_dict = {
-        "Proteins":"proteomics",
-        "Lipids":"lipidomics",
-        "Metabolites":"metabolomics",
-        "Transcripts":"transcriptomics",
-        "Combined":"combined"
-    }
-
-df_dict = {
-    "proteomics":proteomics_df,
-    "lipidomics":lipidomics_df,
-    "metabolomics":metabolomics_df,
-}
-
-quant_value_range_dict = {
-    "proteomics":proteomics_quant_range,
-    "lipidomics":lipidomics_quant_range,
-    "metabolomics":metabolomics_quant_range,
-}
+from app import dataset_dict, df_dict, quant_value_range_dict, global_names_dict
+from app import metabolomics_biomolecule_names_dict
+from app import lipidomics_biomolecule_names_dict
+from app import proteomics_biomolecule_names_dict
+from app import transcriptomics_biomolecule_names_dict
 
 global_names_dict = {
     "proteomics":proteomics_biomolecule_names_dict,

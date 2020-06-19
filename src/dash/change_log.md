@@ -50,6 +50,10 @@ As of 6/16/20:
 - Add transcriptomics data to PCA and linear regression pages
 - Add ome prefix with for drop down menu
 
+As of 6/17/20:
+- Add transcriptomics data to differential_expression page
+- Add downsampling function for volcano plot
+
 To do:
 - Add horizontal scroll in drop down menu
 - Add option to color PCA scores by HFD
