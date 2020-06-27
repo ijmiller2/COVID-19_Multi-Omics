@@ -283,3 +283,17 @@
 # output:
 # - Covid-19 Study DB.sqlite with modified metadata table 
 
+## 15_Volcano_plots_for_Trent_for_Fig3.R 
+# description: Trent provided me a list of proteomics features that were important 
+# to specific pathways (coagulation, etc), this script plots those features relative 
+# the rest of the proteome in a volcano plot for COVID status. 
+# date created: 6/27/20
+# date last modified: 6/27/20
+# input: 
+# - "data/Proteins grouped for Fig 3 Volcano Plots.csv"
+# - Covie-19 Study DB.sqlite
+# - "data/COVID_fc_by_biomolecule_ID.csv"
+# output:
+# - plots/
+
+
