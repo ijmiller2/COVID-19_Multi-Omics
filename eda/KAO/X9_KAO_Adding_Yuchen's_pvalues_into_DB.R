@@ -179,6 +179,15 @@ compare_lr <- function(biomolecule_id, formula_null, formula_test, data, return 
   if(return == 'pvalue') lrt_pvalue else if(return == 'both') c(lratio = lrt_lratio,pvalue = lrt_pvalue)
 }
 
+lm_coefficients <- function(biomolecule_id, formula_test, data, return_first = T, return_category = NULL){
+  lm_formula_test <- lm(formula_test, data = scale(data[data$biomolecule_id == biomolecule_id, ]))
+  if(return_first == T){
+    c(coefficent =  summary(lm_formula_test)$coefficients[2,3], pvalue = summary(lm_formula_test)$coefficients[2,4])
+  } else if (!is.null(return_category) & return_category %in% row.names(summary(lm_formula_test)$coefficients)){
+    index <- match(return_category, row.names(summary(lm_formula_test)$coefficients))
+    c(coeficient =  summary(lm_formula_test)$coefficients[index,3], pvalue = summary(lm_formula_test)$coefficients[index,4])
+  }
+}
 
 #### Establish a connection to the DB #####
 con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
@@ -187,45 +196,45 @@ con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multi
 
 dbListTables(con)
 
-df_metabolites<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, metabolomics_measurements.biomolecule_id, COVID, Age_less_than_90, ICU_1, Charlson_score, SOFA, APACHEII, Hospital_free_days_45
+df_metabolites<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, metabolomics_measurements.biomolecule_id, COVID, Age_less_than_90, ICU_1, Charlson_score, Gender, SOFA, APACHEII, Hospital_free_days_45
            FROM metabolomics_measurements
            INNER JOIN metabolomics_runs ON metabolomics_runs.replicate_id = metabolomics_measurements.replicate_id
            INNER JOIN rawfiles ON rawfiles.rawfile_id = metabolomics_runs.rawfile_id
            INNER JOIN deidentified_patient_metadata ON deidentified_patient_metadata.sample_id = rawfiles.sample_id
            INNER JOIN biomolecules on biomolecules.biomolecule_id = metabolomics_measurements.biomolecule_id
-           WHERE rawfiles.keep = 1  
+           WHERE rawfiles.keep = 1
            AND biomolecules.keep = '1'
            ")
 
-df_lipids<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, lipidomics_measurements.biomolecule_id, COVID, Age_less_than_90, ICU_1, Charlson_score, SOFA, APACHEII, Hospital_free_days_45
+df_lipids<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, lipidomics_measurements.biomolecule_id, COVID, Age_less_than_90, ICU_1, Charlson_score, Gender, SOFA, APACHEII, Hospital_free_days_45
            FROM lipidomics_measurements
            INNER JOIN lipidomics_runs ON lipidomics_runs.replicate_id = lipidomics_measurements.replicate_id
            INNER JOIN rawfiles ON rawfiles.rawfile_id = lipidomics_runs.rawfile_id
            INNER JOIN deidentified_patient_metadata ON deidentified_patient_metadata.sample_id = rawfiles.sample_id
            INNER JOIN biomolecules on biomolecules.biomolecule_id = lipidomics_measurements.biomolecule_id
-           WHERE rawfiles.keep = 1  
+           WHERE rawfiles.keep = 1
            AND biomolecules.keep = '1'
            ")
 
 
-df_proteins<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, proteomics_measurements.biomolecule_id, COVID, Age_less_than_90, ICU_1, Charlson_score, SOFA, APACHEII, Hospital_free_days_45
+df_proteins<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, proteomics_measurements.biomolecule_id, COVID, Age_less_than_90, ICU_1, Charlson_score, Gender, SOFA, APACHEII, Hospital_free_days_45
            FROM proteomics_measurements
            INNER JOIN proteomics_runs ON proteomics_runs.replicate_id = proteomics_measurements.replicate_id
            INNER JOIN rawfiles ON rawfiles.rawfile_id = proteomics_runs.rawfile_id
            INNER JOIN deidentified_patient_metadata ON deidentified_patient_metadata.sample_id = rawfiles.sample_id
            INNER JOIN biomolecules on biomolecules.biomolecule_id = proteomics_measurements.biomolecule_id
-           WHERE rawfiles.keep = 1  
+           WHERE rawfiles.keep = 1
            AND biomolecules.keep = '1'
            ")
 
 
-df_transcripts<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, transcriptomics_measurements.biomolecule_id, COVID, Age_less_than_90, ICU_1, Charlson_score, SOFA, APACHEII, Hospital_free_days_45
+df_transcripts<- dbGetQuery(con, "SELECT deidentified_patient_metadata.sample_id, normalized_abundance, transcriptomics_measurements.biomolecule_id, COVID, Age_less_than_90, ICU_1, Charlson_score, Gender, SOFA, APACHEII, Hospital_free_days_45
            FROM transcriptomics_measurements
            INNER JOIN transcriptomics_runs ON transcriptomics_runs.replicate_id = transcriptomics_measurements.replicate_id
            INNER JOIN rawfiles ON rawfiles.rawfile_id = transcriptomics_runs.rawfile_id
            INNER JOIN deidentified_patient_metadata ON deidentified_patient_metadata.sample_id = rawfiles.sample_id
            INNER JOIN biomolecules on biomolecules.biomolecule_id = transcriptomics_measurements.biomolecule_id
-           WHERE rawfiles.keep = 1  
+           WHERE rawfiles.keep = 1
            AND biomolecules.keep = '1'
            ")
 dbDisconnect(con)
@@ -236,11 +245,11 @@ df <- df[df$sample_id != 54, ]
 
 #### Creating dataframe to hold pvalues #######
 
-df_pvalues <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "Hospital_free_days_45", formula = "Hospital_free_days_45 ~ normalized_abundance + COVID + Age_less_than_90 + Charlson_score + SOFA + APACHEII vs. Hospital_free_days_45 ~COVID + Age_less_than_90 + Charlson_score + SOFA + APACHEII ")
+df_pvalues <- data.frame(biomolecule_id = unique(df$biomolecule_id), test = "LR_test", comparison = "Hospital_free_days_45", formula = "Hospital_free_days_45 ~ normalized_abundance + Age_less_than_90 + Gender vs. Hospital_free_days_45 ~ Age_less_than_90 + Gender")
 
-p_value <- apply(df_pvalues, 1, function(x)  
-  compare_lr(as.numeric(x[1]), formula_null = Hospital_free_days_45 ~ COVID + Age_less_than_90 + Charlson_score + SOFA + APACHEII, 
-             formula_test = Hospital_free_days_45 ~ normalized_abundance + COVID + Age_less_than_90 + Charlson_score + SOFA + APACHEII ,
+p_value <- apply(df_pvalues, 1, function(x)
+  compare_lr(as.numeric(x[1]), formula_null = Hospital_free_days_45 ~ Age_less_than_90 + Gender,
+             formula_test = Hospital_free_days_45 ~ normalized_abundance + Age_less_than_90 + Gender,
              data = df, return = 'both'))
 
 df_pvalues$effect_size <- p_value[1,]
@@ -252,11 +261,11 @@ df_pvalues <- cbind(pvalue_id = row.names(df_pvalues), df_pvalues)
 df_pvalues$pvalue_id <- seq(nrow(pvalues)+1, length.out = nrow(df_pvalues), by =1 )
 
 hist(df_pvalues$p_value)
-
-## Establish a connection to the DB 
+#
+# ## Establish a connection to the DB 
 con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
 
-## write table to DB 
+## write table to DB
 
 dbWriteTable(con, "pvalues", df_pvalues, append = T)
 
@@ -264,4 +273,4 @@ dbWriteTable(con, "pvalues", df_pvalues, append = T)
 pvalues <- dbReadTable(con, "pvalues")
 
 # disconnect
-dbDisconnect(con) 
+dbDisconnect(con)

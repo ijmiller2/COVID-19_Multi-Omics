@@ -251,5 +251,49 @@
 # output: 
 # - plots/
 
+## 13_KAO_calculating_FC_for_COVID.R
+# description: calculates FC for COVID vs. non-COVID in the same 
+#   manner as Ian's webtool (also see dash/plots.py)
+# date created: 6/25/20
+# date last modified: 6/25/20
+# input:
+# - Covid-19 Study DB.sqlite
+# output: 
+# - data/COVID_fc_by_biomolecule_ID.csv
+
+## 14_KAO_figure_2_version_1.R
+# description: This is a script which is intended to combine different 
+#  omes data into one (or multiple) biological stories. Presents high level
+#  view of the data and does GO enrichment. 
+# date created: 6/24/20
+# date last modified: 6/26/20
+# input: 
+# - Covid-19 Study DB.sqlite
+# output:
+# - plots/ 
+
+## X11_Adding_GO_terms_for_transcripts_into_db.R
+# decription: I used Uniprot to collect GO terms for transcripts. this script adds
+#   those GO terms for biological processes into the db. 
+# date created: 6/26/20
+# date last modified: 6/26/20
+# input:
+# - "data/uniprot-genelist.tab", generated 2020-06-25 from uniprot webtool
+# -  Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite with modified metadata table 
+
+## 15_Volcano_plots_for_Trent_for_Fig3.R 
+# description: Trent provided me a list of proteomics features that were important 
+# to specific pathways (coagulation, etc), this script plots those features relative 
+# the rest of the proteome in a volcano plot for COVID status. 
+# date created: 6/27/20
+# date last modified: 6/27/20
+# input: 
+# - "data/Proteins grouped for Fig 3 Volcano Plots.csv"
+# - Covie-19 Study DB.sqlite
+# - "data/COVID_fc_by_biomolecule_ID.csv"
+# output:
+# - plots/
 
 

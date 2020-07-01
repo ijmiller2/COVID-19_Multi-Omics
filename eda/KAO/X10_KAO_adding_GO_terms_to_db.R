@@ -26,15 +26,6 @@ GO_terms <- read.csv("P:/All_20200428_COVID_plasma_multiomics/Proteomics/uniprot
 dim(GO_terms) #513
 names(GO_terms)
 
-GO_terms$Gene.ontology..biological.process.<- sub("[", "", GO_terms$Gene.ontology..biological.process. , fixed =T )
-GO_terms$Gene.ontology..biological.process.<- sub("]", "", GO_terms$Gene.ontology..biological.process. , fixed =T )
-
-GO_terms$Gene.ontology..cellular.component. <- sub("[", "", GO_terms$Gene.ontology..cellular.component. , fixed =T )
-GO_terms$Gene.ontology..cellular.component.<- sub("]", "", GO_terms$Gene.ontology..cellular.component. , fixed =T )
-
-GO_terms$Gene.ontology..molecular.function. <- sub("[", "", GO_terms$Gene.ontology..molecular.function. , fixed =T )
-GO_terms$Gene.ontology..molecular.function. <- sub("]", "", GO_terms$Gene.ontology..molecular.function. , fixed =T )
-
 GO_terms$yourlist <- apply(GO_terms, 1, function(x) strsplit(x[8], ";")[[1]][1])
 
 #### extracting out first uniprot_id from standardized_name to match with Anji's table #### 
