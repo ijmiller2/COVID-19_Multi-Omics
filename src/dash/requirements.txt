@@ -9,7 +9,9 @@ pandas==1.0.3
 plotly==4.7.1
 sklearn==0.0
 sqlalchemy
-plotly-orca==1.2.1
+#plotly-orca==1.2.1
 psutil==5.7.0
 requests==2.23.0
 scipy==1.2
+dash_bio==0.4.8
+statsmodels==0.11.1

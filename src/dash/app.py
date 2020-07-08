@@ -68,5 +68,6 @@ global_names_dict = {
     "transcriptomics":transcriptomics_biomolecule_names_dict,
     "combined":{**proteomics_biomolecule_names_dict,
                 **lipidomics_biomolecule_names_dict,
-                **metabolomics_biomolecule_names_dict}
+                **metabolomics_biomolecule_names_dict,
+               **transcriptomics_biomolecule_names_dict}
 }

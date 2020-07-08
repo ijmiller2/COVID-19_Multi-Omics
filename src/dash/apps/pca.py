@@ -41,7 +41,7 @@ print("Loading transcriptomics data...")
 from app import transcriptomics_df, transcriptomics_quant_range
 print("Transcriptomics data shape: {}".format(transcriptomics_df.shape))
 
-available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Combined Biomolecules', 'Transcripts']
+available_datasets = ['Proteins', 'Lipids', 'Metabolites', 'Transcripts', 'Combined Biomolecules']
 
 # define dataset dictionaries
 from app import dataset_dict, df_dict, quant_value_range_dict, global_names_dict
@@ -310,6 +310,7 @@ def update_pca_loadings_plot(dataset_id, biomolecule_id):
         ome_type_list = ['proteomics'] * quant_value_range_dict['proteomics']
         ome_type_list.extend(['lipidomics'] * quant_value_range_dict['lipidomics'])
         ome_type_list.extend(['metabolomics'] * quant_value_range_dict['metabolomics'])
+        ome_type_list.extend(['transcriptomics'] * quant_value_range_dict['transcriptomics'])
 
     # get biomolecule index
     biomolecule_index = df.columns.tolist().index(biomolecule_id)
