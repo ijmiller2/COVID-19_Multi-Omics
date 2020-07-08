@@ -3,7 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import pca, differential_expression, linear_regression
+from apps import pca, differential_expression, linear_regression, clustergrammer
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -26,6 +26,9 @@ def display_page(pathname):
 
     elif pathname == '/linear_regression':
         return linear_regression.layout
+    
+    elif pathname == '/clustergrammer':
+        return clustergrammer.layout
 
     else:
         return '404'

@@ -153,21 +153,16 @@ layout = dbc.Container([
                     id="tooltip-lr",
                     style={"cursor": "pointer", "color":"grey"},
                 ),disabled=False, href="linear_regression")),
-
-        dbc.NavItem(dbc.NavLink("Differential Expression", active=True, href="differential_expression", style={"background-color":"grey"})),
-
+        
         dbc.NavItem(dbc.NavLink(
-            html.Span(
-                    "Pathway Analysis",
-                    id="tooltip-pa",
-                    style={"cursor":"pointer", "color":"grey"},
-                ),disabled=False, href="#")),
 
-        # tooltip for pathway analysis
-        dbc.Tooltip(
-        "Coming Soon!",
-        target="tooltip-pa"
-        ),
+            html.Span(
+                    "Differential Expression",
+                    id="tooltip-lr",
+                    style={"cursor": "pointer", "color":"grey"},
+                ),disabled=False, href="differential_expression")),
+
+        dbc.NavItem(dbc.NavLink("Clustergrammer", active=True, href="clustergrammer", style={"background-color":"grey"})),
 
         html.Hr(),
         control_panel
@@ -189,8 +184,15 @@ layout = dbc.Container([
     [Input('dataset-hm', 'value')])
 def update_heatmap(dataset):
 
-    url = "http://amp.pharm.mssm.edu/clustergrammer/viz_sim_mats/5eebd2838ec9bb187b3dd1be/medium_250x12_clustergrammer_matrix.txt"
-    print("Running callback with {}".format(dataset))
+    url_dict = {
+    "Proteins": "http://amp.pharm.mssm.edu/clustergrammer/viz/5eed203e8ec9bb2d622075e9/proteomics.txt",
+    "Lipids": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061a208ec9bb6fb2f14a1d/lipidomics.txt",
+    "Metabolites": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061c7f8ec9bb6fb2f14a37/metabolomics.txt",
+    "Transcripts": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061cfc8ec9bb6fb2f14a45/transcriptomics.txt"
+
+    }
+
+    url = url_dict[dataset]
 
     return url
 

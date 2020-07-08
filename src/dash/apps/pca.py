@@ -215,16 +215,10 @@ layout = dbc.Container([
 
                 dbc.NavItem(dbc.NavLink(
                     html.Span(
-                            "Pathway Analysis",
-                            id="tooltip-pa",
+                            "Clustergrammer",
+                            id="tooltip-cg",
                             style={"cursor":"pointer", "color":"grey"},
-                        ),disabled=False, href="#")),
-
-        # tooltip for pathway analysis
-        dbc.Tooltip(
-        "Coming Soon!",
-        target="tooltip-pa"
-        ),
+                        ),disabled=False, href="clustergrammer")),
 
         html.Hr(),
         control_panel
