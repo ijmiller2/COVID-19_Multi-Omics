@@ -163,7 +163,7 @@ for(i in c(118)){
   
   plot(m$FC[!unknown], -log(m$q_value)[!unknown], 
        pch = 19, col = "gray70",
-       ylim = c(0, 40), xlim = c(-4, 6),
+       ylim = c(0, 25), xlim = c(-4, 6),
        main = paste(enrichment_significant_up_COVID[i,1]), 
        ylab = "-log(adjusted p-value of likelyhood ratio)",
        xlab = "log2(abundance COVID-19 positive/COVID-19 negative)",
@@ -179,7 +179,7 @@ for(i in c(313)){
   
   plot(m$FC[!unknown], -log(m$q_value)[!unknown], 
        pch = 19, col = "gray70",
-       ylim = c(0, 40), xlim = c(-4, 6),
+       ylim = c(0, 25), xlim = c(-4, 6),
        main = paste(enrichment_significant_up_COVID[i,1]), 
        ylab = "-log(adjusted p-value of likelyhood ratio)",
        xlab = "log2(abundance COVID-19 positive/COVID-19 negative)",
@@ -195,7 +195,7 @@ for(i in c(4)){
   
   plot(m$FC[!unknown], -log(m$q_value)[!unknown], 
        pch = 19, col = "gray70",
-       ylim = c(0, 40), xlim = c(-4, 6),
+       ylim = c(0, 25), xlim = c(-4, 6),
        main = paste(enrichment_significant_up_COVID[i,1]), 
        ylab = "-log(adjusted p-value of likelyhood ratio)",
        xlab = "log2(abundance COVID-19 positive/COVID-19 negative)",
@@ -205,12 +205,12 @@ for(i in c(4)){
   
 }
 
-for(i in c(820)){
+for(i in c(28)){
   up <- class_and_GO_bp[[enrichment_significant_up_COVID[i,1]]]
   
   plot(m$FC[!unknown], -log(m$q_value)[!unknown], 
        pch = 19, col = "gray70",
-       ylim = c(0, 40), xlim = c(-4, 6),
+       ylim = c(0, 25), xlim = c(-4, 6),
        main = paste(enrichment_significant_up_COVID[i,1]), 
        ylab = "-log(adjusted p-value of likelyhood ratio)",
        xlab = "log2(abundance COVID-19 positive/COVID-19 negative)",
@@ -226,7 +226,7 @@ for(i in c(56)){
   
   plot(m$FC[!unknown], -log(m$q_value)[!unknown], 
        pch = 19, col = "gray70",
-       ylim = c(0, 40), xlim = c(-4, 6),
+       ylim = c(0, 25), xlim = c(-4, 6),
        main = paste(enrichment_significant_up_COVID[i,1]), 
        ylab = "-log(adjusted p-value of likelyhood ratio)",
        xlab = "log2(abundance COVID-19 positive/COVID-19 negative)",
@@ -242,7 +242,7 @@ for(i in c(62)){
   
   plot(m$FC[!unknown], -log(m$q_value)[!unknown], 
        pch = 19, col = "gray70",
-       ylim = c(0, 40), xlim = c(-4, 6),
+       ylim = c(0, 25), xlim = c(-4, 6),
        main = paste(enrichment_significant_up_COVID[i,1]), 
        ylab = "-log(adjusted p-value of likelyhood ratio)",
        xlab = "log2(abundance COVID-19 positive/COVID-19 negative)",
@@ -253,3 +253,26 @@ for(i in c(62)){
 }
 
 dev.off()
+
+for(i in c(2889)){
+  up <- class_and_GO_bp[[enrichment_significant_up_COVID[i,1]]]
+  
+  plot(m$FC[!unknown], -log(m$q_value)[!unknown], 
+       pch = 19, col = "gray70",
+       ylim = c(0, 40), xlim = c(-4, 6),
+       main = paste(enrichment_significant_up_COVID[i,1]), 
+       ylab = "-log(adjusted p-value of likelyhood ratio)",
+       xlab = "log2(abundance COVID-19 positive/COVID-19 negative)",
+       las = 1, bty = "l", cex.axis = 1.2)
+  points(m$FC[m$biomolecule_id %in% up], -log(m$q_value)[m$biomolecule_id %in% up], 
+         pch = 19, col = colors[c(12,9,10,11,11)][m$omics_id[m$biomolecule_id %in% up]])
+  
+}
+
+enrichment_significant_up_COVID_protein <- enrichment(m$biomolecule_id[m$q_value < 0.05 & m$FC > 0 & m$omics_id == 1], class_and_GO_bp, m$biomolecule_id)
+enrichment_significant_down_COVID_protein <- enrichment(m$biomolecule_id[m$q_value < 0.05 & m$FC < 0 & m$omics_id == 1], class_and_GO_bp, m$biomolecule_id)
+
+enrichment_significant_up_COVID_transcipts <- enrichment(m$biomolecule_id[m$q_value < 0.05 & m$FC > 0 & m$omics_id == 5], class_and_GO_bp, m$biomolecule_id)
+enrichment_significant_down_COVID_transcripts <- enrichment(m$biomolecule_id[m$q_value < 0.05 & m$FC < 0 & m$omics_id == 5], class_and_GO_bp, m$biomolecule_id)
+
+write.csv(cbind(enrichment_significant_up_COVID_protein, enrichment_significant_down_COVID_protein, enrichment_significant_up_COVID_transcipts, enrichment_significant_down_COVID_transcripts), file = "data/differences_COVID_enrichment_proteins_transcipts.csv")
