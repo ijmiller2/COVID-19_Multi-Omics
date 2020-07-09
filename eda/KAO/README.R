@@ -266,7 +266,7 @@
 #  omes data into one (or multiple) biological stories. Presents high level
 #  view of the data and does GO enrichment. 
 # date created: 6/24/20
-# date last modified: 6/26/20
+# date last modified: 7/9/20
 # input: 
 # - Covid-19 Study DB.sqlite
 # output:
@@ -288,12 +288,21 @@
 # to specific pathways (coagulation, etc), this script plots those features relative 
 # the rest of the proteome in a volcano plot for COVID status. 
 # date created: 6/27/20
-# date last modified: 6/27/20
+# date last modified: 7/9/20
 # input: 
 # - "data/Proteins grouped for Fig 3 Volcano Plots.csv"
-# - Covie-19 Study DB.sqlite
+# - Covid-19 Study DB.sqlite
 # - "data/COVID_fc_by_biomolecule_ID.csv"
 # output:
 # - plots/
 
-
+## 16_KAO_merging_CD3.1_results_with_Lipidex_output.R 
+# description: for supplementary table with unknown matches to CD3.1 searching. 
+#   this script connects CD3.1 results by mz and RT to the lipids unknowns table.
+# date created: 7/9/20
+# date last modified: 7/9/20
+# input:
+# - "P:/All_20200428_COVID_plasma_multiomics/Lipidomics/CD3_all_discovery_metabolomics_filtered.csv"
+# - Covid-19 Study DB.sqlite
+# output:
+# - "data/Sup_table_2_merge_unknowns.csv"
