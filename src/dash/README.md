@@ -16,3 +16,6 @@
 - Or reattach to screen: `screen -ls` + `scree -r $screen_id`
 - `/root/anaconda3/bin/python index.py`
 - Detach from screen: `screen cntrl+a cntrl+d`
+
+5. Running with gunicorn:
+- `gunicorn index:server -b 0.0.0.0:8050 --timeout=180`
