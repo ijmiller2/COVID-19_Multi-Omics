@@ -27,13 +27,19 @@ enrichment <- function(set, reference_sets, background){
   nbackground <- length(background)
   background <- as.character(background)  
   output <- data.frame(reference = names(reference_sets), 
-                       pvalue = rep(1, length(names(reference_sets))), 
+                       pvalue = rep(NA, length(names(reference_sets))), 
                        fdr_pvalue = rep(NA, length(names(reference_sets))),
+                       n_subset = rep(NA, length(names(reference_sets))),
+                       n_total = rep(NA, length(names(reference_sets))),
+                       subset = rep(NA, length(names(reference_sets))),
                        stringsAsFactors = F)
   for (i in 1:nrow(output)){
     hits <- length(intersect(set, reference_sets[[output[i,1]]]))
     hitsBackground <- length(intersect(background, reference_sets[[output[i,1]]]))
     if (hits > 0){
+      output$n_subset[i] <- hits
+      output$n_total[i] <- hitsBackground
+      output$subset[i] <- paste(intersect(set, reference_sets[[output[i, 1]]]), sep = "; ", collapse = ";")
       output$pvalue[i] <- phyper(hits-1, hitsBackground, length(background) - hitsBackground, length(set), lower.tail = F)
     } 
     if (length(reference_sets[[output[i,1]]]) == 1){

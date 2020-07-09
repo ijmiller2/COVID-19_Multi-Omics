@@ -9,6 +9,7 @@ source("eda/KAO/0_pathway_toolkit.R")
 library(pheatmap)
 library(ellipse)
 library(scales)
+
 colors <- read.csv("reference/color_palette.txt",  stringsAsFactors = F)[,2]
 palette(colors)
 
@@ -209,8 +210,19 @@ table(m$q_value[unknown] < 0.05)
 con <- dbConnect(RSQLite::SQLite(), dbname = "P:/All_20200428_COVID_plasma_multiomics/SQLite Database/Covid-19 Study DB.sqlite")
 
 # pull
-metadata_GO_bp <- dbGetQuery(con, "SELECT * FROM metadata WHERE metadata_type = 'GO_biological_process'")
-metadata_class <- dbGetQuery(con, "SELECT * FROM metadata WHERE metadata_type = 'Larger_class' OR metadata_type = 'Lipid Class'")
+metadata_GO_bp <- dbGetQuery(con, "SELECT metadata_type, metadata_value, metadata.biomolecule_id, standardized_name 
+                              FROM metadata 
+                              INNER JOIN biomolecules ON metadata.biomolecule_id = biomolecules.biomolecule_id
+                             WHERE metadata_type = 'GO_biological_process'")
+metadata_class <- dbGetQuery(con, "SELECT metadata_type, metadata_value, metadata.biomolecule_id, standardized_name 
+                              FROM metadata 
+                              INNER JOIN biomolecules ON metadata.biomolecule_id = biomolecules.biomolecule_id
+                             WHERE metadata_type = 'Larger_class' OR metadata_type = 'Lipid Class'")
+
+metadata_geneName <- dbGetQuery(con, "SELECT metadata_type, metadata_value, metadata.biomolecule_id, standardized_name 
+                              FROM metadata 
+                              INNER JOIN biomolecules ON metadata.biomolecule_id = biomolecules.biomolecule_id
+                             WHERE metadata_type = 'gene_name'")
 
 # disconnect
 dbDisconnect(con) 
@@ -224,12 +236,31 @@ metadata_class$metadata_value <- paste(metadata_class$metadata_value,"[Metabolit
 ##### make reference set with go term bp and class info #### 
 metadata_GO_bp_class<- rbind(metadata_GO_bp, metadata_class)
 
+
 class_and_GO_bp <- make_reference_sets(metadata_GO_bp_class$metadata_value, metadata_GO_bp_class$biomolecule_id)
+
+class_and_GO_bp_standardized_names <- make_reference_sets(metadata_GO_bp_class$metadata_value, metadata_GO_bp_class$standardized_name)
 
 #### performing enrichment based LR test significant for COVID #### 
 enrichment_significant_up_COVID <- enrichment(m$biomolecule_id[m$q_value < 0.05 & m$FC > 1], class_and_GO_bp, m$biomolecule_id)
 enrichment_significant_down_COVID <- enrichment(m$biomolecule_id[m$q_value < 0.05 & m$FC < -1], class_and_GO_bp, m$biomolecule_id)
 
+length(m$biomolecule_id[m$q_value < 0.05 & m$FC > 1]) #586
+length(m$biomolecule_id[m$q_value < 0.05 & m$FC < -1]) #383
+
+enrichment_significant_up_COVID_std <- enrichment(m$standardized_name[m$q_value < 0.05 & m$FC > 1], class_and_GO_bp_standardized_names, m$standardized_name)
+enrichment_significant_down_COVID_std <- enrichment(m$standardized_name[m$q_value < 0.05 & m$FC < -1], class_and_GO_bp_standardized_names, m$standardized_name)
+
+
+write.csv(cbind(enrichment_significant_up_COVID_std, enrichment_significant_down_COVID_std), "data/enrichment_significant_COVID.csv")
+
+enrichment_significant_up_COVID_protein <- enrichment(m$standardized_name[m$q_value < 0.05 & m$FC > 0 & m$omics_id == 1], class_and_GO_bp_standardized_names, m$standardized_name)
+enrichment_significant_down_COVID_protein <- enrichment(m$standardized_name[m$q_value < 0.05 & m$FC < 0 & m$omics_id == 1], class_and_GO_bp_standardized_names, m$standardized_name)
+
+enrichment_significant_up_COVID_transcipts <- enrichment(m$standardized_name[m$q_value < 0.05 & m$FC > 0 & m$omics_id == 5], class_and_GO_bp_standardized_names, m$standardized_name)
+enrichment_significant_down_COVID_transcripts <- enrichment(m$standardized_name[m$q_value < 0.05 & m$FC < 0 & m$omics_id == 5], class_and_GO_bp_standardized_names, m$standardized_name)
+
+write.csv(cbind(enrichment_significant_up_COVID_protein, enrichment_significant_down_COVID_protein, enrichment_significant_up_COVID_transcipts, enrichment_significant_down_COVID_transcripts), file = "data/differences_COVID_enrichment_proteins_transcipts_standardized_names.csv")
 
 pdf("plots/Fig2_KAO_GO_BP_Enrichment_based_on_UP_COVID_v2.pdf", width = 7, height = 6)
 par(mar = c(4,25,4,1), las  = 1, mgp = c(2.5,0.5,0), tcl =  -0.3, ps = 12)
@@ -327,8 +358,43 @@ table(pvalues_HFD$q_value[unknown_HFD] < 0.05)
 # FALSE  TRUE 
 # 1992   764
 
-table(m2$q_value.x[!unknown_m2] < 0.05, m2$q_value.y[!unknown_m2] < 0.05, m2$omics_id.x[!unknown_HFD])
+## direction of change for HFD ## 
+UP_with_severity <- colMeans(df_wide_exprs[bin_values <3, ]) >  colMeans(df_wide_exprs[bin_values > 7, ])
 
+direction_HFD <- data.frame(biomolecule_id = sub("normalized_abundance.", "", names(df_wide_exprs)), UP_with_severity = UP_with_severity)
+
+m3 <- merge(m2, direction_HFD, by = "biomolecule_id")
+m4 <- merge(m3, metadata_geneName, by = "biomolecule_id", all.x = T)
+
+#### enrichment analysis for p-values of HFD ####
+enrichment_significant_up_HFD <- enrichment(m3$biomolecule_id[m3$q_value.y < 0.05 & m3$UP_with_severity], class_and_GO_bp, m3$biomolecule_id)
+enrichment_significant_down_HFD <- enrichment(m3$biomolecule_id[m3$q_value.y < 0.05 & !m3$UP_with_severity], class_and_GO_bp, m3$biomolecule_id)
+
+pdf("plots/Fig2_KAO_GO_BP_Enrichment_based_on_UP_Severity_v2.pdf", width = 7, height = 6)
+par(mar = c(4,25,4,1), las  = 1, mgp = c(2.5,0.5,0), tcl =  -0.3, ps = 12)
+
+barplot(-log10(enrichment_significant_up_HFD [order(enrichment_significant_up_HFD [,2]),2][1:30][30:1]), 
+        xlab ="-log10(q-value)", 
+        cex.names = 0.9, horiz = T, col = "black", 
+        names = enrichment_significant_up_HFD [order(enrichment_significant_up_HFD [,2]),1][1:30][30:1],
+        main = "Enrichment of molecule class and GO Biological processes\nbiomolecules significantly up with severity")
+dev.off()
+
+pdf("plots/Fig2_KAO_GO_BP_Enrichment_based_on_DOWN_severity_v2.pdf", width = 7, height = 6)
+par(mar = c(4,25,4,1), las  = 1, mgp = c(2.5,0.5,0), tcl =  -0.3, ps = 12)
+
+barplot(-log10(enrichment_significant_down_HFD[order(enrichment_significant_down_HFD[,2]),2][1:30][30:1]), 
+        xlab ="-log10(p-value)", 
+        cex.names = 0.9, horiz = T, col = "gray80", 
+        names = enrichment_significant_down_HFD[order(enrichment_significant_down_HFD[,2]),1][1:30][30:1],
+        main = "Enrichment of molecule class and GO Biological processes\nbiomolecules significantly down with severity")
+
+dev.off()
+
+
+#### BOTH HFD and COVID #### 
+
+table(m2$q_value.x[!unknown_m2] < 0.05, m2$q_value.y[!unknown_m2] < 0.05, m2$omics_id.x[!unknown_HFD])
 
 # 
 #  = 1
@@ -356,14 +422,179 @@ table(m2$q_value.x[!unknown_m2] < 0.05, m2$q_value.y[!unknown_m2] < 0.05, m2$omi
 # FALSE  5355 5371
 # TRUE   1706  831
 
-both <- m2$biomolecule_id[m2$q_value.x < 0.05 & m2$q_value.y < 0.05] 
+#### Venn diagram both #### 
+
+library(VennDiagram)
+
+m2$omics_id.x[m2$omics_id.x == 4] <-3
+
+
+for (i in c(1,2,3,5)){
+
+pdf(paste("plots/overlap_COVID_HFD_",i,".pdf", sep=""))
+venn.plot <- draw.pairwise.venn(table(m2$q_value.y < 0.05 & m2$omics_id.x == i)[2], table(m2$q_value.x < 0.05 & m2$omics_id.x == i)[2], table(m2$q_value.x < 0.05 & m2$q_value.y < 0.05 & m2$omics_id.x == i)[2], fill = c("gray50",1),
+                                category= c("Associated with HFD-45", "Associated with COVID-19"), main = "Overlap genus")
+#grid.draw(venn.plot)
+dev.off()
+
+}
+
+pdf("plots/overlap_COVID_HFD.pdf", width =4, height =4)
+venn.plot <- draw.pairwise.venn(table(m2$q_value.y < 0.05)[2], table(m2$q_value.x < 0.05)[2], table(m2$q_value.x < 0.05 & m2$q_value.y < 0.05)[2], fill = c("gray50",1),
+                                category= c("Associated with HFD-45", "Associated with COVID-19"), main = "Overlap genus")
+dev.off()
+
+
+#### Heatmap with HFD and COVID #####
+
+both <- m2$biomolecule_id[!grepl("nknown", m3$standardized_name.x) & (m3$q_value.x < 0.05 & m3$FC > 1 & m3$q_value.y < 0.05 & m3$UP_with_severity) | (m3$q_value.x < 0.05 & m3$FC < -1 & m3$q_value.y < 0.05 & !m3$UP_with_severity)] 
 
 names(df_wide_exprs) <- sub("normalized_abundance.", "", names(df_wide_exprs)) 
 t_df_wide_exprs <- t(df_wide_exprs)
 
 table( row.names(t_df_wide_exprs) %in% both)
+# FALSE  TRUE 
+# 16806   481 
 
-m2$standardized_name.y[m2$q_value.x < 0.05 & m2$q_value.y < 0.05] 
-## heatmap 
+table(m3$omics_id.x, !grepl("nknown", m3$standardized_name.x) & (m3$q_value.x < 0.05 & m3$FC > 1 & m3$q_value.y < 0.05 & m3$UP_with_severity) | (m3$q_value.x < 0.05 & m3$FC < -1 & m3$q_value.y < 0.05 & !m3$UP_with_severity))
+# FALSE  TRUE
+# 5 12885   378
+# 1   496    21
+# 2  3275    82
+# 3   111     0
+# 4    39     0
 
-pheatmap(t_df_wide_exprs[row.names(t_df_wide_exprs) %in% both, ], scale = "row")
+
+#### Elastic Net results #### 
+
+EN <- do.call(rbind, lapply(list.files("./data/ElasticNet", "tsv", recursive = T, full.names=TRUE), read.delim, stringsAsFactors = F))
+names(EN) <- c("standardized_name", "EN_coefficient")
+EN_merge <- merge(m4, EN, by.x = "standardized_name.x", by.y = 1, all.x = T)
+
+names(EN_merge)
+
+EN_merge <- EN_merge[,c(1,2,8,9,10,18,24,25,29,31,33)]
+names(EN_merge) <- sub(".x", ".COVID", names(EN_merge), fixed = T)
+names(EN_merge) <- sub(".y", ".HFD", names(EN_merge), fixed = T)
+
+table(!is.na(EN_merge$EN_coefficient) & !(grepl("nknown", EN_merge$standardized_name.COVID)), EN_merge$omics_id.COVID)
+
+## Joint Venn Diagram 
+
+biomolecules_COVID <- EN_merge$biomolecule_id[EN_merge$q_value.COVID < 0.05]
+biomolecules_HFD <- EN_merge$biomolecule_id[EN_merge$q_value.HFD < 0.05]
+biomolecule_EN <- EN_merge$biomolecule_id[!is.na(EN_merge$EN_coefficient)]
+
+biomolecule_intersect <- Reduce(intersect, list(biomolecule_EN, biomolecules_COVID, biomolecules_HFD))
+
+length(biomolecule_intersect) #248
+
+## with same directions 
+
+#up
+biomolecules_COVID_up <- EN_merge$biomolecule_id[EN_merge$q_value.COVID < 0.05 & EN_merge$FC > 0]
+biomolecules_HFD_up <- EN_merge$biomolecule_id[EN_merge$q_value.HFD < 0.05 & EN_merge$UP_with_severity]
+biomolecule_EN_up <- EN_merge$biomolecule_id[!is.na(EN_merge$EN_coefficient) & EN_merge$EN_coefficient < 0]
+
+biomolecule_intersect_up <- Reduce(intersect, list(biomolecule_EN_up, biomolecules_COVID_up, biomolecules_HFD_up))
+
+length(biomolecule_intersect_up) #145
+
+#down
+biomolecules_COVID_down <- EN_merge$biomolecule_id[EN_merge$q_value.COVID < 0.05 & EN_merge$FC < 0]
+biomolecules_HFD_down <- EN_merge$biomolecule_id[EN_merge$q_value.HFD < 0.05 & !EN_merge$UP_with_severity]
+biomolecule_EN_down <- EN_merge$biomolecule_id[!is.na(EN_merge$EN_coefficient) & EN_merge$EN_coefficient > 0]
+
+biomolecule_intersect_down <- Reduce(intersect, list(biomolecule_EN_down, biomolecules_COVID_down, biomolecules_HFD_down))
+
+length(biomolecule_intersect_down) #74
+
+biomolecule_interest_directional <- c(biomolecule_intersect_down, biomolecule_intersect_up)
+biomolecule_unkowns <- EN_merge$biomolecule_id[grepl("nknown", EN_merge$standardized_name.COVID)]
+
+length(setdiff(biomolecule_interest_directional, biomolecule_unkowns)) #132
+pdf("plots/overlap_COVID_HFD_EN.pdf")
+
+venn.plot <- draw.triple.venn(
+  area1 = length(c(biomolecules_COVID_down, biomolecules_COVID_up)),
+  area2 = length(c(biomolecules_HFD_down, biomolecules_HFD_up)),
+  area3 = length(c(biomolecule_EN_down, biomolecule_EN_up)), 
+  n12 = length(c(intersect(biomolecules_COVID_down,biomolecules_HFD_down), intersect(biomolecules_COVID_up, biomolecules_HFD_up))), 
+  n23 = length(c(intersect(biomolecules_HFD_down, biomolecule_EN_down), intersect(biomolecules_HFD_up, biomolecule_EN_up))),
+  n13 = 
+    length(c(intersect(biomolecules_COVID_down, biomolecule_EN_down), intersect(biomolecules_COVID_up, biomolecule_EN_up))),
+  n123 = length(biomolecule_interest_directional),
+  fontfamily = rep("",7),
+  cat.fontfamily = rep("", 3),
+  main.fontfamily = "",
+  fill = c("gray40", "gray40", "gray40"),
+  category= c( "Associated with COVID-19", "Associated with HFD-45", "Elastic Net feature selection"), 
+  main = "High interest features")
+dev.off()
+
+#### EN heatmap #####
+
+annotation_row <- data.frame(omics_id = m2$omics_id.x)
+row.names(annotation_row) <- m2$biomolecule_id
+
+annotation_col <- data.frame(COVID = df_wide_all$COVID, 
+                             HFD = bin_values)
+row.names(annotation_col) <- row.names(df_wide_all)
+
+# annotation colors 
+annotation_colors <- list(omics_id = colors[c(12,9,10,11,11)], 
+                          COVID = colors[c(3,1)], 
+                          HFD = colorRampPalette(c("black", "gray75"))(9))
+
+names(annotation_colors[["omics_id"]]) <- as.character(levels(annotation_row$omics_id))
+names(annotation_colors[["COVID"]]) <- as.character(levels(annotation_col$COVID))
+names(annotation_colors[["HFD"]]) <- as.character(levels(annotation_col$HFD))
+
+pdf("plots/heatmap_bothHFD_COVID_significant_Fig2_no_unknowns_includes_ENFilter.pdf")
+pheatmap((t_df_wide_exprs[row.names(t_df_wide_exprs) %in% setdiff(biomolecule_interest_directional, biomolecule_unkowns), ]), 
+         scale = "row",
+         breaks = c(-10, -5, seq(-2,2,length.out = 16),5, 10),
+         color = colorRampPalette(c(3,"gray90",1))(20),
+         clustering_method = "ward.D2",
+         annotation_col = annotation_col, annotation_row =annotation_row,
+         annotation_colors = annotation_colors,
+         show_rownames = F,
+         show_colnames = F
+         )
+dev.off()
+
+### enrichment 
+enrichment_significant_both <- enrichment(biomolecule_interest_directional, class_and_GO_bp, m3$biomolecule_id)
+enrichment_intersect_down <- enrichment(biomolecule_intersect_down, class_and_GO_bp, m3$biomolecule_id)
+enrichment_intersect_up <- enrichment(biomolecule_intersect_up, class_and_GO_bp, m3$biomolecule_id)
+
+enrichment_intersect_up[5,]
+
+enrichment_intersect_down_std <- enrichment(EN_merge$standardized_name.COVID[EN_merge$biomolecule_id %in% biomolecule_intersect_down], class_and_GO_bp_standardized_names, EN_merge$standardized_name.COVID)
+enrichment_intersect_up_std <- enrichment(EN_merge$standardized_name.COVID[EN_merge$biomolecule_id %in% biomolecule_intersect_up], class_and_GO_bp_standardized_names, EN_merge$standardized_name.COVID)
+
+
+pdf("plots/Fig2_KAO_GO_BP_Enrichment_based_on_UP_intersect.pdf", width = 7, height = 9)
+par(mar = c(4,25,4,1), las  = 1, mgp = c(2.5,0.5,0), tcl =  -0.3, ps = 12)
+par(mfrow = c(2,1))
+barplot(-log10(enrichment_intersect_up [order(enrichment_intersect_up[,2]),2][1:15][15:1]), 
+        xlab ="-log10(q-value)", 
+        cex.names = 0.9, horiz = T, col = 1, 
+        names = enrichment_intersect_up [order(enrichment_intersect_up [,2]),1][1:15][15:1],
+        main = "Enrichment of molecule class and GO Biological processes\nbiomolecules significantly up with COVID status and severity")
+
+barplot(-log10(enrichment_intersect_down[order(enrichment_intersect_down[,2]),2][1:15][15:1]), 
+        xlab ="-log10(p-value)", 
+        cex.names = 0.9, horiz = T, col = 3, 
+        names = enrichment_intersect_down[order(enrichment_intersect_down[,2]),1][1:15][15:1],
+        main = "Enrichment of molecule class and GO Biological processes\nbiomolecules significantly down with COVID status and severity")
+
+dev.off()
+
+write.csv(EN_merge[EN_merge$biomolecule_id %in% biomolecule_interest_directional,], "intersect_features.csv")
+# 
+# df_forScott<- t_df_wide_exprs[row.names(t_df_wide_exprs) %in% setdiff(biomolecule_interest_directional, biomolecule_unkowns), ]
+# colnames(df_forScott) <- df_wide_all$sample_id
+# write.csv(df_forScott, "data/Fig2d_feature_table.csv")
+
+write.csv(cbind(enrichment_intersect_up_std, enrichment_intersect_down_std), "data/enrichment_intersect_COVID_and_sevity.csv")
