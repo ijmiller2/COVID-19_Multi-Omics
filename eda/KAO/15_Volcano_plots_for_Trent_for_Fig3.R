@@ -237,42 +237,61 @@ for(i in c(56)){
 }
 
 
-for(i in c(62)){
+for(i in c(132)){
   up <- class_and_GO_bp[[enrichment_significant_up_COVID[i,1]]]
   
   plot(m$FC[!unknown], -log(m$q_value)[!unknown], 
        pch = 19, col = "gray70",
-       ylim = c(0, 25), xlim = c(-4, 6),
+       ylim = c(0, 35), xlim = c(-4, 6),
        main = paste(enrichment_significant_up_COVID[i,1]), 
        ylab = "-log(adjusted p-value of likelyhood ratio)",
        xlab = "log2(abundance COVID-19 positive/COVID-19 negative)",
        las = 1, bty = "l", cex.axis = 1.2)
   points(m$FC[m$biomolecule_id %in% up], -log(m$q_value)[m$biomolecule_id %in% up], 
-         pch = 19, col = colors[c(12,9,10,11,11)][m$omics_id[m$biomolecule_id %in% up]])
+         pch = 19,col = colors[c(12,9,10,11,11)][m$omics_id[m$biomolecule_id %in% up]])
   
 }
 
 dev.off()
 
-for(i in c(2889)){
+## source("14_KAO_figure_2_version_1.R")
+cex_breaks = seq(0,35, length.out = 5)
+cex_bin_values <- .bincode(-log(EN_merge$q_value.HFD), cex_breaks, include.lowest = T)
+cex_HFD <- seq(0.5, 3, length.out = 5)[cex_bin_values]
+cex_sig <- c(0.7, 1.2)[as.numeric(EN_merge$biomolecule_id %in% biomolecule_interest_directional)+1]
+
+unknown <- grepl("nknown", EN_merge$standardized_name.COVID)
+
+pdf("plots/Volcano_plot_neutrophil_degranulation_v2.pdf", height = 5, width = 5, useDingbats = F)
+for(i in c(132)){
   up <- class_and_GO_bp[[enrichment_significant_up_COVID[i,1]]]
+  par(mgp = c(1.8, 0.7, 0), tcl = -0.3)
   
-  plot(m$FC[!unknown], -log(m$q_value)[!unknown], 
+  plot(EN_merge$FC[!unknown], -log(EN_merge$q_value.COVID)[!unknown], 
        pch = 19, col = "gray70",
-       ylim = c(0, 40), xlim = c(-4, 6),
+       cex = 0.7,
+       ylim = c(0, 35), xlim = c(-4, 6),
        main = paste(enrichment_significant_up_COVID[i,1]), 
-       ylab = "-log(adjusted p-value of likelyhood ratio)",
+       ylab = "-log(FDR)",
        xlab = "log2(abundance COVID-19 positive/COVID-19 negative)",
        las = 1, bty = "l", cex.axis = 1.2)
-  points(m$FC[m$biomolecule_id %in% up], -log(m$q_value)[m$biomolecule_id %in% up], 
-         pch = 19, col = colors[c(12,9,10,11,11)][m$omics_id[m$biomolecule_id %in% up]])
-  
+  points(EN_merge$FC[EN_merge$biomolecule_id %in% up], -log(EN_merge$q_value.COVID)[EN_merge$biomolecule_id %in% up], 
+         pch = 19,
+         cex = cex_sig[EN_merge$biomolecule_id %in% up],
+         col = colors[c(12,9,10,11,11)][EN_merge$omics_id[EN_merge$biomolecule_id %in% up]])
+  text(EN_merge$FC[(EN_merge$biomolecule_id %in% up) & (EN_merge$biomolecule_id %in% biomolecule_interest_directional)], 
+       -log(EN_merge$q_value.COVID)[(EN_merge$biomolecule_id %in% up) & (EN_merge$biomolecule_id %in% biomolecule_interest_directional)],
+       EN_merge$standardized_name.COVID[(EN_merge$biomolecule_id %in% up) & (EN_merge$biomolecule_id %in% biomolecule_interest_directional)],
+       pos =4
+  )
+
 }
+dev.off()
 
-enrichment_significant_up_COVID_protein <- enrichment(m$biomolecule_id[m$q_value < 0.05 & m$FC > 0 & m$omics_id == 1], class_and_GO_bp, m$biomolecule_id)
-enrichment_significant_down_COVID_protein <- enrichment(m$biomolecule_id[m$q_value < 0.05 & m$FC < 0 & m$omics_id == 1], class_and_GO_bp, m$biomolecule_id)
+enrichment_significant_up_COVID_protein <- enrichment(m$standardized_name[m$q_value < 0.05 & m$FC > 0 & m$omics_id == 1], class_and_GO_bp_standardized_names, m$standardized_name)
+enrichment_significant_down_COVID_protein <- enrichment(m$standardized_name[m$q_value < 0.05 & m$FC < 0 & m$omics_id == 1], class_and_GO_bp_standardized_names, m$standardized_name)
 
-enrichment_significant_up_COVID_transcipts <- enrichment(m$biomolecule_id[m$q_value < 0.05 & m$FC > 0 & m$omics_id == 5], class_and_GO_bp, m$biomolecule_id)
-enrichment_significant_down_COVID_transcripts <- enrichment(m$biomolecule_id[m$q_value < 0.05 & m$FC < 0 & m$omics_id == 5], class_and_GO_bp, m$biomolecule_id)
+enrichment_significant_up_COVID_transcipts <- enrichment(m$standardized_name[m$q_value < 0.05 & m$FC > 0 & m$omics_id == 5], class_and_GO_bp_standardized_names, m$standardized_name)
+enrichment_significant_down_COVID_transcripts <- enrichment(m$standardized_name[m$q_value < 0.05 & m$FC < 0 & m$omics_id == 5], class_and_GO_bp_standardized_names, m$standardized_name)
 
 write.csv(cbind(enrichment_significant_up_COVID_protein, enrichment_significant_down_COVID_protein, enrichment_significant_up_COVID_transcipts, enrichment_significant_down_COVID_transcripts), file = "data/differences_COVID_enrichment_proteins_transcipts.csv")

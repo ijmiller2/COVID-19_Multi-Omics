@@ -147,7 +147,7 @@ FC <- read.csv("data/COVID_fc_by_biomolecule_ID.csv")
 ## load in transcript pvalues 
 
 transcript_pvalues <- read.delim("P:/All_20200428_COVID_plasma_multiomics/Transcriptomics/AllGenes.txt", sep = " ")
-transcript_pvalues <- data.frame(standardized_name = row.names(transcript_pvalues), PP = 1.000000001-transcript_pvalues[,1], stringsAsFactors = F)
+transcript_pvalues <- data.frame(standardized_name = row.names(transcript_pvalues), PP = 1.0000000000001-transcript_pvalues[,1], stringsAsFactors = F)
 
 ## merging pvalues from database with DESeq results
 
@@ -176,7 +176,7 @@ plot(m$FC[unknown], -log(m$q_value)[unknown],
      pch = 1, col = "gray40",
      ylim = c(0, 34), xlim = c(-4, 6),
      main = "Effect of COVID", 
-     ylab = "-log(adjusted p-value)",
+     ylab = "-log(FDR)",
      xlab = "log2(COVID-19/non-COVID-19)",
      las = 1, bty = "l", cex.axis = 1.2)
 points(m$FC[!unknown], -log(m$q_value)[!unknown], 
@@ -289,7 +289,7 @@ dev.off()
 
 pdf("plots/enriched_in_covid_volcano_plots_3.pdf", useDingbats = F, height = 7, width = 5)
 par(mfrow = c(3,2))
-for(i in c(10, 11, 21,22,31)){
+for(i in c(10, 11, 21,22,132)){
 up <- class_and_GO_bp[[enrichment_significant_up_COVID[order(enrichment_significant_up_COVID$pvalue),][i,1]]]
 
 plot(m$FC[!unknown], -log(m$q_value)[!unknown], 
@@ -574,19 +574,19 @@ enrichment_intersect_down_std <- enrichment(EN_merge$standardized_name.COVID[EN_
 enrichment_intersect_up_std <- enrichment(EN_merge$standardized_name.COVID[EN_merge$biomolecule_id %in% biomolecule_intersect_up], class_and_GO_bp_standardized_names, EN_merge$standardized_name.COVID)
 
 
-pdf("plots/Fig2_KAO_GO_BP_Enrichment_based_on_UP_intersect.pdf", width = 7, height = 9)
+pdf("plots/Fig2_KAO_GO_BP_Enrichment_based_on_UP_intersect.pdf", width = 7, height =5.5)
 par(mar = c(4,25,4,1), las  = 1, mgp = c(2.5,0.5,0), tcl =  -0.3, ps = 12)
 par(mfrow = c(2,1))
-barplot(-log10(enrichment_intersect_up [order(enrichment_intersect_up[,2]),2][1:15][15:1]), 
+barplot(-log10(enrichment_intersect_up [order(enrichment_intersect_up[,2]),2][1:7][7:1]), 
         xlab ="-log10(q-value)", 
         cex.names = 0.9, horiz = T, col = 1, 
-        names = enrichment_intersect_up [order(enrichment_intersect_up [,2]),1][1:15][15:1],
+        names = enrichment_intersect_up [order(enrichment_intersect_up [,2]),1][1:7][7:1],
         main = "Enrichment of molecule class and GO Biological processes\nbiomolecules significantly up with COVID status and severity")
 
-barplot(-log10(enrichment_intersect_down[order(enrichment_intersect_down[,2]),2][1:15][15:1]), 
+barplot(-log10(enrichment_intersect_down[order(enrichment_intersect_down[,2]),2][1:7][7:1]), 
         xlab ="-log10(p-value)", 
         cex.names = 0.9, horiz = T, col = 3, 
-        names = enrichment_intersect_down[order(enrichment_intersect_down[,2]),1][1:15][15:1],
+        names = enrichment_intersect_down[order(enrichment_intersect_down[,2]),1][1:7][7:1],
         main = "Enrichment of molecule class and GO Biological processes\nbiomolecules significantly down with COVID status and severity")
 
 dev.off()
