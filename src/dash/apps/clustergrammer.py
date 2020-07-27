@@ -10,6 +10,7 @@ import pandas as pd
 
 from data import get_omics_data, get_biomolecule_names, get_combined_data, get_p_values, get_volcano_data
 from plot import volcano_plot
+from nav import navbar
 
 # importing app through index page
 from app import app
@@ -80,49 +81,6 @@ first_card = html.Iframe(
             width='900',
             style={"border-color":"transparent"}
         )
-
-COONLAB_LOGO="https://coonlabs.com/wp-content/uploads/2016/07/coon-logo-white.png"
-navbar = dbc.NavbarSimple(
-
-        [
-
-        dbc.NavItem(dbc.NavLink(html.Span(
-                "About",
-                id="tooltip-about",
-                style={"cursor": "pointer"},
-            ))),
-
-        dbc.Tooltip(
-        "Link to Preprint",
-        target="tooltip-about"
-        ),
-
-        dbc.DropdownMenu(
-            children=[
-                dbc.DropdownMenuItem("Meet the Team", header=True),
-                dbc.DropdownMenuItem("UW–Madison", href="https://coonlabs.com/"),
-                dbc.DropdownMenuItem("Albany Medical Center", href="https://www.amc.edu/Profiles/jaitova.cfm"),
-                dbc.DropdownMenuItem("Morgridge Institute for Research", href="https://morgridge.org/research/regenerative-biology/bioinformatics/")
-            ],
-            nav=True,
-            in_navbar=True,
-            label="More",
-        ),
-
-        dbc.NavItem(html.Div(html.A(html.Img(src=COONLAB_LOGO,
-                style={"height":"40px"}),
-                href="https://coonlabs.com/"),
-                className="d-none d-lg-block ml-4"))
-
-        ],
-    brand="NIH NATIONAL CENTER FOR QUANTITATIVE BIOLOGY OF COMPLEX SYSTEMS",
-    brand_style={"font-size":"xx-large", "font-style":"italic"},
-    brand_href="https://www.ncqbcs.com/",
-    color="#5bc0de",
-    dark=True,
-    className="mt-1",
-    fluid=True
-)
 
 #app.layout = dbc.Container([
 layout = dbc.Container([
