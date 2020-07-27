@@ -75,7 +75,7 @@ control_panel = dbc.Card(
 
 first_card = html.Iframe(
             id="cgrammer-iframe",
-            src="https://amp.pharm.mssm.edu/clustergrammer/viz/5734a7399fee36034aeb787e/rc_two_cats.txt",
+            src="https://amp.pharm.mssm.edu/clustergrammer/viz/5eed203e8ec9bb2d622075e9/proteomics.txt",
             height='600',
             width='900',
             style={"border-color":"transparent"}
@@ -185,10 +185,10 @@ layout = dbc.Container([
 def update_heatmap(dataset):
 
     url_dict = {
-    "Proteins": "http://amp.pharm.mssm.edu/clustergrammer/viz/5eed203e8ec9bb2d622075e9/proteomics.txt",
-    "Lipids": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061a208ec9bb6fb2f14a1d/lipidomics.txt",
-    "Metabolites": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061c7f8ec9bb6fb2f14a37/metabolomics.txt",
-    "Transcripts": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061cfc8ec9bb6fb2f14a45/transcriptomics.txt"
+    "Proteins": "https://amp.pharm.mssm.edu/clustergrammer/viz/5eed203e8ec9bb2d622075e9/proteomics.txt",
+    "Lipids": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061a208ec9bb6fb2f14a1d/lipidomics.txt",
+    "Metabolites": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061c7f8ec9bb6fb2f14a37/metabolomics.txt",
+    "Transcripts": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061cfc8ec9bb6fb2f14a45/transcriptomics.txt"
 
     }
 
@@ -214,10 +214,10 @@ if __name__ == '__main__':
     def update_heatmap(dataset):
 
         url_dict = {
-        "Proteins": "http://amp.pharm.mssm.edu/clustergrammer/viz/5eed203e8ec9bb2d622075e9/proteomics.txt",
-        "Lipids": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061a208ec9bb6fb2f14a1d/lipidomics.txt",
-        "Metabolites": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061c7f8ec9bb6fb2f14a37/metabolomics.txt",
-        "Transcripts": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061cfc8ec9bb6fb2f14a45/transcriptomics.txt"
+        "Proteins": "https://amp.pharm.mssm.edu/clustergrammer/viz/5eed203e8ec9bb2d622075e9/proteomics.txt",
+        "Lipids": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061a208ec9bb6fb2f14a1d/lipidomics.txt",
+        "Metabolites": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061c7f8ec9bb6fb2f14a37/metabolomics.txt",
+        "Transcripts": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061cfc8ec9bb6fb2f14a45/transcriptomics.txt"
 
         }
 
