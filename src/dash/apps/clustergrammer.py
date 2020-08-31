@@ -10,6 +10,7 @@ import pandas as pd
 
 from data import get_omics_data, get_biomolecule_names, get_combined_data, get_p_values, get_volcano_data
 from plot import volcano_plot
+from nav import navbar
 
 # importing app through index page
 from app import app
@@ -75,54 +76,11 @@ control_panel = dbc.Card(
 
 first_card = html.Iframe(
             id="cgrammer-iframe",
-            src="https://amp.pharm.mssm.edu/clustergrammer/viz/5734a7399fee36034aeb787e/rc_two_cats.txt",
+            src="https://amp.pharm.mssm.edu/clustergrammer/viz/5eed203e8ec9bb2d622075e9/proteomics.txt",
             height='600',
             width='900',
             style={"border-color":"transparent"}
         )
-
-COONLAB_LOGO="https://coonlabs.com/wp-content/uploads/2016/07/coon-logo-white.png"
-navbar = dbc.NavbarSimple(
-
-        [
-
-        dbc.NavItem(dbc.NavLink(html.Span(
-                "About",
-                id="tooltip-about",
-                style={"cursor": "pointer"},
-            ))),
-
-        dbc.Tooltip(
-        "Link to Preprint",
-        target="tooltip-about"
-        ),
-
-        dbc.DropdownMenu(
-            children=[
-                dbc.DropdownMenuItem("Meet the Team", header=True),
-                dbc.DropdownMenuItem("UW–Madison", href="https://coonlabs.com/"),
-                dbc.DropdownMenuItem("Albany Medical Center", href="https://www.amc.edu/Profiles/jaitova.cfm"),
-                dbc.DropdownMenuItem("Morgridge Institute for Research", href="https://morgridge.org/research/regenerative-biology/bioinformatics/")
-            ],
-            nav=True,
-            in_navbar=True,
-            label="More",
-        ),
-
-        dbc.NavItem(html.Div(html.A(html.Img(src=COONLAB_LOGO,
-                style={"height":"40px"}),
-                href="https://coonlabs.com/"),
-                className="d-none d-lg-block ml-4"))
-
-        ],
-    brand="NIH NATIONAL CENTER FOR QUANTITATIVE BIOLOGY OF COMPLEX SYSTEMS",
-    brand_style={"font-size":"xx-large", "font-style":"italic"},
-    brand_href="https://www.ncqbcs.com/",
-    color="#5bc0de",
-    dark=True,
-    className="mt-1",
-    fluid=True
-)
 
 #app.layout = dbc.Container([
 layout = dbc.Container([
@@ -185,10 +143,10 @@ layout = dbc.Container([
 def update_heatmap(dataset):
 
     url_dict = {
-    "Proteins": "http://amp.pharm.mssm.edu/clustergrammer/viz/5eed203e8ec9bb2d622075e9/proteomics.txt",
-    "Lipids": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061a208ec9bb6fb2f14a1d/lipidomics.txt",
-    "Metabolites": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061c7f8ec9bb6fb2f14a37/metabolomics.txt",
-    "Transcripts": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061cfc8ec9bb6fb2f14a45/transcriptomics.txt"
+    "Proteins": "https://amp.pharm.mssm.edu/clustergrammer/viz/5eed203e8ec9bb2d622075e9/proteomics.txt",
+    "Lipids": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061a208ec9bb6fb2f14a1d/lipidomics.txt",
+    "Metabolites": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061c7f8ec9bb6fb2f14a37/metabolomics.txt",
+    "Transcripts": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061cfc8ec9bb6fb2f14a45/transcriptomics.txt"
 
     }
 
@@ -214,10 +172,10 @@ if __name__ == '__main__':
     def update_heatmap(dataset):
 
         url_dict = {
-        "Proteins": "http://amp.pharm.mssm.edu/clustergrammer/viz/5eed203e8ec9bb2d622075e9/proteomics.txt",
-        "Lipids": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061a208ec9bb6fb2f14a1d/lipidomics.txt",
-        "Metabolites": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061c7f8ec9bb6fb2f14a37/metabolomics.txt",
-        "Transcripts": "http://amp.pharm.mssm.edu/clustergrammer/viz/5f061cfc8ec9bb6fb2f14a45/transcriptomics.txt"
+        "Proteins": "https://amp.pharm.mssm.edu/clustergrammer/viz/5eed203e8ec9bb2d622075e9/proteomics.txt",
+        "Lipids": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061a208ec9bb6fb2f14a1d/lipidomics.txt",
+        "Metabolites": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061c7f8ec9bb6fb2f14a37/metabolomics.txt",
+        "Transcripts": "https://amp.pharm.mssm.edu/clustergrammer/viz/5f061cfc8ec9bb6fb2f14a45/transcriptomics.txt"
 
         }
 

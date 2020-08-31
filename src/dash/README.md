@@ -1,5 +1,5 @@
 
-## Notes on launch server
+## Notes on launching server
 
 1. Transfer SQLITE database to 'data/SQLite Database/DATE'
 
@@ -18,4 +18,7 @@
 - Detach from screen: `screen cntrl+a cntrl+d`
 
 5. Running with gunicorn:
-- `gunicorn index:server -b 0.0.0.0:8050 --timeout=180`
+- `/root/anaconda3/bin/gunicorn index:server -b 0.0.0.0:8080 --timeout=180`
+
+6. Running via https:
+- `/root/anaconda3/bin/gunicorn index:server -b 0.0.0.0:8080 --timeout=180 --certfile covid-omics.app.crt --keyfile covid-omics.key`
