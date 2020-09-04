@@ -22,7 +22,6 @@ color_dict = {
                 "transcriptomics":"#2C0379",
                 "selected_biomolecule":"black"
                 }
-
 def get_color_list(combined_df):
     # from combined_df
 
@@ -327,6 +326,8 @@ def correlation_scatter(combined_df, biomolecule_id, selected_groups,
         combined_df.replace("F", 1, inplace=True)
 
     # drop samples with missing values for clinical measurement
+    # strip any whitespace
+    combined_df = combined_df.apply(lambda x: x.astype(str).str.strip() if x.dtype == "object" else x)
     combined_df.replace('', np.nan, inplace=True)
     combined_df = combined_df.dropna(subset=[clinical_measurement, 'COVID'])
 

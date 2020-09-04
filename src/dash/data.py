@@ -5,7 +5,7 @@ import re
 import numpy as np
 
 # SQLite path
-db_path = 'sqlite:///../../data/SQLite Database/20200617/Covid-19 Study DB.sqlite'
+db_path = 'sqlite:///../../data/SQLite Database/20200901/Covid-19 Study DB.sqlite'
 
 omics_id_dict = {
         "proteomics":1,
@@ -43,8 +43,9 @@ def get_omics_data(with_metadata=False, dataset="proteomics"):
     ## NOTE: For some reason, SQL filter not working for keep on raw files
     rawfiles_df = rawfiles_df[rawfiles_df['keep']==1]
 
-    # pull table into df
-    deidentified_patient_metadata_df = pd.read_sql_query("SELECT * from deidentified_patient_metadata", connection)
+    # pull table into df, drop sample 54
+    query = "SELECT * from deidentified_patient_metadata WHERE sample_id<>54"
+    deidentified_patient_metadata_df = pd.read_sql_query(query, connection)
 
     # make sure the merge by columns are all the same type -> pandas seems sensitive to this
     omics_measurements_df = omics_measurements_df.astype({'replicate_id': 'int32'})
@@ -240,6 +241,15 @@ def get_p_values():
     query = "SELECT * from pvalues"
     # get biomolecule names
     pvalues_df = pd.read_sql_query(query, connection)
+
+    # drop biomolecule_ids where keep!=1
+    drop_list = []
+    for index, row in pvalues_df.iterrows():
+        biomolecule_id = row['biomolecule_id']
+        if str(biomolecule_id) not in biomolecule_name_dict:
+            drop_list.append(index)
+
+    pvalues_df.drop(drop_list, inplace=True)
 
     return pvalues_df
 
