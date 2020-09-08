@@ -218,3 +218,39 @@ def update_table(biomolecule_id):
                 data[key] = '%.3f' % value
 
     return data_list # list of dicts
+
+if __name__ == '__main__':
+
+    import dash_bootstrap_components as dbc
+    external_stylesheets=[dbc.themes.BOOTSTRAP]
+
+    app = dash.Dash(
+        __name__,
+        external_stylesheets=external_stylesheets)
+    app.title = 'differential_expression'
+
+    app.layout = layout
+
+    @app.callback(
+        Output('table', 'data'),
+        [Input('biomolecule_id-de', 'value')])
+    def update_table(biomolecule_id):
+
+        data_list = pvalues_df[pvalues_df['biomolecule_id']==int(biomolecule_id)].to_dict('records')
+
+        for data in data_list:
+            for key, value in data.items():
+
+                if key in ['p_value', 'q_value']:
+                    data[key] = '%.3E' % value
+
+                elif key in ['log2_FC', 'neg_log10_p_value', 'effect_size']:
+                    data[key] = '%.3f' % value
+
+        return data_list # list of dicts
+
+    app.run_server(
+        debug=True,
+        host='0.0.0.0',
+        #port='8080'
+        )

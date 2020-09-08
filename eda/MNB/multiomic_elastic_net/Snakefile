@@ -1,0 +1,83 @@
+################################################
+#   Run elastic net regression on each
+#   omic-type dataset.
+################################################
+
+configfile: 'config.json'
+
+rule:
+    input:
+        'results/elastic_net_metabolomics.positive_features.tsv',
+        'results/elastic_net_metabolomics.negative_features.tsv',
+        'results/elastic_net_metabolomics_remove_unknowns.positive_features.tsv',
+        'results/elastic_net_metabolomics_remove_unknowns.negative_features.tsv',
+        'results/elastic_net_proteomics.positive_features.tsv',
+        'results/elastic_net_proteomics.negative_features.tsv',
+        'results/elastic_net_lipidomics.positive_features.tsv',
+        'results/elastic_net_lipidomics.negative_features.tsv',
+        'results/elastic_net_lipidomics_remove_unknowns.positive_features.tsv',
+        'results/elastic_net_lipidomics_remove_unknowns.negative_features.tsv',
+        'results/regression_analysis/EN_genes.only_COVID.positive_features.tsv',
+        'results/regression_analysis/EN_genes.only_COVID.negative_features.tsv'
+
+rule run_transcriptomic_elastic_net:
+    input:
+        tpm='../raw_data/genes.tpm.no_hg.tab',
+        meta='../raw_data/DCD_v3.tsv'
+    output:
+        'results/regression_analysis/EN_genes.only_COVID.positive_features.tsv',
+        'results/regression_analysis/EN_genes.only_COVID.negative_features.tsv'
+    run:
+
+        cmds=[
+            'mkdir -p {}/regression_analysis'.format(config['output_location']),
+            'python elastic_net_hospital_free_transcriptomic.py {{input.tpm}} {{input.meta}} -l -s COVID -o results/regression_analysis/EN_genes.only_COVID'
+        ]
+        for c in cmds:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule run_metabolomics_elastic_net:
+    output:
+        'results/elastic_net_metabolomics.positive_features.tsv',
+        'results/elastic_net_metabolomics.negative_features.tsv'    
+    run:
+        cmd='python regression_hospital_free.py raw_data/2020-06-11_metabolomics.tsv -a elastic_net -o results/elastic_net_metabolomics'
+        shell('echo "{}"'.format(cmd))
+        shell(cmd)
+
+rule run_metabolomics_elastic_net_remove_unknown:
+    output:
+        'results/elastic_net_metabolomics_remove_unknowns.positive_features.tsv',
+        'results/elastic_net_metabolomics_remove_unknowns.negative_features.tsv'
+    run:
+        cmd='python regression_hospital_free.py raw_data/2020-06-11_metabolomics.tsv -a elastic_net -r -o results/elastic_net_metabolomics_remove_unknowns'
+        shell('echo "{}"'.format(cmd))
+        shell(cmd)
+
+rule run_proteomics_elastic_net:
+    output:
+        'results/elastic_net_proteomics.positive_features.tsv',
+        'results/elastic_net_proteomics.negative_features.tsv'
+    run:
+        cmd='python regression_hospital_free.py raw_data/2020-06-10_proteomics.tsv -a elastic_net -o results/elastic_net_proteomics'
+        shell('echo "{}"'.format(cmd))
+        shell(cmd)
+
+rule run_lipidomics_elastic_net:
+    output:
+        'results/elastic_net_lipidomics.positive_features.tsv',
+        'results/elastic_net_lipidomics.negative_features.tsv'
+    run:
+        cmd='python regression_hospital_free.py raw_data/2020-06-10_lipidomics.tsv -a elastic_net -o results/elastic_net_lipidomics'
+        shell('echo "{}"'.format(cmd))
+        shell(cmd)
+
+rule run_lipidomics_elastic_net_remove_unknown:
+    output:
+        'results/elastic_net_lipidomics_remove_unknowns.positive_features.tsv',
+        'results/elastic_net_lipidomics_remove_unknowns.negative_features.tsv'
+    run:
+        cmd='python regression_hospital_free.py raw_data/2020-06-10_lipidomics.tsv -a elastic_net -r -o results/elastic_net_lipidomics_remove_unknowns'
+        shell('echo "{}"'.format(cmd))
+        shell(cmd)

@@ -63,3 +63,6 @@ To do:
 - Work on cross page data sharing/caching to improve performance
 - Add load bars
 - Enable table and plot downloads
+
+As of 9/4/10:
+- Updated code for volcano plot and linear regression pages to handle new databse. (commit id: f403f22, database 20200617 -> a262bf8, 20200901)
