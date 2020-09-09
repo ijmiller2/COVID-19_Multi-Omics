@@ -306,3 +306,33 @@
 # - Covid-19 Study DB.sqlite
 # output:
 # - "data/Sup_table_2_merge_unknowns.csv"
+
+## 17_KAO_Dynamic_range_for_each_ome.R
+# description: Plotting the distributions of each omic data set. 
+# date created: 7/19/20
+# date last modified: 7/19/20
+# input: 
+# - Covid-19 Study DB.sqlite
+# output:
+# - plot 
+
+## 18_KAO_Comparing_WHO_score_to_HFD.R
+# description: A reviewer resquested we incorporate WHO ordianl score into the database. 
+# This script looks at how the HFD-45 outcome metric compares to the WHO at 28 days. 
+# date created: 8/31/20
+# date last modified: 8/31/20
+# input: 
+# - Covid-19 Study DB.sqlite
+# output:
+# - plot 
+
+## X6_KAO_Creating_pvalues_table_response_to_reviewer.R
+# description: A reviewer asked about the validity of linear regression models given
+# that outliers can strongly effect the fits of models. This script provides additional 
+# pvalue calculation using a robust linear regression and adds to the database
+# date created: 8/31/20
+# date last _modifed: 8/31/20
+# input: 
+# - Covid-19 Study DB.sqlite
+# output:
+# - Covid-19 Study DB.sqlite, modified pvalues table
