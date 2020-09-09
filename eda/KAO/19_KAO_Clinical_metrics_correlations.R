@@ -132,20 +132,24 @@ filter_features <- colSums(clinic_cor > 0.3) > 0
 table(filter_features)
 
 dim(clinic_cor)
-pheatmap(clinic_cor[filter_clinical, filter_features])
+pheatmap(clinic_cor[ ,filter_features])
 
 ### write out RData file #### 
 
 colnames(clinic_cor) <-  sub("normalized_abundance.", "",colnames(clinic_cor))
 
 save(clinic_cor, biomolecules_df, file = "data/Correlation_with_clinical_measurements_KAO.RData")
+clinic_cor_std <- clinic_cor
+colnames(clinic_cor_std) <- biomolecules_df$standardized_name[match(colnames(clinic_cor), biomolecules_df$biomolecule_id)]
+
+write.csv(clinic_cor_std[,filter_features], "clinical_correlation.csv")
 
 ### GO terms for WBC counts ####
 
 class_and_GO_bp <- make_reference_sets(biomolecules_df$GO_BP, as.character(biomolecules_df$biomolecule_id))
 
 row.names(clinic_cor)
-biomolecules_df$standardized_name[ as.character(biomolecules_df$biomolecule_id) %in% colnames(clinic_cor)[clinic_cor[7, ] > 0.45]]
+biomolecules_df$standardized_name[ as.character(biomolecules_df$biomolecule_id) %in% colnames(clinic_cor)]
 
 
 #enrich D-Dimer
