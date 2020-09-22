@@ -3,40 +3,39 @@ A repository for collaborative multi-omics data analysis
 
 ### Directory structure
 ```bash
-├── .env # <- Store password, API keys here
-├── .gitignore # <- List of files and folders for git to ignore
 ├── README.md
-├── data # <- Keep local data here; no need to commit this
-│   ├── external
-│   ├── interim
-│   ├── processed
-│   └── raw
-├── eda # <- Directory for exploratory data analysis and notebooks
-│   └── IJM
-│       ├── lipidomics
-│       │   └── README.md
-│       ├── metabolomics
-│       │   └── README.md
-│       ├── mutlti-omics
-│       │   └── README.md
-│       └── proteomics
-│           └── README.md
-├── figures # <- Keep figures here; no need to commit this
-├── reference # <- Data dictionaries, manuals, and all other explanatory materials.
+├── eda
+│   ├── BJA
+│   ├── EAT
+│   ├── IJM
+│   ├── JGM
+│   ├── KAO
+│   ├── MNB
+│   └── VL
+├── reference
 │   ├── color_palette.txt
-│   └── data_dictionary.txt
-└── src # <- Keep reusable functions and source code here
+│   ├── data_dictionary.txt
+│   └── db_schema.png
+└── src
     ├── README.md
-    ├── analysis
-    │   ├── analysis.R
-    │   └── analysis.py
+    ├── dash
+        ├── README.md
+        ├── app.py
+        ├── apps
+        │   ├── clustergrammer.py
+        │   ├── differential_expression.py
+        │   ├── linear_regression.py
+        │   └── pca.py
+        ├── assets
+        │   └── favicon.ico
+        ├── change_log.md
+        ├── data.py
+        ├── index.py
+        ├── nav.py
+        ├── plot.py
+        └── requirements.txt
+            ├── db_queries
+            ├── processing
+            └── visualization
     ├── db_queries
-    │   ├── db_queries.R
-    │   └── db_queries.py
-    ├── processing
-    │   ├── processing.R
-    │   └── processing.py
-    └── visualization
-        ├── visualization.R
-        └── visualization.py
 ```
