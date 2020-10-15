@@ -34,8 +34,7 @@ A repository for collaborative multi-omics data analysis
         ├── nav.py
         ├── plot.py
         └── requirements.txt
-            ├── db_queries
-            ├── processing
-            └── visualization
     ├── db_queries
+        ├── db_queries.R
+        └── db_queries.py
 ```
