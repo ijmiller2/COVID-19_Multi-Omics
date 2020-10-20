@@ -3,11 +3,18 @@ import dash
 import dash_bootstrap_components as dbc
 external_stylesheets=[dbc.themes.BOOTSTRAP]
 
+# add GA script
+external_scripts = [
+    {'src':'/assets/gtag.js'},
+]
+
 app = dash.Dash(__name__,
     suppress_callback_exceptions=True,
-    external_stylesheets=external_stylesheets)
+    external_stylesheets=external_stylesheets,
+    external_scripts=external_scripts)
 
 app.title = 'COVID-19 Multi-Omics'
+
 server = app.server
 
 ### load shared data ###
