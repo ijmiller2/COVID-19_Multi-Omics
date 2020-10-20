@@ -11,10 +11,10 @@ navbar = dbc.NavbarSimple(
     dbc.NavItem(dbc.NavLink(html.Span(
             "About",
             id="tooltip-about",
-            style={"cursor": "pointer"}), href="https://www.medrxiv.org/content/10.1101/2020.07.17.20156513v1")),
-        
+            style={"cursor": "pointer"}), href="https://www.cell.com/cell-systems/fulltext/S2405-4712(20)30371-9")),
+
     dbc.Tooltip(
-        "View the Preprint",
+        "View the paper in Cell Systems",
         target="tooltip-about"
         ),
 
