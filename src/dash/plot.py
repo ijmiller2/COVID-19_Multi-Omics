@@ -22,6 +22,7 @@ color_dict = {
                 "transcriptomics":"#2C0379",
                 "selected_biomolecule":"black"
                 }
+
 def get_color_list(combined_df):
     # from combined_df
 
@@ -59,6 +60,12 @@ def biomolecule_bar(combined_df, biomolecule_id, biomolecule_names_dict):
 
     biomolecule_name = biomolecule_names_dict[biomolecule_id]
 
+    # set y-axis label
+    if "[T] " in biomolecule_name:
+        y_axis_title = 'log2(Norm. Count) Value'
+    else:
+        y_axis_title = 'log2(LFQ) Value'
+
     # sort the samples by group
     color_list = get_color_list(combined_df)
     combined_df['color_by'] = color_list
@@ -75,7 +82,7 @@ def biomolecule_bar(combined_df, biomolecule_id, biomolecule_names_dict):
         title="{}".format(biomolecule_name),
         legend_title_text='Group',
         xaxis_title='Sample',
-        yaxis_title='log2(LFQ) Value',
+        yaxis_title=y_axis_title,
         font=dict(
             family="Helvetica",
             size=18,
@@ -86,6 +93,12 @@ def biomolecule_bar(combined_df, biomolecule_id, biomolecule_names_dict):
 def boxplot(combined_df, biomolecule_id, biomolecule_names_dict):
 
     biomolecule_name = biomolecule_names_dict[biomolecule_id]
+
+    # set y-axis label
+    if "[T] " in biomolecule_name:
+        y_axis_title = 'log2(Norm. Count) Value'
+    else:
+        y_axis_title = 'log2(LFQ) Value'
 
     color_list = get_color_list(combined_df)
 
@@ -100,7 +113,7 @@ def boxplot(combined_df, biomolecule_id, biomolecule_names_dict):
         title="{}".format(biomolecule_name),
         legend_title_text='Group',
         xaxis_title='Group',
-        yaxis_title='log2(LFQ) Value',
+        yaxis_title=y_axis_title,
         showlegend=False,
         font=dict(
             family="Helvetica",
@@ -316,6 +329,13 @@ def volcano_plot(volcano_df):
 def correlation_scatter(combined_df, biomolecule_id, selected_groups,
     biomolecule_name, clinical_measurement):
 
+    # set y-axis label
+    if "[T] " in biomolecule_name:
+        y_axis_title = '{} \nlog2(Norm. Counts)'.format(biomolecule_name)
+
+    else:
+        y_axis_title = '{} \nlog2(LFQ)'.format(biomolecule_name)
+
     # shorten biomolecule name
     if len(biomolecule_name) > 15:
         biomolecule_name = biomolecule_name[:15] + ".."
@@ -424,7 +444,7 @@ def correlation_scatter(combined_df, biomolecule_id, selected_groups,
         title=plot_title,
         legend_title_text='Group',
         xaxis_title='{}'.format(clinical_measurement),
-        yaxis_title='{} \nlog2 intensity'.format(biomolecule_name),
+        yaxis_title=y_axis_title,
         showlegend=True,
         font=dict(
             family="Helvetica",
