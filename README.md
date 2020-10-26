@@ -1,7 +1,7 @@
 # COVID-19_Multi-Omics
 A repository for collaborative multi-omics data analysis and the covid-omics.app.
 
-Note that the relational SQLite database is available for download via ftp from [MassIVE - accession number MSV000085703](https://doi.org/10.25345/C5F74G) under the "other" directory. For more information on data processing, analysis, and availability, please see the [open access manuscript](https://www.cell.com/cell-systems/fulltext/S2405-4712(20)30371-9#secsectitle0105).
+Note that the most recent version of the relational SQLite database is available for download via ftp from [MassIVE - accession number MSV000085703](https://doi.org/10.25345/C5F74G) under the "updates" directory. For instance, the most current version is listed under: `MSV000085703/updates/2020-09-09_lmuehlbauer_4248b39f/other/Covid-19 Study DB.sqlite` For more information on data processing, analysis, and availability, please see the [open access manuscript](https://www.cell.com/cell-systems/fulltext/S2405-4712(20)30371-9#secsectitle0105).
 
 ### Directory structure
 ```bash
